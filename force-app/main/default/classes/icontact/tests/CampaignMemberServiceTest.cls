@@ -2,7 +2,10 @@
 private class CampaignMemberServiceTest {
   @isTest
   static void testOnAfterInsert_success() {
-    Campaign camp = new Campaign(Name = 'Test Campaign');
+    Campaign camp = new Campaign(
+      Name = 'Test Campaign',
+      Send_Campaign_Email__c = true
+    );
     insert camp;
 
     List<Contact> contacts = new List<Contact>();
@@ -41,8 +44,14 @@ private class CampaignMemberServiceTest {
 
   @isTest
   static void testOnAfterInsert_multipleCampaign() {
-    Campaign camp1 = new Campaign(Name = 'Test Campaign 1');
-    Campaign camp2 = new Campaign(Name = 'Test Campaign 2');
+    Campaign camp1 = new Campaign(
+      Name = 'Test Campaign 1',
+      Send_Campaign_Email__c = true
+    );
+    Campaign camp2 = new Campaign(
+      Name = 'Test Campaign 2',
+      Send_Campaign_Email__c = true
+    );
     insert new List<Campaign>{ camp1, camp2 };
 
     Contact c1 = new Contact(
@@ -79,6 +88,44 @@ private class CampaignMemberServiceTest {
       [SELECT COUNT() FROM AsyncApexJob WHERE JobType = 'Queueable'],
       'Should enqueue two jobs'
     );
+  }
+
+  @isTest
+  static void testOnAfterInsert_doNotSendEmail() {
+    Campaign testCampaign = new Campaign(
+      Name = 'Test Campaign',
+      Send_Campaign_Email__c = false
+    );
+
+    insert testCampaign;
+
+    Contact testContact = new Contact(
+      FirstName = 'First1',
+      LastName = 'Last1',
+      Email = 'test1@test.com'
+    );
+
+    insert testContact;
+
+    List<CampaignMember> members = new List<CampaignMember>{
+      new CampaignMember(
+        CampaignId = testCampaign.Id,
+        ContactId = testContact.Id,
+        Status = 'Sent'
+      )
+    };
+
+    Test.startTest();
+    CampaignMemberService.onAfterInsert(members);
+    Test.stopTest();
+
+    Integer numCampaign = [
+      SELECT COUNT()
+      FROM AsyncApexJob
+      WHERE JobType = 'Queueable'
+    ];
+
+    System.assertEquals(0, numCampaign, 'Should equal 0 job');
   }
 
   @isTest
@@ -155,9 +202,9 @@ private class CampaignMemberServiceTest {
     Test.stopTest();
 
     System.assertEquals(
-      1,
+      0,
       [SELECT COUNT() FROM AsyncApexJob WHERE JobType = 'Queueable'],
-      'Should enqueue one job even if campaign is missing'
+      'Should enqueue no job when campaign is missing'
     );
   }
 }

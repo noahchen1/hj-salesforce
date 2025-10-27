@@ -15,7 +15,7 @@ public with sharing class CampaignMemberService {
     if (!campaignIds.isEmpty()) {
       campaigns = new Map<Id, Campaign>(
         [
-          SELECT Id, Name
+          SELECT Id, Name, Send_Campaign_Email__c
           FROM Campaign
           WHERE Id IN :campaignIds
         ]
@@ -33,15 +33,21 @@ public with sharing class CampaignMemberService {
         ? campaigns.get(cm.campaignId).Name
         : null;
 
-      row.put('email', cm.Email);
-      row.put('firstName', cm.FirstName);
-      row.put('lastName', cm.LastName);
+      Boolean sendEmail = campaigns.containsKey(cm.campaignId)
+        ? campaigns.get(cm.campaignId).Send_Campaign_Email__c
+        : false;
 
-      if (!groupRows.containsKey(campaignName)) {
-        groupRows.put(campaignName, new List<Map<String, Object>>());
+      if (sendEmail) {
+        row.put('email', cm.Email);
+        row.put('firstName', cm.FirstName);
+        row.put('lastName', cm.LastName);
+
+        if (!groupRows.containsKey(campaignName)) {
+          groupRows.put(campaignName, new List<Map<String, Object>>());
+        }
+
+        groupRows.get(campaignName).add(row);
       }
-
-      groupRows.get(campaignName).add(row);
     }
 
     for (String nameKey : groupRows.keySet()) {
