@@ -1,0 +1,40 @@
+<template>
+  <lightning-card title="Report Example" icon-name="standard:opportunity">
+    <div
+      class="slds-p-horizontal_small slds-p-vertical_small slds-grid slds-gutters"
+    >
+      <lightning-combobox
+        name="stage"
+        label="Select Opportunity Stage"
+        value={stage}
+        placeholder="Select a stage"
+        options={stageOptions}
+        onchange={handleStageChange}
+      ></lightning-combobox>
+
+      <lightning-input
+        class="slds-col"
+        type="number"
+        label="Max Rows"
+        value={limitSize}
+        min="1"
+        max="2000"
+        onchange={handleLimitChange}
+      >
+      </lightning-input>
+    </div>
+
+    <template if:true={wiredData.data}>
+      <lightning-datatable
+        key-field="Id"
+        data={rows}
+        columns={columns}
+        hide-checkbox-column
+      >
+      </lightning-datatable>
+    </template>
+    <template if:true={wiredData.error}>
+      <c-error-panel errors={wiredData.error}></c-error-panel>
+    </template>
+  </lightning-card>
+</template>
