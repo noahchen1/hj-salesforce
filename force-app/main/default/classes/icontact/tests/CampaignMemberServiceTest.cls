@@ -8,24 +8,25 @@ private class CampaignMemberServiceTest {
     );
     insert camp;
 
-    List<Contact> contacts = new List<Contact>();
+    List<Account> accounts = new List<Account>();
     for (Integer i = 0; i < 2; i++) {
-      contacts.add(
-        new Contact(
-          FirstName = 'First' + i,
-          LastName = 'Last' + i,
-          Email = 'test' + i + '@test.com'
+      accounts.add(
+        new Account(
+          Name = 'Account' + i,
+          Account_Email__c = 'test' + i + '@test.com',
+          First_Name__c = 'First' + i,
+          Last_Name__c = 'Last' + i
         )
       );
     }
-    insert contacts;
+    insert accounts;
 
     List<CampaignMember> members = new List<CampaignMember>();
-    for (Contact c : contacts) {
+    for (Account acc : accounts) {
       members.add(
         new CampaignMember(
           CampaignId = camp.Id,
-          ContactId = c.Id,
+          AccountId = acc.Id,
           Status = 'Sent'
         )
       );
@@ -54,27 +55,29 @@ private class CampaignMemberServiceTest {
     );
     insert new List<Campaign>{ camp1, camp2 };
 
-    Contact c1 = new Contact(
-      FirstName = 'First1',
-      LastName = 'Last1',
-      Email = 'test1@test.com'
+    Account acc1 = new Account(
+      Name = 'Account1',
+      Account_Email__c = 'test1@test.com',
+      First_Name__c = 'First1',
+      Last_Name__c = 'Last1'
     );
-    Contact c2 = new Contact(
-      FirstName = 'First2',
-      LastName = 'Last2',
-      Email = 'test2@test.com'
+    Account acc2 = new Account(
+      Name = 'Account2',
+      Account_Email__c = 'test2@test.com',
+      First_Name__c = 'First2',
+      Last_Name__c = 'Last2'
     );
-    insert new List<Contact>{ c1, c2 };
+    insert new List<Account>{ acc1, acc2 };
 
     List<CampaignMember> members = new List<CampaignMember>{
       new CampaignMember(
         CampaignId = camp1.Id,
-        ContactId = c1.Id,
+        AccountId = acc1.Id,
         Status = 'Sent'
       ),
       new CampaignMember(
         CampaignId = camp2.Id,
-        ContactId = c2.Id,
+        AccountId = acc2.Id,
         Status = 'Sent'
       )
     };
@@ -96,21 +99,20 @@ private class CampaignMemberServiceTest {
       Name = 'Test Campaign',
       Send_Campaign_Email__c = false
     );
-
     insert testCampaign;
 
-    Contact testContact = new Contact(
-      FirstName = 'First1',
-      LastName = 'Last1',
-      Email = 'test1@test.com'
+    Account testAccount = new Account(
+      Name = 'Test Account',
+      Account_Email__c = 'test1@test.com',
+      First_Name__c = 'First1',
+      Last_Name__c = 'Last1'
     );
-
-    insert testContact;
+    insert testAccount;
 
     List<CampaignMember> members = new List<CampaignMember>{
       new CampaignMember(
         CampaignId = testCampaign.Id,
-        ContactId = testContact.Id,
+        AccountId = testAccount.Id,
         Status = 'Sent'
       )
     };
@@ -156,14 +158,15 @@ private class CampaignMemberServiceTest {
 
   @isTest
   static void testOnAfterInsert_missingCampaignId() {
-    Contact c = new Contact(
-      FirstName = 'No',
-      LastName = 'Campaign',
-      Email = 'no-campaign@example.com'
+    Account acc = new Account(
+      Name = 'No Campaign Account',
+      Account_Email__c = 'no-campaign@example.com',
+      First_Name__c = 'No',
+      Last_Name__c = 'Campaign'
     );
-    insert c;
+    insert acc;
 
-    CampaignMember cm = new CampaignMember(ContactId = c.Id, Status = 'Sent');
+    CampaignMember cm = new CampaignMember(AccountId = acc.Id, Status = 'Sent');
 
     List<CampaignMember> members = new List<CampaignMember>{ cm };
 
@@ -180,18 +183,19 @@ private class CampaignMemberServiceTest {
 
   @isTest
   static void testOnAfterInsert_campaignIdNotInMap() {
-    Contact c = new Contact(
-      FirstName = 'Ghost',
-      LastName = 'Campaign',
-      Email = 'ghost@example.com'
+    Account acc = new Account(
+      Name = 'Ghost Account',
+      Account_Email__c = 'ghost@example.com',
+      First_Name__c = 'Ghost',
+      Last_Name__c = 'Campaign'
     );
-    insert c;
+    insert acc;
 
     Id fakeCampaignId = '701000000000000AAA';
 
     CampaignMember cm = new CampaignMember(
       CampaignId = fakeCampaignId,
-      ContactId = c.Id,
+      AccountId = acc.Id,
       Status = 'Sent'
     );
 
