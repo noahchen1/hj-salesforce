@@ -1,3 +1,18 @@
 .filters {
+  display: flex;
+  gap: 20px;
   margin: 30px;
+}
+
+.filters lightning-combobox {
+  flex: 1;
+}
+
+.loading {
+  width: 100%;
+  height: 100%;
+}
+
+.datatable-container {
+  margin: 0 30px;
 }

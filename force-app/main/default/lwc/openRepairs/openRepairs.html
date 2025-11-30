@@ -1,38 +1,55 @@
 <template>
   <lightning-card title="Open Repairs">
-    <div class="filters">
-      <lightning-combobox
-        name="billingStatus"
-        label="Billing Status"
-        value={billingStatus}
-        placeholder="Select a billing status"
-        options={billingOptions}
-        onchange={handleStatusChange}
-      >
-      </lightning-combobox>
-
-      <lightning-combobox
-        name="name"
-        label="Name"
-        value={name}
-        placeholder="Select a name"
-        options={customers}
-        onchange={handleNameChange}
-      >
-      </lightning-combobox>
-    </div>
-    <template if:true={rows.length}>
-      <lightning-datatable
-        key-field="id"
-        data={rows}
-        columns={columns}
-        hide-checkbox-column
-      ></lightning-datatable>
-    </template>
-    <template if:false={rows.length}>
-      <div class="slds-p-around_medium slds-text-align_center">
-        No data found.
+    <template if:true={isAccountsLoading}>
+      <div class="loading-screen">
+        <lightning-spinner
+          alternative-text="Loading..."
+          size="medium"
+        ></lightning-spinner>
       </div>
+    </template>
+    <template if:false={isAccountLoading}>
+      <div class="filters">
+        <lightning-combobox
+          name="name"
+          label="Name"
+          value={name}
+          placeholder="Select a name"
+          options={accountOptions}
+          onchange={handleNameChange}
+        >
+        </lightning-combobox>
+
+        <lightning-combobox
+          name="station"
+          label="Station"
+          value={station}
+          placeholder="Select a station"
+          options={stationOptions}
+          onchange={handleStationChange}
+        ></lightning-combobox>
+      </div>
+      <template if:true={rows.length}>
+        <div class="datatable-container">
+          <lightning-datatable
+            key-field="id"
+            data={rows}
+            columns={columns}
+            hide-checkbox-column
+          ></lightning-datatable>
+          <lightning-button
+            label="Previous"
+            onclick={prevPage}
+            disabled={isPrevDisabled}
+          ></lightning-button>
+          <lightning-button label="Next" onclick={nextPage}></lightning-button>
+        </div>
+      </template>
+      <template if:false={rows.length}>
+        <div class="slds-p-around_medium slds-text-align_center">
+          No data found.
+        </div>
+      </template>
     </template>
   </lightning-card>
 </template>
