@@ -132,6 +132,7 @@ export default class OpenRepairs extends LightningElement {
     this.showCustomerResults = false;
     this.customerResults = [];
     this.nameSearchKey = selectedCustomer;
+    this.pageNumber = 1;
   }
 
   formateDate = (date) => (date ? new Date(date).toLocaleDateString() : "");
