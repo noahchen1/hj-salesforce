@@ -1,0 +1,25 @@
+<template>
+  <div>
+    <lightning-input
+      label={label}
+      type="search"
+      placeholder={placeholder}
+      value={searchKey}
+      onchange={handleInputChange}
+    ></lightning-input>
+    <template if:true={showResults}>
+      <ul>
+        <template for:each={results} for:item="item">
+          <li key={item.Id} onclick={handleSelect}>{item.Name}</li>
+        </template>
+      </ul>
+    </template>
+  </div>
+</template>
+
+<!-- <c-lookup-input
+  label="Search Customer"
+  placeholder="Type to search customers"
+  onsearch={handleCustomerSearch}
+  onselect={handleCustomerSelect}
+></c-lookup-input> -->
