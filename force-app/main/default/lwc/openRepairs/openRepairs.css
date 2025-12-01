@@ -16,3 +16,10 @@
 .datatable-container {
   margin: 0 30px;
 }
+
+.btn-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}

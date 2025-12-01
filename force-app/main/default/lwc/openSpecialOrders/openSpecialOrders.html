@@ -1,0 +1,16 @@
+<template>
+    <lightning-card title="Open Special Orders">
+        <div class="filters">
+        </div>
+        <template if:true={rows.length}>
+            <div class="datatable-container">
+                <lightning-datatable
+                    key-field="id"
+                    data={rows}
+                    columns={columns}
+                    hide-checkbox-column
+                ></lightning-datatable>
+            </div>
+        </template>
+    </lightning-card>
+</template>

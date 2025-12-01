@@ -37,12 +37,17 @@
             columns={columns}
             hide-checkbox-column
           ></lightning-datatable>
-          <lightning-button
-            label="Previous"
-            onclick={prevPage}
-            disabled={isPrevDisabled}
-          ></lightning-button>
-          <lightning-button label="Next" onclick={nextPage}></lightning-button>
+          <div class="btn-container">
+            <lightning-button
+              label="Previous"
+              onclick={prevPage}
+              disabled={isPrevDisabled}
+            ></lightning-button>
+            <lightning-button 
+              label="Next" 
+              onclick={nextPage}
+            ></lightning-button>
+          </div>
         </div>
       </template>
       <template if:false={rows.length}>
