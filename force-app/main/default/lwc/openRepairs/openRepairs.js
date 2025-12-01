@@ -1,7 +1,8 @@
 import { LightningElement, wire, track } from "lwc";
 import getOpenRepairs from "@salesforce/apex/OpenRepairsController.getOpenRepairs";
-import getAccountNames from "@salesforce/apex/OpenRepairsController.getAccountNames";
+// import getAccountNames from "@salesforce/apex/OpenRepairsController.getAccountNames";
 import getStations from "@salesforce/apex/OpenRepairsController.getStations";
+import searchCustomer from "@salesforce/apex/OpenRepairsController.searchCustomer";
 
 export default class OpenRepairs extends LightningElement {
   @track name = "";
@@ -10,7 +11,10 @@ export default class OpenRepairs extends LightningElement {
   @track accountOptions = [];
   @track stationOptions = [];
   @track station = "";
-  @track isAccountsLoading = true;
+  @track isAccountsLoading = false;
+  @track nameSearchKey = "";
+  @track customerResults = [];
+  @track showCustomerResults = false;
 
   @wire(getOpenRepairs, {
     name: "$name",
@@ -55,19 +59,19 @@ export default class OpenRepairs extends LightningElement {
     ];
   }
 
-  @wire(getAccountNames)
-  wiredAccounts({ data, error }) {
-    if (error) {
-      console.error("getAccountNames error:", error);
-      this.isAccountsLoading = false;
-    }
-    if (data) {
-      this.accountOptions = [{ label: "All", value: "" }].concat(
-        data.map((name) => ({ label: name, value: name }))
-      );
-      this.isAccountsLoading = false;
-    }
-  }
+  // @wire(getAccountNames)
+  // wiredAccounts({ data, error }) {
+  //   if (error) {
+  //     console.error("getAccountNames error:", error);
+  //     this.isAccountsLoading = false;
+  //   }
+  //   if (data) {
+  //     this.accountOptions = [{ label: "All", value: "" }].concat(
+  //       data.map((name) => ({ label: name, value: name }))
+  //     );
+  //     this.isAccountsLoading = false;
+  //   }
+  // }
 
   @wire(getStations)
   wiredStations({ data, error }) {
@@ -87,14 +91,47 @@ export default class OpenRepairs extends LightningElement {
     this.pageNumber = 1;
   }
 
-  handleNameChange(e) {
-    this.name = e.target.value;
-    this.pageNumber = 1;
-  }
+  // handleNameChange(e) {
+  //   this.name = e.target.value;
+  //   this.pageNumber = 1;
+  // }
 
   handleStationChange(e) {
     this.station = e.target.value;
     this.pageNumber = 1;
+  }
+
+  async handleNameSearch(e) {
+    this.nameSearchKey = e.target.value;
+
+    if (this.nameSearchKey.length > 1) {
+      try {
+        const results = await searchCustomer({ input: this.nameSearchKey });
+
+        console.log(results);
+
+        this.customerResults = results;
+        this.showCustomerResults = results.length > 0;
+      } catch (error) {
+        console.log(error);
+
+        this.customerResults = [];
+        this.showCustomerResults = false;
+      }
+    } else {
+      this.customerResults = [];
+      this.showCustomerResults = false;
+      this.name = "";
+    }
+  }
+
+  handleCustomerSelect(e) {
+    const selectedCustomer = e.target.innerText;
+
+    this.name = selectedCustomer;
+    this.showCustomerResults = false;
+    this.customerResults = [];
+    this.nameSearchKey = selectedCustomer;
   }
 
   formateDate = (date) => (date ? new Date(date).toLocaleDateString() : "");

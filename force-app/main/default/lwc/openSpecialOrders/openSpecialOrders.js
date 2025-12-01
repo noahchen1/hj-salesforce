@@ -2,7 +2,9 @@ import { LightningElement, wire, track } from "lwc";
 import getOpenSpecialOrders from "@salesforce/apex/openSpecialOrdersController.getOpenSpecialOrders";
 
 export default class OpenSpecialOrders extends LightningElement {
-  @wire(getOpenSpecialOrders)
+  @track date = `${new Date().getFullYear()}-01-01`;
+
+  @wire(getOpenSpecialOrders, { dateFilter: "$date" })
   wiredData;
 
   get rows() {
@@ -33,4 +35,8 @@ export default class OpenSpecialOrders extends LightningElement {
   }
 
   formateDate = (date) => (date ? new Date(date).toLocaleDateString() : "");
+
+  handleDateChange(e) {
+    this.date = e.target.value;
+  }
 }

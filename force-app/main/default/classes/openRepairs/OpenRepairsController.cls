@@ -46,6 +46,18 @@ public with sharing class OpenRepairsController {
   }
 
   @AuraEnabled(cacheable=true)
+  public static List<breadwinner_ns__BW_Company__c> searchCustomer(
+    String input
+  ) {
+    return [
+      SELECT Id, Name
+      FROM breadwinner_ns__BW_Company__c
+      WHERE Name LIKE :'%' + input + '%'
+      LIMIT 10
+    ];
+  }
+
+  @AuraEnabled(cacheable=true)
   public static List<String> getStations() {
     List<String> stations = new List<String>();
 

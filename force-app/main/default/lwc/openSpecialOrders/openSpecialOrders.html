@@ -1,16 +1,25 @@
 <template>
-    <lightning-card title="Open Special Orders">
-        <div class="filters">
+  <lightning-card title="Open Special Orders" class="main-container">
+    <div class="filters">
+      <lightning-input
+        label="Date"
+        type="date"
+        placeholder="Enter Date"
+        value={date}
+        onchange={handleDateChange}
+      ></lightning-input>
+    </div>
+    <div class="table-container">
+      <template if:true={rows.length}>
+        <div class="datatable-container">
+          <lightning-datatable
+            key-field="id"
+            data={rows}
+            columns={columns}
+            hide-checkbox-column
+          ></lightning-datatable>
         </div>
-        <template if:true={rows.length}>
-            <div class="datatable-container">
-                <lightning-datatable
-                    key-field="id"
-                    data={rows}
-                    columns={columns}
-                    hide-checkbox-column
-                ></lightning-datatable>
-            </div>
-        </template>
-    </lightning-card>
+      </template>
+    </div>
+  </lightning-card>
 </template>

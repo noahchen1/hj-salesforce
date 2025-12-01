@@ -10,7 +10,7 @@
     </template>
     <template if:false={isAccountLoading}>
       <div class="filters">
-        <lightning-combobox
+        <!-- <lightning-combobox
           name="name"
           label="Name"
           value={name}
@@ -18,7 +18,7 @@
           options={accountOptions}
           onchange={handleNameChange}
         >
-        </lightning-combobox>
+        </lightning-combobox> -->
 
         <lightning-combobox
           name="station"
@@ -28,6 +28,25 @@
           options={stationOptions}
           onchange={handleStationChange}
         ></lightning-combobox>
+
+        <div>
+          <lightning-input
+            label="Search Customer"
+            type="search"
+            placeholder="Type to search customers"
+            value={nameSearchKey}
+            onchange={handleNameSearch}
+          ></lightning-input>
+          <template if:true={showCustomerResults}>
+            <ul class="lookup-dropdown">
+              <template for:each={customerResults} for:item="customer">
+                <li key={customer.Id} onclick={handleCustomerSelect}>
+                  {customer.Name}
+                </li>
+              </template>
+            </ul>
+          </template>
+        </div>
       </div>
       <template if:true={rows.length}>
         <div class="datatable-container">
@@ -43,8 +62,8 @@
               onclick={prevPage}
               disabled={isPrevDisabled}
             ></lightning-button>
-            <lightning-button 
-              label="Next" 
+            <lightning-button
+              label="Next"
               onclick={nextPage}
             ></lightning-button>
           </div>
