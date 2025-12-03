@@ -26,6 +26,10 @@ export default class OpenRepairs extends LightningElement {
     return this.pageNumber === 1;
   }
 
+  get isNextDisabled() {
+    return this.rows.length < this.pageSize;
+  }
+
   get rows() {
     const data = this.wiredData?.data || [];
 

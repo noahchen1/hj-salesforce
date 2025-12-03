@@ -1,5 +1,6 @@
 <template>
-  <lightning-card title="Open Repairs">
+  <lightning-card>
+    <div class="title">Open Repairs</div>
     <template if:true={isAccountsLoading}>
       <div class="loading-screen">
         <lightning-spinner
@@ -8,6 +9,7 @@
         ></lightning-spinner>
       </div>
     </template>
+
     <template if:false={isAccountLoading}>
       <div class="filters">
         <c-lookup-input
@@ -44,6 +46,7 @@
             <lightning-button
               label="Next"
               onclick={nextPage}
+              disabled={isNextDisabled}
             ></lightning-button>
           </div>
         </div>
