@@ -10,16 +10,6 @@
     </template>
     <template if:false={isAccountLoading}>
       <div class="filters">
-        <!-- <lightning-combobox
-          name="name"
-          label="Name"
-          value={name}
-          placeholder="Select a name"
-          options={accountOptions}
-          onchange={handleNameChange}
-        >
-        </lightning-combobox> -->
-
         <lightning-combobox
           name="station"
           label="Station"
@@ -29,7 +19,7 @@
           onchange={handleStationChange}
         ></lightning-combobox>
 
-        <div>
+        <!-- <div>
           <lightning-input
             label="Search Customer"
             type="search"
@@ -46,8 +36,16 @@
               </template>
             </ul>
           </template>
-        </div>
+        </div> -->
+
+        <c-lookup-input
+          label="Name"
+          placeholder="This is a place holder"
+          onsearch={handleCustomerSearch}
+          onselect={handleCustomerSelect}
+        ></c-lookup-input>
       </div>
+
       <template if:true={rows.length}>
         <div class="datatable-container">
           <lightning-datatable

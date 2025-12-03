@@ -91,11 +91,6 @@ export default class OpenRepairs extends LightningElement {
     this.pageNumber = 1;
   }
 
-  // handleNameChange(e) {
-  //   this.name = e.target.value;
-  //   this.pageNumber = 1;
-  // }
-
   handleStationChange(e) {
     this.station = e.target.value;
     this.pageNumber = 1;
@@ -107,8 +102,6 @@ export default class OpenRepairs extends LightningElement {
     if (this.nameSearchKey.length > 1) {
       try {
         const results = await searchCustomer({ input: this.nameSearchKey });
-
-        console.log(results);
 
         this.customerResults = results;
         this.showCustomerResults = results.length > 0;
@@ -126,14 +119,36 @@ export default class OpenRepairs extends LightningElement {
   }
 
   handleCustomerSelect(e) {
-    const selectedCustomer = e.target.innerText;
+    const selectedName = e.detail.name;
 
-    this.name = selectedCustomer;
-    this.showCustomerResults = false;
-    this.customerResults = [];
-    this.nameSearchKey = selectedCustomer;
+    this.name = selectedName;
     this.pageNumber = 1;
   }
+
+  async handleCustomerSearch(e) {
+    const name = e.detail.searchKey;
+
+    if (name.length > 1) {
+      try {
+        const results = await searchCustomer({ input: name });
+        this.template.querySelector("c-lookup-input").setResults(results);
+      } catch (error) {
+        this.template.querySelector("c-lookup-input").setResults([]);
+      }
+    } else {
+      this.template.querySelector("c-lookup-input").setResults([]);
+    }
+  }
+
+  // handleCustomerSelect(e) {
+  //   const selectedCustomer = e.target.innerText;
+
+  //   this.name = selectedCustomer;
+  //   this.showCustomerResults = false;
+  //   this.customerResults = [];
+  //   this.nameSearchKey = selectedCustomer;
+  //   this.pageNumber = 1;
+  // }
 
   formateDate = (date) => (date ? new Date(date).toLocaleDateString() : "");
 

@@ -6,10 +6,27 @@ export default class LookupInput extends LightningElement {
   @track searchKey = "";
   @track results = [];
   @track showResults = false;
+  @track dropdownStyle = "";
+
+  @api
+  setResults(results) {
+    this.results = results;
+    this.showResults = results && results.length > 0;
+  }
+
+  renderedCallback() {
+    const input = this.template.querySelector("lightning-input");
+
+    if (input) {
+      const width = input.offsetWidth;
+
+      this.dropdownStyle = `width: ${width}px;`;
+    }
+  }
 
   async handleInputChange(event) {
     this.searchKey = event.target.value;
-    if (this.searchKey.length >= this.minLength) {
+    if (this.searchKey.length >= 1) {
       this.dispatchEvent(
         new CustomEvent("search", {
           detail: { searchKey: this.searchKey }
@@ -19,12 +36,6 @@ export default class LookupInput extends LightningElement {
       this.results = [];
       this.showResults = false;
     }
-  }
-
-  @api
-  setResults(results) {
-    this.results = results;
-    this.showResults = results && results.length > 0;
   }
 
   handleSelect(event) {
@@ -39,12 +50,3 @@ export default class LookupInput extends LightningElement {
     );
   }
 }
-
-// handleCustomerSearch(event) {
-//   const searchKey = event.detail.searchKey;
-//   this.template.querySelector('c-lookup-input').setResults(results);
-// }
-
-// handleCustomerSelect(event) {
-//   const { id, name } = event.detail;
-// }

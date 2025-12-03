@@ -8,7 +8,7 @@
       onchange={handleInputChange}
     ></lightning-input>
     <template if:true={showResults}>
-      <ul>
+      <ul class="lookup-dropdown" style={dropdownStyle}>
         <template for:each={results} for:item="item">
           <li key={item.Id} onclick={handleSelect}>{item.Name}</li>
         </template>
@@ -16,10 +16,3 @@
     </template>
   </div>
 </template>
-
-<!-- <c-lookup-input
-  label="Search Customer"
-  placeholder="Type to search customers"
-  onsearch={handleCustomerSearch}
-  onselect={handleCustomerSelect}
-></c-lookup-input> -->
