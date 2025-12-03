@@ -4,3 +4,12 @@
 //     SFDX: Execute SOQL Query with Currently Selected Text
 
 SELECT StageName, CreatedDate FROM Opportunity WHERE Id != null
+
+
+SELECT Id, Name
+FROM breadwinner_ns__BW_Company__c
+WHERE Name LIKE '%James%'
+ORDER BY
+  CASE WHEN Name LIKE 'James%' THEN 0 ELSE 1 END,
+  Name
+LIMIT 10

@@ -26,16 +26,17 @@ export default class LookupInput extends LightningElement {
 
   async handleInputChange(event) {
     this.searchKey = event.target.value;
-    if (this.searchKey.length >= 1) {
-      this.dispatchEvent(
-        new CustomEvent("search", {
-          detail: { searchKey: this.searchKey }
-        })
-      );
-    } else {
+
+    if (this.searchKey.length <= 1) {
       this.results = [];
       this.showResults = false;
     }
+
+    this.dispatchEvent(
+      new CustomEvent("search", {
+        detail: { searchKey: this.searchKey }
+      })
+    );
   }
 
   handleSelect(event) {

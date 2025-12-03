@@ -1,20 +1,14 @@
 import { LightningElement, wire, track } from "lwc";
 import getOpenRepairs from "@salesforce/apex/OpenRepairsController.getOpenRepairs";
-// import getAccountNames from "@salesforce/apex/OpenRepairsController.getAccountNames";
-import getStations from "@salesforce/apex/OpenRepairsController.getStations";
-import searchCustomer from "@salesforce/apex/OpenRepairsController.searchCustomer";
+import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
+import searchRepairStations from "@salesforce/apex/FilterDataController.searchRepairStation";
 
 export default class OpenRepairs extends LightningElement {
   @track name = "";
   @track pageSize = 20;
   @track pageNumber = 1;
-  @track accountOptions = [];
-  @track stationOptions = [];
   @track station = "";
   @track isAccountsLoading = false;
-  @track nameSearchKey = "";
-  @track customerResults = [];
-  @track showCustomerResults = false;
 
   @wire(getOpenRepairs, {
     name: "$name",
@@ -59,65 +53,6 @@ export default class OpenRepairs extends LightningElement {
     ];
   }
 
-  // @wire(getAccountNames)
-  // wiredAccounts({ data, error }) {
-  //   if (error) {
-  //     console.error("getAccountNames error:", error);
-  //     this.isAccountsLoading = false;
-  //   }
-  //   if (data) {
-  //     this.accountOptions = [{ label: "All", value: "" }].concat(
-  //       data.map((name) => ({ label: name, value: name }))
-  //     );
-  //     this.isAccountsLoading = false;
-  //   }
-  // }
-
-  @wire(getStations)
-  wiredStations({ data, error }) {
-    if (error) {
-      console.error("getStations error: ", error);
-    }
-
-    if (data) {
-      this.stationOptions = [{ label: "All", value: "" }].concat(
-        data.map((name) => ({ label: name, value: name }))
-      );
-    }
-  }
-
-  handleStatusChange(e) {
-    this.billingStatus = e.target.value;
-    this.pageNumber = 1;
-  }
-
-  handleStationChange(e) {
-    this.station = e.target.value;
-    this.pageNumber = 1;
-  }
-
-  async handleNameSearch(e) {
-    this.nameSearchKey = e.target.value;
-
-    if (this.nameSearchKey.length > 1) {
-      try {
-        const results = await searchCustomer({ input: this.nameSearchKey });
-
-        this.customerResults = results;
-        this.showCustomerResults = results.length > 0;
-      } catch (error) {
-        console.log(error);
-
-        this.customerResults = [];
-        this.showCustomerResults = false;
-      }
-    } else {
-      this.customerResults = [];
-      this.showCustomerResults = false;
-      this.name = "";
-    }
-  }
-
   handleCustomerSelect(e) {
     const selectedName = e.detail.name;
 
@@ -125,30 +60,55 @@ export default class OpenRepairs extends LightningElement {
     this.pageNumber = 1;
   }
 
+  handleStationSelect(e) {
+    const selectedStation = e.detail.name;
+
+    this.station = selectedStation;
+    this.pageNumber = 1;
+  }
+
   async handleCustomerSearch(e) {
     const name = e.detail.searchKey;
+    const input = this.template.querySelector(
+      'c-lookup-input[data-id="customerLookup"]'
+    );
 
     if (name.length > 1) {
       try {
         const results = await searchCustomer({ input: name });
-        this.template.querySelector("c-lookup-input").setResults(results);
+
+        input.setResults(results);
       } catch (error) {
-        this.template.querySelector("c-lookup-input").setResults([]);
+        console.error(error);
+        input.setResults([]);
       }
     } else {
-      this.template.querySelector("c-lookup-input").setResults([]);
+      input.setResults([]);
+      this.name = "";
     }
   }
 
-  // handleCustomerSelect(e) {
-  //   const selectedCustomer = e.target.innerText;
+  async handleStationSearch(e) {
+    const station = e.detail.searchKey;
+    const input = this.template.querySelector(
+      'c-lookup-input[data-id="stationLookup"]'
+    );
 
-  //   this.name = selectedCustomer;
-  //   this.showCustomerResults = false;
-  //   this.customerResults = [];
-  //   this.nameSearchKey = selectedCustomer;
-  //   this.pageNumber = 1;
-  // }
+    if (station.length > 1) {
+      try {
+        const results = await searchRepairStations({ input: station });
+
+        input.setResults(results);
+      } catch (error) {
+        console.log(error);
+
+        input.setResults([]);
+      }
+    } else {
+      input.setResults([]);
+      this.station = "";
+    }
+  }
 
   formateDate = (date) => (date ? new Date(date).toLocaleDateString() : "");
 
@@ -162,11 +122,3 @@ export default class OpenRepairs extends LightningElement {
     }
   }
 }
-
-//date
-//document
-//name
-//amount
-//repiar station
-//repair description
-//promise date

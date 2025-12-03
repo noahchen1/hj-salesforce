@@ -10,7 +10,14 @@
     <template if:true={showResults}>
       <ul class="lookup-dropdown" style={dropdownStyle}>
         <template for:each={results} for:item="item">
-          <li key={item.Id} onclick={handleSelect}>{item.Name}</li>
+          <li
+            key={item.Id}
+            data-id={item.Id}
+            data-name={item.Name}
+            onclick={handleSelect}
+          >
+            {item.Name}
+          </li>
         </template>
       </ul>
     </template>
