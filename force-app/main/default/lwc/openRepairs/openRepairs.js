@@ -2,6 +2,7 @@ import { LightningElement, wire, track } from "lwc";
 import getOpenRepairs from "@salesforce/apex/OpenRepairsController.getOpenRepairs";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
 import searchRepairStations from "@salesforce/apex/FilterDataController.searchRepairStation";
+import { getSortFunction } from "c/tableSortHelper";
 
 export default class OpenRepairs extends LightningElement {
   @track name = "";
@@ -9,6 +10,8 @@ export default class OpenRepairs extends LightningElement {
   @track pageNumber = 1;
   @track station = "";
   @track isAccountsLoading = false;
+  @track sortBy = "date";
+  @track sortDirection = "asc";
 
   @wire(getOpenRepairs, {
     name: "$name",
@@ -33,7 +36,7 @@ export default class OpenRepairs extends LightningElement {
   get rows() {
     const data = this.wiredData?.data || [];
 
-    return data.map((r) => ({
+    const mappedData = data.map((r) => ({
       id: r.Id,
       date: this.formateDate(r.breadwinner_ns__CreatedDate__c),
       name: r.Name,
@@ -43,17 +46,19 @@ export default class OpenRepairs extends LightningElement {
       daysOpen: r.Days_Open__c,
       customer: r?.breadwinner_ns__Entity__r?.Name || ""
     }));
+
+    return mappedData.sort(getSortFunction(this.sortBy, this.sortDirection));
   }
 
   get columns() {
     return [
-      { label: "Date", fieldName: "date" },
-      { label: "Document", fieldName: "name" },
-      { label: "Customer", fieldName: "customer" },
-      { label: "Total", fieldName: "total" },
-      { label: "Repair Station", fieldName: "station" },
-      { label: "Repair Type", fieldName: "type" },
-      { label: "Days Open", fieldName: "daysOpen" }
+      { label: "Date", fieldName: "date", sortable: true },
+      { label: "Document", fieldName: "name", sortable: true },
+      { label: "Customer", fieldName: "customer", sortable: true },
+      { label: "Total", fieldName: "total", sortable: true },
+      { label: "Repair Station", fieldName: "station", sortable: true },
+      { label: "Repair Type", fieldName: "type", sortable: true },
+      { label: "Days Open", fieldName: "daysOpen", sortable: true }
     ];
   }
 
@@ -69,6 +74,12 @@ export default class OpenRepairs extends LightningElement {
 
     this.station = selectedStation;
     this.pageNumber = 1;
+  }
+
+  handleSort(e) {
+    console.log(e.detail);
+    this.sortBy = e.detail.fieldName;
+    this.sortDirection = e.detail.sortDirection;
   }
 
   async handleCustomerSearch(e) {

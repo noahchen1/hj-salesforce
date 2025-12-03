@@ -36,6 +36,9 @@
             data={rows}
             columns={columns}
             hide-checkbox-column
+            onsort={handleSort}
+            sorted-by={sortBy}
+            sorted-direction={sortDirection}
           ></lightning-datatable>
           <div class="btn-container">
             <lightning-button
