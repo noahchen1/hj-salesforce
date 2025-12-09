@@ -1,0 +1,12 @@
+[
+  {
+    "Id": "1",
+    "breadwinner_ns__CreatedDate__c": "2023-01-01",
+    "Name": "Doc1",
+    "breadwinner_ns__Entity__r": { "Name": "Customer1" },
+    "breadwinner_ns__Total__c": 100,
+    "ncf_body_repair_station__c": "Station1",
+    "ncf_body1__c": "TypeA",
+    "Days_Open__c": 5
+  }
+]
