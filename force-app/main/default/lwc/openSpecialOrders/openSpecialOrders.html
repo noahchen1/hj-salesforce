@@ -53,6 +53,18 @@
         onsearch={handleLookupSearch}
         onselect={handleLookupSelect}
       ></c-lookup-input>
+      <lightning-input
+        type="text"
+        label="Comments"
+        value={comments}
+        onchange={handleCommentsChange}
+      ></lightning-input>
+      <lightning-input
+        type="checkbox"
+        label="Show active orders only"
+        checked={showActiveOrdersOnly}
+        onchange={handleActiveOrdersCheck}
+      ></lightning-input>
     </div>
     <div class="table-container">
       <template if:true={rows.length}>

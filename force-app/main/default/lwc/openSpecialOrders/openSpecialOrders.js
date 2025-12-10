@@ -21,6 +21,8 @@ export default class OpenSpecialOrders extends LightningElement {
   @track locationOptions = [];
   @track location = "";
   @track vendornum = "";
+  @track showActiveOrdersOnly = true;
+  @track comments = "";
 
   @wire(getOpenSpecialOrders, {
     salesRep: "$salesRep",
@@ -30,6 +32,8 @@ export default class OpenSpecialOrders extends LightningElement {
     status: "$status",
     itemType: "$itemType",
     vendornum: "$vendornum",
+    showActiveOrdersOnly: "$showActiveOrdersOnly",
+    comments: "$comments",
     limitSize: "$pageSize",
     offsetSize: "$offset"
   })
@@ -56,6 +60,10 @@ export default class OpenSpecialOrders extends LightningElement {
     this[name] = e.target.value;
   }
 
+  handleCommentsChange(e) {
+    this.comments = e.target.value;
+  }
+
   processPicklistWire({ data, error }, target) {
     if (data) {
       this[target] = [
@@ -65,6 +73,10 @@ export default class OpenSpecialOrders extends LightningElement {
     } else if (error) {
       console.error(`Error fetching ${target}: `, error);
     }
+  }
+
+  handleActiveOrdersCheck(e) {
+    this.showActiveOrdersOnly = e.target.checked;
   }
 
   get offset() {
@@ -152,6 +164,10 @@ export default class OpenSpecialOrders extends LightningElement {
     const selectedName = e.detail.name;
     this[type] = selectedName;
     this.pageNumber = 1;
+  }
+
+  renderedCallback() {
+    console.log(this.comments);
   }
 
   formateDate = (date) => (date ? new Date(date).toLocaleDateString() : "");

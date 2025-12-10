@@ -8,6 +8,8 @@ public with sharing class OpenSpecialOrdersController {
     String status,
     String itemType,
     String vendornum,
+    Boolean showActiveOrdersOnly,
+    String comments,
     Integer limitSize,
     Integer offsetSize
   ) {
@@ -60,9 +62,29 @@ public with sharing class OpenSpecialOrdersController {
         query += ' AND UPPER(ncf_col_special_order_number__c) = :vendornumUpper';
       }
 
+      if (showActiveOrdersOnly == true) {
+        query += ' AND breadwinner_ns__Sales_Order__r.ncf_body_special_statuses__c != \'Inactive\'';
+      }
+
       query += ' LIMIT :limitSize OFFSET :offsetSize';
 
-      return Database.query(query);
+      List<breadwinner_ns__BW_Line_Item__c> items = Database.query(query);
+
+      if (String.isNotBlank(comments)) {
+        List<breadwinner_ns__BW_Line_Item__c> filtered = new List<breadwinner_ns__BW_Line_Item__c>();
+
+        for (breadwinner_ns__BW_Line_Item__c item : items) {
+          String notes = item.breadwinner_ns__Sales_Order__r.ncf_body_special_comments__c;
+
+          if (notes != null && notes.containsIgnoreCase(comments)) {
+            filtered.add(item);
+          }
+        }
+
+        return filtered;
+      }
+
+      return items;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
