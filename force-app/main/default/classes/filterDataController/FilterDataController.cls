@@ -108,24 +108,4 @@ public with sharing class FilterDataController {
       throw new AuraHandledException(e.getMessage());
     }
   }
-
-  @AuraEnabled(cacheable=true)
-  public static List<LookupResult> searchLocation(String input) {
-    List<LookupResult> locations = new List<LookupResult>();
-    try {
-      for (AggregateResult ar : [
-        SELECT breadwinner_ns__LocationName__c locationName
-        FROM breadwinner_ns__BW_Sales_Order__c
-        WHERE breadwinner_ns__LocationName__c LIKE :'%' + input + '%'
-        GROUP BY breadwinner_ns__LocationName__c
-      ]) {
-        String locationName = (String) ar.get('locationName');
-        locations.add(new LookupResult(locationName, locationName));
-      }
-
-      return locations;
-    } catch (Exception e) {
-      throw new AuraHandledException(e.getMessage());
-    }
-  }
 }

@@ -22,13 +22,30 @@
         onsearch={handleLookupSearch}
         onselect={handleLookupSelect}
       ></c-lookup-input>
-      <c-lookup-input
-        data-type="location"
+      <lightning-combobox
+        name="location"
         label="Location"
-        placeholder="Enter Location"
-        onsearch={handleLookupSearch}
-        onselect={handleLookupSelect}
-      ></c-lookup-input>
+        value={location}
+        placeholder="Select a location"
+        options={locationOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
+      <lightning-combobox
+        name="itemType"
+        label="Item Type"
+        value={itemType}
+        placeholder="Select an item type"
+        options={itemTypeOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
+      <lightning-combobox
+        name="status"
+        label="Special Order Status"
+        value={status}
+        placeholder="Select a status"
+        options={statusOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
     </div>
     <div class="table-container">
       <template if:true={rows.length}>

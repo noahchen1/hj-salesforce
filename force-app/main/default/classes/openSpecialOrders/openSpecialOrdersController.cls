@@ -5,6 +5,8 @@ public with sharing class OpenSpecialOrdersController {
     String customer,
     String vendor,
     String location,
+    String status,
+    String itemType,
     Integer limitSize,
     Integer offsetSize
   ) {
@@ -41,6 +43,14 @@ public with sharing class OpenSpecialOrdersController {
 
       if (String.isNotBlank(location)) {
         query += ' AND breadwinner_ns__Sales_Order__r.breadwinner_ns__LocationName__c = :location';
+      }
+
+      if (String.isNotBlank(status)) {
+        query += ' AND breadwinner_ns__Sales_Order__r.ncf_body_special_statuses__c = :status';
+      }
+
+      if (String.isNotBlank(itemType)) {
+        query += ' AND breadwinner_ns__Sales_Order__r.ncf_body_special_item_type__c =:itemType';
       }
 
       query += ' LIMIT :limitSize OFFSET :offsetSize';

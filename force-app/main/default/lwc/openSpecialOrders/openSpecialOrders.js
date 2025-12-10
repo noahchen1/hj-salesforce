@@ -3,25 +3,66 @@ import getOpenSpecialOrders from "@salesforce/apex/OpenSpecialOrdersController.g
 import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
 import searchVendor from "@salesforce/apex/FilterDataController.searchVendor";
-import searchLocation from "@salesforce/apex/FilterDataController.searchLocation";
+import getSpecialOrderItemTypes from "@salesforce/apex/DropdownDataController.getSpecialOrderItemTypes";
+import getSpecialOrderStatuses from "@salesforce/apex/DropdownDataController.getSpecialOrderStatuses";
+import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
 
 export default class OpenSpecialOrders extends LightningElement {
   @track salesRep = "";
   @track customer = "";
   @track vendor = "";
-  @track location = "";
   @track pageNumber = 1;
   @track pageSize = 20;
+  @track itemTypeOptions = [];
+  @track itemType = "";
+  @track statusOptions = [];
+  @track status = "";
+  @track locationOptions = [];
+  @track location = "";
 
   @wire(getOpenSpecialOrders, {
     salesRep: "$salesRep",
     customer: "$customer",
     vendor: "$vendor",
     location: "$location",
+    status: "$status",
+    itemType: "$itemType",
     limitSize: "$pageSize",
     offsetSize: "$offset"
   })
   wiredData;
+
+  @wire(getSpecialOrderItemTypes)
+  handleItemTypes(result) {
+    this.processPicklistWire(result, "itemTypeOptions");
+  }
+
+  @wire(getSpecialOrderStatuses)
+  handleStatuses(result) {
+    this.processPicklistWire(result, "statusOptions");
+  }
+
+  @wire(getLocations)
+  handleLocations(result) {
+    this.processPicklistWire(result, "locationOptions");
+  }
+
+  handleComboboxChange(e) {
+    const name = e.target.name;
+
+    this[name] = e.target.value;
+  }
+
+  processPicklistWire({ data, error }, target) {
+    if (data) {
+      this[target] = [
+        { label: "All", value: "" },
+        ...data.map(({ label, value }) => ({ label, value }))
+      ];
+    } else if (error) {
+      console.error(`Error fetching ${target}: `, error);
+    }
+  }
 
   get offset() {
     return (this.pageNumber - 1) * this.pageSize;
@@ -80,8 +121,6 @@ export default class OpenSpecialOrders extends LightningElement {
       searchFn = searchCustomer;
     } else if (type === "vendor") {
       searchFn = searchVendor;
-    } else if (type === "location") {
-      searchFn = searchLocation;
     }
 
     if (searchKey.length > 1 && searchFn) {
