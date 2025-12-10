@@ -7,11 +7,21 @@ export default class LookupInput extends LightningElement {
   @track results = [];
   @track showResults = false;
   @track dropdownStyle = "";
+  @track isLoading = false;
 
   @api
   setResults(results) {
     this.results = results;
     this.showResults = results && results.length > 0;
+  }
+
+  @api
+  setLoading(loadingState) {
+    this.isLoading = loadingState;
+  }
+
+  get showResultsOrLoading() {
+    return this.showResults || this.isLoading;
   }
 
   renderedCallback() {
@@ -24,7 +34,7 @@ export default class LookupInput extends LightningElement {
     }
   }
 
-  async handleInputChange(event) {
+  handleInputChange(event) {
     this.searchKey = event.target.value;
 
     if (this.searchKey.length <= 1) {

@@ -7,17 +7,27 @@
       value={searchKey}
       onchange={handleInputChange}
     ></lightning-input>
-    <template if:true={showResults}>
+    <template if:true={showResultsOrLoading}>
       <ul class="lookup-dropdown" style={dropdownStyle}>
-        <template for:each={results} for:item="item">
-          <li
-            key={item.Id}
-            data-id={item.Id}
-            data-name={item.Name}
-            onclick={handleSelect}
-          >
-            {item.Name}
+        <template if:true={isLoading}>
+          <li class="spinner-container">
+            <lightning-spinner
+              alternative-text="Loading"
+              size="small"
+            ></lightning-spinner>
           </li>
+        </template>
+        <template if:false={isLoading}>
+          <template for:each={results} for:item="item">
+            <li
+              key={item.Id}
+              data-id={item.Id}
+              data-name={item.Name}
+              onclick={handleSelect}
+            >
+              {item.Name}
+            </li>
+          </template>
         </template>
       </ul>
     </template>

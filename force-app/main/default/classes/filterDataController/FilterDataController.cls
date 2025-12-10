@@ -108,4 +108,54 @@ public with sharing class FilterDataController {
       throw new AuraHandledException(e.getMessage());
     }
   }
+
+  @AuraEnabled(cacheable=true)
+  public static List<LookupResult> searchVendorNum(String input) {
+    Set<String> vendorNumSet = new Set<String>();
+    List<LookupResult> vendorNums = new List<LookupResult>();
+    Integer batchSize = 2000;
+    String lastName = null;
+    Boolean moreRecords = true;
+
+    while (moreRecords) {
+      List<breadwinner_ns__BW_Item__c> batch;
+      if (lastName == null) {
+        batch = [
+          SELECT breadwinner_ns__VendorName__c
+          FROM breadwinner_ns__BW_Item__c
+          WHERE
+            breadwinner_ns__VendorName__c != NULL
+            AND breadwinner_ns__VendorName__c LIKE :input + '%'
+          ORDER BY breadwinner_ns__VendorName__c
+          LIMIT :batchSize
+        ];
+      } else {
+        batch = [
+          SELECT breadwinner_ns__VendorName__c
+          FROM breadwinner_ns__BW_Item__c
+          WHERE
+            breadwinner_ns__VendorName__c != NULL
+            AND breadwinner_ns__VendorName__c LIKE :'%' + input + '%'
+            AND breadwinner_ns__VendorName__c > :lastName
+          ORDER BY breadwinner_ns__VendorName__c
+          LIMIT :batchSize
+        ];
+      }
+      for (breadwinner_ns__BW_Item__c item : batch) {
+        vendorNumSet.add(item.breadwinner_ns__VendorName__c);
+      }
+
+      if (batch.size() == batchSize) {
+        lastName = batch[batch.size() - 1].breadwinner_ns__VendorName__c;
+      } else {
+        moreRecords = false;
+      }
+    }
+
+    for (String vendorNum : vendorNumSet) {
+      vendorNums.add(new LookupResult(vendorNum, vendorNum));
+    }
+
+    return vendorNums;
+  }
 }

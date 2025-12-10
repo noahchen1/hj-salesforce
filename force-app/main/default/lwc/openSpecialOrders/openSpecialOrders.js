@@ -6,6 +6,7 @@ import searchVendor from "@salesforce/apex/FilterDataController.searchVendor";
 import getSpecialOrderItemTypes from "@salesforce/apex/DropdownDataController.getSpecialOrderItemTypes";
 import getSpecialOrderStatuses from "@salesforce/apex/DropdownDataController.getSpecialOrderStatuses";
 import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
+import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
 
 export default class OpenSpecialOrders extends LightningElement {
   @track salesRep = "";
@@ -19,6 +20,7 @@ export default class OpenSpecialOrders extends LightningElement {
   @track status = "";
   @track locationOptions = [];
   @track location = "";
+  @track vendornum = "";
 
   @wire(getOpenSpecialOrders, {
     salesRep: "$salesRep",
@@ -27,6 +29,7 @@ export default class OpenSpecialOrders extends LightningElement {
     location: "$location",
     status: "$status",
     itemType: "$itemType",
+    vendornum: "$vendornum",
     limitSize: "$pageSize",
     offsetSize: "$offset"
   })
@@ -121,15 +124,22 @@ export default class OpenSpecialOrders extends LightningElement {
       searchFn = searchCustomer;
     } else if (type === "vendor") {
       searchFn = searchVendor;
+    } else if (type === "vendornum") {
+      searchFn = searchVendorNum;
     }
 
     if (searchKey.length > 1 && searchFn) {
+      input.setLoading(true);
+
       try {
         const results = await searchFn({ input: searchKey });
+
         input.setResults(results);
       } catch (error) {
         console.error(error);
         input.setResults([]);
+      } finally {
+        input.setLoading(false);
       }
     } else {
       input.setResults([]);

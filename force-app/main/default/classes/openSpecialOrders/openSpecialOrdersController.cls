@@ -7,6 +7,7 @@ public with sharing class OpenSpecialOrdersController {
     String location,
     String status,
     String itemType,
+    String vendornum,
     Integer limitSize,
     Integer offsetSize
   ) {
@@ -50,7 +51,13 @@ public with sharing class OpenSpecialOrdersController {
       }
 
       if (String.isNotBlank(itemType)) {
-        query += ' AND breadwinner_ns__Sales_Order__r.ncf_body_special_item_type__c =:itemType';
+        query += ' AND breadwinner_ns__Sales_Order__r.ncf_body_special_item_type__c = :itemType';
+      }
+
+      if (String.isNotBlank(vendornum)) {
+        String vendornumUpper = vendornum.toUpperCase();
+
+        query += ' AND UPPER(ncf_col_special_order_number__c) = :vendornumUpper';
       }
 
       query += ' LIMIT :limitSize OFFSET :offsetSize';

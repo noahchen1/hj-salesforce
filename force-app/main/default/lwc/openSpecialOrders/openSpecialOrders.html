@@ -46,6 +46,13 @@
         options={statusOptions}
         onchange={handleComboboxChange}
       ></lightning-combobox>
+      <c-lookup-input
+        data-type="vendornum"
+        label="Vendor Number"
+        placeholder="Enter Vendor Number"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
     </div>
     <div class="table-container">
       <template if:true={rows.length}>
