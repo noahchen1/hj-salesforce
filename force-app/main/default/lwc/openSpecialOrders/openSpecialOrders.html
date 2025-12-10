@@ -1,13 +1,34 @@
 <template>
   <lightning-card title="Open Special Orders" class="main-container">
     <div class="filters">
-      <lightning-input
-        label="Date"
-        type="date"
-        placeholder="Enter Date"
-        value={date}
-        onchange={handleDateChange}
-      ></lightning-input>
+      <c-lookup-input
+        data-type="salesRep"
+        label="Sales Rep"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <c-lookup-input
+        data-type="customer"
+        label="Customer"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <c-lookup-input
+        data-type="vendor"
+        label="Vendor"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <c-lookup-input
+        data-type="location"
+        label="Location"
+        placeholder="Enter Location"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
     </div>
     <div class="table-container">
       <template if:true={rows.length}>

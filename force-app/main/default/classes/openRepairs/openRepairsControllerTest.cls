@@ -1,5 +1,5 @@
 @isTest
-private class openRepairsControllerTest {
+private class OpenRepairsControllerTest {
   private static void createTestOrder() {
     breadwinner_ns__BW_Company__c entity = new breadwinner_ns__BW_Company__c(
       Name = 'Test Customer'

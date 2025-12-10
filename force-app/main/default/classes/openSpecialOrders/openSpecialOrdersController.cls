@@ -1,25 +1,51 @@
-public with sharing class openSpecialOrdersController {
+public with sharing class OpenSpecialOrdersController {
   @AuraEnabled(cacheable=true)
-  public static List<breadwinner_ns__BW_Sales_Order__c> getOpenSpecialOrders(
-    Date dateFilter
+  public static List<breadwinner_ns__BW_Line_Item__c> getOpenSpecialOrders(
+    String salesRep,
+    String customer,
+    String vendor,
+    String location,
+    Integer limitSize,
+    Integer offsetSize
   ) {
     try {
-      return [
-        SELECT
-          Id,
-          Name,
-          breadwinner_ns__CreatedDate__c,
-          breadwinner_ns__Entity__r.Name,
-          ncf_body_special_date__c,
-          breadwinner_ns__SalesRepName__c,
-          ncf_body_special_statuses__c,
-          ncf_body_special_comments__c
-        FROM breadwinner_ns__BW_Sales_Order__c
-        WHERE
-          ncf_body_special_item_type__c != NULL
-          AND breadwinner_ns__CreatedDate__c >= :dateFilter
-        LIMIT 20
-      ];
+      String query =
+        'SELECT ' +
+        'breadwinner_ns__Sales_Order__r.Id, ' +
+        'breadwinner_ns__Sales_Order__r.Name, ' +
+        'breadwinner_ns__Sales_Order__r.breadwinner_ns__Entity__r.Name, ' +
+        'breadwinner_ns__Sales_Order__r.ncf_body_special_date__c, ' +
+        'breadwinner_ns__Sales_Order__r.ncf_body_special_order_date__c, ' +
+        'breadwinner_ns__Sales_Order__r.breadwinner_ns__SalesRepName__c, ' +
+        'breadwinner_ns__Sales_Order__r.ncf_body_special_statuses__c, ' +
+        'breadwinner_ns__Sales_Order__r.ncf_body_special_comments__c, ' +
+        'ncf_col_special_sku__c, ' +
+        'ncf_col_special_quoted_price__c, ' +
+        'ncf_col_special_order_number__c ' +
+        'FROM ' +
+        'breadwinner_ns__BW_Line_Item__c ' +
+        'WHERE ' +
+        'breadwinner_ns__Sales_Order__r.ncf_body_special_item_type__c != NULL';
+
+      if (String.isNotBlank(salesRep)) {
+        query += ' AND breadwinner_ns__Sales_Order__r.breadwinner_ns__SalesRepName__c = :salesRep';
+      }
+
+      if (String.isNotBlank(customer)) {
+        query += ' AND breadwinner_ns__Sales_Order__r.breadwinner_ns__Entity__r.Name = :customer';
+      }
+
+      if (String.isNotBlank(vendor)) {
+        query += ' AND breadwinner_ns__Item__r.ncf_item9__c = :vendor';
+      }
+
+      if (String.isNotBlank(location)) {
+        query += ' AND breadwinner_ns__Sales_Order__r.breadwinner_ns__LocationName__c = :location';
+      }
+
+      query += ' LIMIT :limitSize OFFSET :offsetSize';
+
+      return Database.query(query);
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
