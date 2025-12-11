@@ -1,5 +1,6 @@
 <template>
-  <lightning-card title="Open Special Orders" class="main-container">
+  <lightning-card class="main-container">
+    <div class="title">Open Special Orders</div>
     <div class="filters">
       <c-lookup-input
         data-type="salesRep"
@@ -59,22 +60,18 @@
         value={comments}
         onchange={handleCommentsChange}
       ></lightning-input>
+      <c-multi-select
+        label="Hide Rolex Or Tudor"
+        name="hideRolexOrTudor"
+        options={hideRolexOrTudorOptions}
+        onchange={handleHideRolexOrTudorChange}
+      ></c-multi-select>
       <lightning-input
         type="checkbox"
         label="Show active orders only"
         checked={showActiveOrdersOnly}
         onchange={handleActiveOrdersCheck}
       ></lightning-input>
-      <label for="hideRolexOrTudor">Hide Rolex Or Tudor: </label>
-      <Select
-        name="hideRolexOrTudor"
-        multiple
-        onchange={handleHideRolexOrTudorChange}
-      >
-        <option selected>Show All</option>
-        <option>ROLEX WATCH U.S.A., INC</option>
-        <option>TUDOR USA</option>
-      </Select>
     </div>
     <div class="table-container">
       <template if:true={rows.length}>
@@ -84,7 +81,22 @@
             data={rows}
             columns={columns}
             hide-checkbox-column
+            onsort={handleSort}
+            sorted-by={sortBy}
+            sorted-direction={sortDirection}
           ></lightning-datatable>
+          <div class="btn-container">
+            <lightning-button
+              label="Previous"
+              onclick={prevPage}
+              disabled={isPrevDisabled}
+            ></lightning-button>
+            <lightning-button
+              label="Next"
+              onclick={nextPage}
+              disabled={isNextDisabled}
+            ></lightning-button>
+          </div>
         </div>
       </template>
     </div>

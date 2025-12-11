@@ -1,0 +1,17 @@
+<template>
+  <div class="container">
+    <label for={name}>{label}</label>
+    <Select
+      name={name}
+      multiple
+      class="custom-multiselect"
+      onchange={handleChange}
+    >
+      <template for:each={options} for:item="opt">
+        <option key={opt.value} value={opt.value} selected={opt.selected}>
+          {opt.label}
+        </option>
+      </template>
+    </Select>
+  </div>
+</template>

@@ -7,6 +7,7 @@ import getSpecialOrderItemTypes from "@salesforce/apex/DropdownDataController.ge
 import getSpecialOrderStatuses from "@salesforce/apex/DropdownDataController.getSpecialOrderStatuses";
 import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
 import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
+import { getSortFunction } from "c/tableSortHelper";
 
 export default class OpenSpecialOrders extends LightningElement {
   @track salesRep = "";
@@ -24,6 +25,8 @@ export default class OpenSpecialOrders extends LightningElement {
   @track showActiveOrdersOnly = true;
   @track comments = "";
   @track hideRolexOrTudor = [];
+  @track sortBy = "needByDate";
+  @track sortDirection = "desc";
 
   @wire(getOpenSpecialOrders, {
     salesRep: "$salesRep",
@@ -56,6 +59,18 @@ export default class OpenSpecialOrders extends LightningElement {
     this.processPicklistWire(result, "locationOptions");
   }
 
+  get hideRolexOrTudorOptions() {
+    return [
+      { label: "Show All", value: "Show All", selected: true },
+      {
+        label: "ROLEX WATCH U.S.A., INC",
+        value: "ROLEX WATCH U.S.A., INC",
+        selected: false
+      },
+      { label: "TUDOR USA", value: "TUDOR USA", selected: false }
+    ];
+  }
+
   handleComboboxChange(e) {
     const name = e.target.name;
 
@@ -85,10 +100,18 @@ export default class OpenSpecialOrders extends LightningElement {
     return (this.pageNumber - 1) * this.pageSize;
   }
 
+  get isPrevDisabled() {
+    return this.pageNumber === 1;
+  }
+
+  get isNextDisabled() {
+    return this.rows.length < this.pageSize;
+  }
+
   get rows() {
     const data = this.wiredData?.data || [];
 
-    return data.map((r) => {
+    const mappedData = data.map((r) => {
       const so = r.breadwinner_ns__Sales_Order__r || {};
       const entity = so.breadwinner_ns__Entity__r || {};
 
@@ -106,20 +129,22 @@ export default class OpenSpecialOrders extends LightningElement {
         vendorItemNum: r.ncf_col_special_order_number__c
       };
     });
+
+    return mappedData.sort(getSortFunction(this.sortBy, this.sortDirection));
   }
 
   get columns() {
     return [
-      { label: "Customer", fieldName: "customer" },
-      { label: "Date", fieldName: "specialDate" },
-      { label: "Document", fieldName: "document" },
-      { label: "Need By Date", fieldName: "needByDate" },
-      { label: "Sales Rep", fieldName: "salesRep" },
-      { label: "Status", fieldName: "status" },
-      { label: "Notes", fieldName: "notes" },
-      { label: "HJ SKU", fieldName: "sku" },
-      { label: "Vendor Item Num", fieldName: "vendorItemNum" },
-      { label: "Quoted Price", fieldName: "quotedPrice" }
+      { label: "Customer", fieldName: "customer", sortable: true },
+      { label: "Date", fieldName: "specialDate", sortable: true },
+      { label: "Document", fieldName: "document", sortable: true },
+      { label: "Need By Date", fieldName: "needByDate", sortable: true },
+      { label: "Sales Rep", fieldName: "salesRep", sortable: true },
+      { label: "Status", fieldName: "status", sortable: true },
+      { label: "Notes", fieldName: "notes", sortable: true },
+      { label: "HJ SKU", fieldName: "sku", sortable: true },
+      { label: "Vendor Item Num", fieldName: "vendorItemNum", sortable: true },
+      { label: "Quoted Price", fieldName: "quotedPrice", sortable: true }
     ];
   }
 
@@ -169,13 +194,22 @@ export default class OpenSpecialOrders extends LightningElement {
   }
 
   handleHideRolexOrTudorChange(e) {
-    this.hideRolexOrTudor = Array.from(e.target.selectedOptions).reduce(
-      (arr, option) => {
-        if (option.value !== "Show All") arr.push(option.value);
-        return arr;
-      },
-      []
-    );
+    this.hideRolexOrTudor = e.detail.value.filter((v) => v !== "Show All");
+  }
+
+  handleSort(e) {
+    this.sortBy = e.detail.fieldName;
+    this.sortDirection = e.detail.sortDirection;
+  }
+
+  nextPage() {
+    this.pageNumber += 1;
+  }
+
+  prevPage() {
+    if (this.pageNumber > 1) {
+      this.pageNumber -= 1;
+    }
   }
 
   formateDate = (date) => (date ? new Date(date).toLocaleDateString() : "");

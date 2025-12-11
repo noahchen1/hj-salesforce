@@ -77,7 +77,6 @@ export default class OpenRepairs extends LightningElement {
   }
 
   handleSort(e) {
-    console.log(e.detail);
     this.sortBy = e.detail.fieldName;
     this.sortDirection = e.detail.sortDirection;
   }

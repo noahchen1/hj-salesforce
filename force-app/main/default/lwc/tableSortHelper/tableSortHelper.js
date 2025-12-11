@@ -3,10 +3,10 @@ export function getSortFunction(sortBy, sortDirection) {
     let valA = a[sortBy];
     let valB = b[sortBy];
 
-    if (sortBy === "date") {
+    if (sortBy.toUpperCase().includes("DATE")) {
       valA = new Date(valA).getTime();
       valB = new Date(valB).getTime();
-      
+
       return sortDirection === "asc" ? valA - valB : valB - valA;
     }
 
