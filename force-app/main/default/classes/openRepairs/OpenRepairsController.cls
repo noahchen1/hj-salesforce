@@ -4,9 +4,30 @@ public with sharing class OpenRepairsController {
     String name,
     String station,
     Integer limitSize,
-    Integer offsetSize
+    Integer offsetSize,
+    String sortBy,
+    String sortDirection
   ) {
     try {
+      Map<String, String> sortFieldMap = new Map<String, String>{
+        'date' => 'breadwinner_ns__CreatedDate__c',
+        'name' => 'Name',
+        'total' => 'breadwinner_ns__Total__c',
+        'station' => 'ncf_body_repair_station__c',
+        'type' => 'ncf_body1__c',
+        'daysOpen' => 'Days_Open__c',
+        'customer' => 'breadwinner_ns__Entity__r.Name'
+      };
+
+      String sortField = sortFieldMap.containsKey(sortBy)
+        ? sortFieldMap.get(sortBy)
+        : 'breadwinner_ns__CreatedDate__c';
+
+      String direction = String.isNotBlank(sortDirection) &&
+        sortDirection.toLowerCase() == 'asc'
+        ? 'ASC'
+        : 'DESC';
+
       String query =
         'SELECT Id, breadwinner_ns__CreatedDate__c, Name, breadwinner_ns__Entity__r.Name, breadwinner_ns__Total__c, ' +
         'ncf_body_repair_station__c, ncf_body1__c, Days_Open__c, breadwinner_ns__Status__c ' +
@@ -18,6 +39,8 @@ public with sharing class OpenRepairsController {
       if (String.isNotBlank(station)) {
         query += ' AND ncf_body_repair_station__c = :station';
       }
+
+      query += ' ORDER BY ' + sortField + ' ' + direction;
       query += ' LIMIT :limitSize OFFSET :offsetSize';
 
       return Database.query(query);

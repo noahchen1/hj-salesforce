@@ -2,7 +2,6 @@ import { LightningElement, wire, track } from "lwc";
 import getOpenRepairs from "@salesforce/apex/OpenRepairsController.getOpenRepairs";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
 import searchRepairStations from "@salesforce/apex/FilterDataController.searchRepairStation";
-import { getSortFunction } from "c/tableSortHelper";
 
 export default class OpenRepairs extends LightningElement {
   @track name = "";
@@ -11,13 +10,15 @@ export default class OpenRepairs extends LightningElement {
   @track station = "";
   @track isAccountsLoading = false;
   @track sortBy = "date";
-  @track sortDirection = "asc";
+  @track sortDirection = "desc";
 
   @wire(getOpenRepairs, {
     name: "$name",
     station: "$station",
     limitSize: "$pageSize",
-    offsetSize: "$offset"
+    offsetSize: "$offset",
+    sortBy: "$sortBy",
+    sortDirection: "$sortDirection"
   })
   wiredData;
 
@@ -47,7 +48,7 @@ export default class OpenRepairs extends LightningElement {
       customer: r?.breadwinner_ns__Entity__r?.Name || ""
     }));
 
-    return mappedData.sort(getSortFunction(this.sortBy, this.sortDirection));
+    return mappedData;
   }
 
   get columns() {
