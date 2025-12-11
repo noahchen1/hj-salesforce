@@ -1,5 +1,5 @@
 .filters,
-.table-container {
+.datatable-container {
   margin: 30px;
 }
 
@@ -11,7 +11,6 @@
 
 .filters > * {
   flex: 1 1 30%;
-  max-width: 33%;
   box-sizing: border-box;
 }
 
