@@ -115,6 +115,13 @@ export default class OpenSpecialOrders extends LightningElement {
       const so = r.breadwinner_ns__Sales_Order__r || {};
       const entity = so.breadwinner_ns__Entity__r || {};
 
+      const needByDateObj = new Date(so.ncf_body_special_order_date__c);
+      const today = new Date();
+      const rowStyle =
+        today.getTime() >= needByDateObj.getTime()
+          ? "slds-text-color_error"
+          : "";
+
       return {
         id: so.Id,
         document: so.Name,
@@ -126,7 +133,8 @@ export default class OpenSpecialOrders extends LightningElement {
         notes: so.ncf_body_special_comments__c,
         sku: r.ncf_col_special_sku__c,
         quotedPrice: r.ncf_col_special_quoted_price__c,
-        vendorItemNum: r.ncf_col_special_order_number__c
+        vendorItemNum: r.ncf_col_special_order_number__c,
+        rowStyle
       };
     });
 
@@ -134,7 +142,7 @@ export default class OpenSpecialOrders extends LightningElement {
   }
 
   get columns() {
-    return [
+    const base = [
       { label: "Customer", fieldName: "customer", sortable: true },
       { label: "Date", fieldName: "specialDate", sortable: true },
       { label: "Document", fieldName: "document", sortable: true },
@@ -146,6 +154,15 @@ export default class OpenSpecialOrders extends LightningElement {
       { label: "Vendor Item Num", fieldName: "vendorItemNum", sortable: false },
       { label: "Quoted Price", fieldName: "quotedPrice", sortable: true }
     ];
+
+    return base.map((col) => {
+      return {
+        ...col,
+        cellAttributes: {
+          class: { fieldName: "rowStyle" }
+        }
+      };
+    });
   }
 
   async handleLookupSearch(e) {

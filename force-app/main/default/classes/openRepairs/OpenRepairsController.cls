@@ -40,7 +40,7 @@ public with sharing class OpenRepairsController {
         query += ' AND ncf_body_repair_station__c = :station';
       }
 
-      query += ' ORDER BY ' + sortField + ' ' + direction;
+      query += ' ORDER BY ' + sortField + ' ' + direction + ' NULLS LAST';
       query += ' LIMIT :limitSize OFFSET :offsetSize';
 
       return Database.query(query);

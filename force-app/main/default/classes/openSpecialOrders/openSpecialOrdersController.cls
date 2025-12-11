@@ -96,7 +96,7 @@ public with sharing class OpenSpecialOrdersController {
         query += ' AND breadwinner_ns__Item__r.ncf_item9__c NOT IN :hideRolexOrTudor';
       }
 
-      query += ' ORDER BY ' + sortField + ' ' + direction;
+      query += ' ORDER BY ' + sortField + ' ' + direction + ' NULLS LAST';
       query += ' LIMIT :limitSize OFFSET :offsetSize';
 
       List<breadwinner_ns__BW_Line_Item__c> items = Database.query(query);

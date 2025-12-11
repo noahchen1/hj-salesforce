@@ -73,32 +73,35 @@
         onchange={handleActiveOrdersCheck}
       ></lightning-input>
     </div>
-    <div class="table-container">
-      <template if:true={rows.length}>
-        <div class="datatable-container">
-          <lightning-datatable
-            key-field="id"
-            data={rows}
-            columns={columns}
-            hide-checkbox-column
-            onsort={handleSort}
-            sorted-by={sortBy}
-            sorted-direction={sortDirection}
-          ></lightning-datatable>
-          <div class="btn-container">
-            <lightning-button
-              label="Previous"
-              onclick={prevPage}
-              disabled={isPrevDisabled}
-            ></lightning-button>
-            <lightning-button
-              label="Next"
-              onclick={nextPage}
-              disabled={isNextDisabled}
-            ></lightning-button>
-          </div>
+    <template if:true={rows.length}>
+      <div class="datatable-container">
+        <lightning-datatable
+          key-field="id"
+          data={rows}
+          columns={columns}
+          hide-checkbox-column
+          onsort={handleSort}
+          sorted-by={sortBy}
+          sorted-direction={sortDirection}
+        ></lightning-datatable>
+        <div class="btn-container">
+          <lightning-button
+            label="Previous"
+            onclick={prevPage}
+            disabled={isPrevDisabled}
+          ></lightning-button>
+          <lightning-button
+            label="Next"
+            onclick={nextPage}
+            disabled={isNextDisabled}
+          ></lightning-button>
         </div>
-      </template>
-    </div>
+      </div>
+    </template>
+    <template if:false={rows.length}>
+      <div class="slds-p-around_medium slds-text-align_center">
+        No data found.
+      </div>
+    </template>
   </lightning-card>
 </template>
