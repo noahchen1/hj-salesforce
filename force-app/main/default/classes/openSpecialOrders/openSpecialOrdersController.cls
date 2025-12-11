@@ -10,6 +10,7 @@ public with sharing class OpenSpecialOrdersController {
     String vendornum,
     Boolean showActiveOrdersOnly,
     String comments,
+    List<String> hideRolexOrTudor,
     Integer limitSize,
     Integer offsetSize
   ) {
@@ -30,7 +31,8 @@ public with sharing class OpenSpecialOrdersController {
         'FROM ' +
         'breadwinner_ns__BW_Line_Item__c ' +
         'WHERE ' +
-        'breadwinner_ns__Sales_Order__r.ncf_body_special_item_type__c != NULL';
+        'breadwinner_ns__Sales_Order__r.ncf_body_special_item_type__c != NULL ' +
+        'AND breadwinner_ns__Sales_Order__r.ncf_body_special_statuses__c NOT IN (\'Order Complete\', \'Canceled\')';
 
       if (String.isNotBlank(salesRep)) {
         query += ' AND breadwinner_ns__Sales_Order__r.breadwinner_ns__SalesRepName__c = :salesRep';
@@ -64,6 +66,10 @@ public with sharing class OpenSpecialOrdersController {
 
       if (showActiveOrdersOnly == true) {
         query += ' AND breadwinner_ns__Sales_Order__r.ncf_body_special_statuses__c != \'Inactive\'';
+      }
+
+      if (!hideRolexOrTudor.isEmpty()) {
+        query += ' AND breadwinner_ns__Item__r.ncf_item9__c NOT IN :hideRolexOrTudor';
       }
 
       query += ' LIMIT :limitSize OFFSET :offsetSize';

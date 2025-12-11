@@ -23,6 +23,7 @@ export default class OpenSpecialOrders extends LightningElement {
   @track vendornum = "";
   @track showActiveOrdersOnly = true;
   @track comments = "";
+  @track hideRolexOrTudor = [];
 
   @wire(getOpenSpecialOrders, {
     salesRep: "$salesRep",
@@ -34,6 +35,7 @@ export default class OpenSpecialOrders extends LightningElement {
     vendornum: "$vendornum",
     showActiveOrdersOnly: "$showActiveOrdersOnly",
     comments: "$comments",
+    hideRolexOrTudor: "$hideRolexOrTudor",
     limitSize: "$pageSize",
     offsetSize: "$offset"
   })
@@ -166,8 +168,14 @@ export default class OpenSpecialOrders extends LightningElement {
     this.pageNumber = 1;
   }
 
-  renderedCallback() {
-    console.log(this.comments);
+  handleHideRolexOrTudorChange(e) {
+    this.hideRolexOrTudor = Array.from(e.target.selectedOptions).reduce(
+      (arr, option) => {
+        if (option.value !== "Show All") arr.push(option.value);
+        return arr;
+      },
+      []
+    );
   }
 
   formateDate = (date) => (date ? new Date(date).toLocaleDateString() : "");

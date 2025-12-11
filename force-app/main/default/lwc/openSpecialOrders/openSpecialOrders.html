@@ -65,6 +65,16 @@
         checked={showActiveOrdersOnly}
         onchange={handleActiveOrdersCheck}
       ></lightning-input>
+      <label for="hideRolexOrTudor">Hide Rolex Or Tudor: </label>
+      <Select
+        name="hideRolexOrTudor"
+        multiple
+        onchange={handleHideRolexOrTudorChange}
+      >
+        <option selected>Show All</option>
+        <option>ROLEX WATCH U.S.A., INC</option>
+        <option>TUDOR USA</option>
+      </Select>
     </div>
     <div class="table-container">
       <template if:true={rows.length}>
