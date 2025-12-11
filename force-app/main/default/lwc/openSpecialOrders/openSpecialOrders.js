@@ -7,7 +7,6 @@ import getSpecialOrderItemTypes from "@salesforce/apex/DropdownDataController.ge
 import getSpecialOrderStatuses from "@salesforce/apex/DropdownDataController.getSpecialOrderStatuses";
 import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
 import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
-import { getSortFunction } from "c/tableSortHelper";
 
 export default class OpenSpecialOrders extends LightningElement {
   @track salesRep = "";
@@ -40,7 +39,9 @@ export default class OpenSpecialOrders extends LightningElement {
     comments: "$comments",
     hideRolexOrTudor: "$hideRolexOrTudor",
     limitSize: "$pageSize",
-    offsetSize: "$offset"
+    offsetSize: "$offset",
+    sortBy: "$sortBy",
+    sortDirection: "$sortDirection"
   })
   wiredData;
 
@@ -110,7 +111,6 @@ export default class OpenSpecialOrders extends LightningElement {
 
   get rows() {
     const data = this.wiredData?.data || [];
-
     const mappedData = data.map((r) => {
       const so = r.breadwinner_ns__Sales_Order__r || {};
       const entity = so.breadwinner_ns__Entity__r || {};
@@ -130,7 +130,7 @@ export default class OpenSpecialOrders extends LightningElement {
       };
     });
 
-    return mappedData.sort(getSortFunction(this.sortBy, this.sortDirection));
+    return mappedData;
   }
 
   get columns() {
@@ -141,9 +141,9 @@ export default class OpenSpecialOrders extends LightningElement {
       { label: "Need By Date", fieldName: "needByDate", sortable: true },
       { label: "Sales Rep", fieldName: "salesRep", sortable: true },
       { label: "Status", fieldName: "status", sortable: true },
-      { label: "Notes", fieldName: "notes", sortable: true },
-      { label: "HJ SKU", fieldName: "sku", sortable: true },
-      { label: "Vendor Item Num", fieldName: "vendorItemNum", sortable: true },
+      { label: "Notes", fieldName: "notes", sortable: false },
+      { label: "HJ SKU", fieldName: "sku", sortable: false },
+      { label: "Vendor Item Num", fieldName: "vendorItemNum", sortable: false },
       { label: "Quoted Price", fieldName: "quotedPrice", sortable: true }
     ];
   }

@@ -12,9 +12,33 @@ public with sharing class OpenSpecialOrdersController {
     String comments,
     List<String> hideRolexOrTudor,
     Integer limitSize,
-    Integer offsetSize
+    Integer offsetSize,
+    String sortBy,
+    String sortDirection
   ) {
     try {
+      Map<String, String> sortFieldMap = new Map<String, String>{
+        'customer' => 'breadwinner_ns__Sales_Order__r.breadwinner_ns__Entity__r.Name',
+        'specialDate' => 'breadwinner_ns__Sales_Order__r.ncf_body_special_date__c',
+        'document' => 'breadwinner_ns__Sales_Order__r.Name',
+        'needByDate' => 'breadwinner_ns__Sales_Order__r.ncf_body_special_order_date__c',
+        'salesRep' => 'breadwinner_ns__Sales_Order__r.breadwinner_ns__SalesRepName__c',
+        'status' => 'breadwinner_ns__Sales_Order__r.ncf_body_special_statuses__c',
+        'notes' => 'breadwinner_ns__Sales_Order__r.ncf_body_special_comments__c',
+        'sku' => 'ncf_col_special_sku__c',
+        'vendorItemNum' => 'ncf_col_special_order_number__c',
+        'quotedPrice' => 'ncf_col_special_quoted_price__c'
+      };
+
+      String sortField = sortFieldMap.containsKey(sortBy)
+        ? sortFieldMap.get(sortBy)
+        : 'breadwinner_ns__Sales_Order__r.ncf_body_special_order_date__c';
+
+      String direction = (String.isNotBlank(sortDirection) &&
+        sortDirection.toLowerCase() == 'asc')
+        ? 'ASC'
+        : 'DESC';
+
       String query =
         'SELECT ' +
         'breadwinner_ns__Sales_Order__r.Id, ' +
@@ -72,6 +96,7 @@ public with sharing class OpenSpecialOrdersController {
         query += ' AND breadwinner_ns__Item__r.ncf_item9__c NOT IN :hideRolexOrTudor';
       }
 
+      query += ' ORDER BY ' + sortField + ' ' + direction;
       query += ' LIMIT :limitSize OFFSET :offsetSize';
 
       List<breadwinner_ns__BW_Line_Item__c> items = Database.query(query);
