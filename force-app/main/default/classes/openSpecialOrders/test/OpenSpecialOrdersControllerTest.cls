@@ -267,22 +267,7 @@ private class OpenSpecialOrdersControllerTest {
     System.assertEquals(1, results.size(), 'Should hide Rolex vendor');
 
     // sortBy and sortDirection (just to cover code)
-    results = OpenSpecialOrdersController.getOpenSpecialOrders(
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      false,
-      null,
-      new List<String>(),
-      10,
-      0,
-      'quotedPrice',
-      'desc'
-    );
+    results = OpenSpecialOrdersController.getOpenSpecialOrders(2);
     System.assert(results.size() > 0, 'Should sort by quotedPrice desc');
     System.assert(
       results[0].ncf_col_special_quoted_price__c == 200,
