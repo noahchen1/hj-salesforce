@@ -22,7 +22,8 @@ private class OpenSpecialOrdersControllerTest {
       breadwinner_ns__SalesRepName__c = 'Test Rep',
       ncf_body_special_item_type__c = 'TypeA',
       ncf_body_special_statuses__c = 'In Progress',
-      breadwinner_ns__LocationName__c = 'Loc1'
+      breadwinner_ns__LocationName__c = 'Loc1',
+      ncf_body_special_order_vendor__c = 'Test Special Vendor'
     );
 
     breadwinner_ns__BW_Sales_Order__c order2 = new breadwinner_ns__BW_Sales_Order__c(
@@ -36,7 +37,8 @@ private class OpenSpecialOrdersControllerTest {
       breadwinner_ns__SalesRepName__c = 'Other Rep',
       ncf_body_special_item_type__c = 'TypeB',
       ncf_body_special_statuses__c = 'Inactive',
-      breadwinner_ns__LocationName__c = 'Loc2'
+      breadwinner_ns__LocationName__c = 'Loc2',
+      ncf_body_special_order_vendor__c = 'ROLEX WATCH U.S.A., INC'
     );
     insert new List<breadwinner_ns__BW_Sales_Order__c>{ order1, order2 };
 
@@ -267,7 +269,22 @@ private class OpenSpecialOrdersControllerTest {
     System.assertEquals(1, results.size(), 'Should hide Rolex vendor');
 
     // sortBy and sortDirection (just to cover code)
-    results = OpenSpecialOrdersController.getOpenSpecialOrders(2);
+    results = OpenSpecialOrdersController.getOpenSpecialOrders(
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      false,
+      null,
+      new List<String>(),
+      10,
+      0,
+      'quotedPrice',
+      'desc'
+    );
     System.assert(results.size() > 0, 'Should sort by quotedPrice desc');
     System.assert(
       results[0].ncf_col_special_quoted_price__c == 200,

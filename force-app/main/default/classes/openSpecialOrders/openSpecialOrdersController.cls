@@ -93,7 +93,7 @@ public with sharing class OpenSpecialOrdersController {
       }
 
       if (!hideRolexOrTudor.isEmpty()) {
-        query += ' AND breadwinner_ns__Item__r.ncf_item9__c NOT IN :hideRolexOrTudor';
+        query += ' AND breadwinner_ns__Sales_Order__r.ncf_body_special_order_vendor__c NOT IN :hideRolexOrTudor';
       }
 
       query += ' ORDER BY ' + sortField + ' ' + direction + ' NULLS LAST';
