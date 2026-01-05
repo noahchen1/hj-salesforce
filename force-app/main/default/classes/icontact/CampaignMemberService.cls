@@ -30,17 +30,23 @@ public with sharing class CampaignMemberService {
 
     if (!accountIds.isEmpty()) {
       for (Account acc : [
-        SELECT Id, Account_Email__c, First_Name__c, Last_Name__c
+        SELECT Id, Email__c, First_Name__c, Last_Name__c
         FROM Account
         WHERE Id IN :accountIds
       ]) {
         Map<String, Object> acctValueMap = new Map<String, Object>();
 
-        acctValueMap.put('email', acc.Account_Email__c);
-        acctValueMap.put('firstName', acc.First_Name__c);
-        acctValueMap.put('lastName', acc.Last_Name__c);
+        if (
+          !String.isBlank(acc.Email__c) &&
+          !String.isBlank(acc.First_Name__c) &&
+          !String.isBlank(acc.Last_Name__c)
+        ) {
+          acctValueMap.put('email', acc.Email__c);
+          acctValueMap.put('firstName', acc.First_Name__c);
+          acctValueMap.put('lastName', acc.Last_Name__c);
 
-        accountMap.put(acc.Id, acctValueMap);
+          accountMap.put(acc.Id, acctValueMap);
+        }
       }
     }
 
@@ -70,8 +76,16 @@ public with sharing class CampaignMemberService {
       }
     }
 
+    if (groupRows == null || groupRows.isEmpty()) {
+      System.debug('No groupRows to process');
+
+      return;
+    }
+
     for (String nameKey : groupRows.keySet()) {
       String payload = JSON.serialize(groupRows.get(nameKey));
+
+      System.debug('payload: ' + payload);
       System.enqueueJob(new IContactService.IContactQueueJob(payload, nameKey));
     }
   }
