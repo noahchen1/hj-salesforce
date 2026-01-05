@@ -67,7 +67,7 @@ public with sharing class OpenSpecialOrdersController {
       }
 
       if (String.isNotBlank(vendor)) {
-        query += ' AND breadwinner_ns__Item__r.ncf_item9__c = :vendor';
+        query += ' AND breadwinner_ns__Sales_Order__r.ncf_body_special_order_vendor__c = :vendor';
       }
 
       if (String.isNotBlank(location)) {
