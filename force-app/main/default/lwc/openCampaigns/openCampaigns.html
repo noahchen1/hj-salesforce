@@ -1,6 +1,13 @@
 <template>
-  <div class="title">Campaign</div>
   <lightning-card>
+    <div class="title">Campaign</div>
+    <div class="slds-p-bottom_small">
+      <lightning-button
+        label="Customize Email"
+        onclick={openTemplateModal}
+        variant="brand"
+      ></lightning-button>
+    </div>
     <template if:true={rows.length}>
       <div class="datatable-container">
         <lightning-datatable
@@ -14,6 +21,42 @@
         >
         </lightning-datatable>
       </div>
+    </template>
+
+    <template if:true={isModalOpen}>
+      <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+          <header class="slds-modal__header">
+            <h2 class="slds-text-heading_medium">Customize Email</h2>
+          </header>
+          <div class="slds-modal__content slds-p-around_medium">
+            <lightning-input
+              label="Subject"
+              value={emailSubject}
+              onchange={handleSubjectChange}
+            ></lightning-input>
+            <lightning-textarea
+              label="Body"
+              value={emailBody}
+              onchange={handleBodyChange}
+              rows="8"
+            ></lightning-textarea>
+          </div>
+          <footer class="slds-modal__footer slds-grid slds-grid_align-end">
+            <lightning-button
+              label="Cancel"
+              onclick={closeTemplateModal}
+              variant="neutral"
+            ></lightning-button>
+            <lightning-button
+              label="Send"
+              onclick={handleEmailSend}
+              variant="brand"
+            ></lightning-button>
+          </footer>
+        </div>
+      </section>
+      <div class="slds-backdrop slds-backdrop_open"></div>
     </template>
   </lightning-card>
 </template>

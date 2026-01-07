@@ -1,9 +1,13 @@
 import { LightningElement, track, wire } from "lwc";
 import getCampaignMembers from "@salesforce/apex/openCampaigns.getCampaignMembers";
+import sendCampaignMemberEmails from "@salesforce/apex/openCampaigns.sendCampaignMemberEmails";
 
 export default class OpenCampaigns extends LightningElement {
   @track sortBy = "name";
   @track sortDirection = "desc";
+  @track isModalOpen = false;
+  @track emailSubject = "Campaign follow up";
+  @track emailBody = "Hello world!";
 
   @wire(getCampaignMembers)
   wiredData;
@@ -32,5 +36,45 @@ export default class OpenCampaigns extends LightningElement {
   handleSort(e) {
     this.sortBy = e.detail.fieldName;
     this.sortDirection = e.detail.sortDirection;
+  }
+
+  handleSubjectChange(e) {
+    this.emailSubject = e.target.value;
+  }
+
+  handleBodyChange(e) {
+    this.emailBody = e.target.value;
+  }
+
+  async openTemplateModal() {
+    this.isModalOpen = true;
+  }
+
+  closeTemplateModal() {
+    this.isModalOpen = false;
+  }
+
+  async handleEmailSend() {
+    const ids = (this.wiredData?.data || []).map((r) => r.Id).filter(Boolean);
+
+    if (!ids.length) {
+      this.closeTemplateModal();
+
+      return;
+    }
+
+    try {
+      await sendCampaignMemberEmails({
+        memberIds: ids,
+        subject: this.emailSubject,
+        body: this.emailBody
+      });
+
+      this.closeTemplateModal();
+    } catch (error) {
+      console.error(error);
+
+      this.closeTemplateModal();
+    }
   }
 }
