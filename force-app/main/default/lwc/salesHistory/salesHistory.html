@@ -1,0 +1,24 @@
+<template>
+  <lightning-card>
+    <div class="title">Transaction History</div>
+    <div class="filters">
+      <c-lookup-input
+        data-type="customer"
+        label="Customer"
+        placeholder="Enter Customer"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+    </div>
+    <template if:true={rows.length}>
+      <div class="datatable-container">
+        <lightning-datatable
+          key-field="id"
+          data={rows}
+          columns={columns}
+          hide-checkbox-column
+        ></lightning-datatable>
+      </div>
+    </template>
+  </lightning-card>
+</template>
