@@ -15,26 +15,26 @@ export default class SalesHistory extends LightningElement {
   wiredData;
 
   get rows() {
-    const data = this.wiredData?.data || [];
-    console.log(data);
+    const data = this.wiredData?.data?.rows || [];
 
     const mappedData = data.map((r) => ({
       id: r?.id,
       transaction: r?.tranNumber,
-      customer: r?.customer,
-      salesRep: r?.salesRep,
+      // customer: r?.customer,
+      // salesRep: r?.salesRep,
       division: r?.division,
       item: r?.item,
       quantity: r?.quantity,
       amount: r?.amount,
-      anniversary: r?.anniversary,
-      birthday: r?.birthday,
-      leadsource: r?.leadsource,
+      // anniversary: r?.anniversary,
+      // birthday: r?.birthday,
+      // leadsource: r?.leadsource,
       location: r?.location,
       preferredVendor: r?.preferredVendor,
-      isNewCustomer: r?.isNewCustomer,
-      isServiceOnly: r?.isServiceOnly,
-      ranking: r?.ranking
+      trandate: this.formateDate(r?.trandate)
+      // isNewCustomer: r?.isNewCustomer,
+      // isServiceOnly: r?.isServiceOnly,
+      // ranking: r?.ranking
     }));
 
     return mappedData;
@@ -43,8 +43,8 @@ export default class SalesHistory extends LightningElement {
   get columns() {
     return [
       { label: "Transaction", fieldName: "transaction", sortable: true },
-      { label: "Customer", fieldName: "customer", sortable: true },
-      { label: "Sales Rep", fieldName: "salesRep", sortable: true },
+      // { label: "Customer", fieldName: "customer", sortable: true },
+      // { label: "Sales Rep", fieldName: "salesRep", sortable: true },
       { label: "Division", fieldName: "division", sortable: true },
       { label: "Item", fieldName: "item", sortable: true },
       {
@@ -54,28 +54,29 @@ export default class SalesHistory extends LightningElement {
         sortable: true
       },
       { label: "Amount", fieldName: "amount", sortable: true },
-      { label: "Anniversary", fieldName: "anniversary", sortable: true },
-      { label: "Birthday", fieldName: "birthday", sortable: true },
-      { label: "Lead Source", fieldName: "leadsource", sortable: true },
+      // { label: "Anniversary", fieldName: "anniversary", sortable: true },
+      // { label: "Birthday", fieldName: "birthday", sortable: true },
+      // { label: "Lead Source", fieldName: "leadsource", sortable: true },
       { label: "Location", fieldName: "location", sortable: true },
       {
         label: "Preferred Vendor",
         fieldName: "preferredVendor",
         sortable: true
       },
-      {
-        label: "New Customer",
-        fieldName: "isNewCustomer",
-        type: "boolean",
-        sortable: true
-      },
-      {
-        label: "Service Only",
-        fieldName: "isServiceOnly",
-        type: "boolean",
-        sortable: true
-      },
-      { label: "Ranking", fieldName: "ranking", sortable: true }
+      { label: "Date", fieldName: "trandate", sortable: true }
+      // {
+      //   label: "New Customer",
+      //   fieldName: "isNewCustomer",
+      //   type: "boolean",
+      //   sortable: true
+      // },
+      // {
+      //   label: "Service Only",
+      //   fieldName: "isServiceOnly",
+      //   type: "boolean",
+      //   sortable: true
+      // },
+      // { label: "Ranking", fieldName: "ranking", sortable: true }
     ];
   }
 
@@ -121,4 +122,6 @@ export default class SalesHistory extends LightningElement {
     this[type] = selectedName;
     this.pageNumber = 1;
   }
+
+  formateDate = (date) => (date ? new Date(date).toLocaleDateString() : "");
 }

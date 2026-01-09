@@ -34,14 +34,53 @@ public with sharing class SalesHistory {
     public Boolean isServiceOnly;
     @AuraEnabled
     public String ranking;
+    @AuraEnabled
+    public Date trandate;
+  }
+
+  public class SalesHistoryCursor {
+    @AuraEnabled
+    public Decimal lastNumber;
+    @AuraEnabled
+    public Date lastDate;
+    @AuraEnabled
+    public Id lastId;
+  }
+
+  public class SalesHistoryResponse {
+    @AuraEnabled
+    public List<LineDetails> rows;
+    @AuraEnabled
+    public Boolean hasMore;
+    @AuraEnabled
+    public SalesHistoryCursor cursor;
   }
 
   @AuraEnabled(cacheable=true)
-  public static List<LineDetails> getSalesHistory(
+  public static SalesHistoryResponse getSalesHistory(
     String customer,
     Integer limitSize,
-    Integer offsetSize
+    Integer offsetSize,
+    SalesHistoryCursor cursor
   ) {
+    String paginationNs = '';
+    String sortDirection = 'DESC';
+    String nsOrderField = 'breadwinner_ns__ParentTransDate__c';
+
+    if (cursor != null) {
+      paginationNs =
+        ' AND (' +
+        nsOrderField +
+        ' ' +
+        (sortDirection == 'DESC' ? '<' : '>') +
+        ' :cursor.lastDate' +
+        ' OR (' +
+        nsOrderField +
+        ' = :cursor.lastDate AND Id ' +
+        (sortDirection == 'DESC' ? '<' : '>') +
+        ' :cursor.lastId))';
+    }
+
     String nsQuery =
       'SELECT ' +
       'breadwinner_ns__Transaction_Type__c, ' +
@@ -51,34 +90,39 @@ public with sharing class SalesHistory {
       'breadwinner_ns__Item__r.ncf_item9__c, ' +
       'breadwinner_ns__LocationName__c, ' +
       'breadwinner_ns__ClassName__c, ' +
-      'breadwinner_ns__Item__r.breadwinner_ns__DepartmentName__c, ' +
-      'breadwinner_ns__Invoice__r.Name, ' +
-      'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.Name, ' +
-      'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_anniversary__c, ' +
-      'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_birthdate__c, ' +
-      'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_hamiltonleadsource__c, ' +
-      'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity2__c, ' +
-      'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_is_new_customer__c, ' +
-      'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_is_service_only__c, ' +
-      'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.breadwinner_ns__SalesRepName__c, ' +
-      'breadwinner_ns__Credit_Memo__r.Name, ' +
-      'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.Name, ' +
-      'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_anniversary__c, ' +
-      'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_birthdate__c, ' +
-      'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_hamiltonleadsource__c, ' +
-      'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity2__c, ' +
-      'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_is_new_customer__c, ' +
-      'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_is_service_only__c, ' +
-      'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.breadwinner_ns__SalesRepName__c ' +
+      'breadwinner_ns__ParentTransDate__c, ' +
+      'breadwinner_ns__Item__r.breadwinner_ns__DepartmentName__c ' +
+      // 'breadwinner_ns__Invoice__r.Name, ' +
+      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.Name, ' +
+      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_anniversary__c, ' +
+      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_birthdate__c, ' +
+      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_hamiltonleadsource__c, ' +
+      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity2__c, ' +
+      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_is_new_customer__c, ' +
+      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_is_service_only__c, ' +
+      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.breadwinner_ns__SalesRepName__c, ' +
+      // 'breadwinner_ns__Credit_Memo__r.Name, ' +
+      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.Name, ' +
+      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_anniversary__c, ' +
+      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_birthdate__c, ' +
+      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_hamiltonleadsource__c, ' +
+      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity2__c, ' +
+      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_is_new_customer__c, ' +
+      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_is_service_only__c, ' +
+      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.breadwinner_ns__SalesRepName__c ' +
       'FROM breadwinner_ns__BW_Line_Item__c ' +
-      'WHERE breadwinner_ns__Transaction_Type__c IN (\'Invoice\', \'CreditMemo\') ';
-
-    if (String.isNotBlank(customer)) {
-      nsQuery += ' AND breadwinner_ns__ParentCompanyIDName__c = :customer';
-    }
-
-    // query += ' ORDER BY ' + sortField + ' ' + direction + ' NULLS LAST';
-    nsQuery += ' LIMIT :limitSize OFFSET :offsetSize';
+      'WHERE breadwinner_ns__Transaction_Type__c IN (\'Invoice\', \'CreditMemo\') ' +
+      (String.isNotBlank(customer)
+        ? 'AND breadwinner_ns__ParentCompanyIDName__c = :customer'
+        : '') +
+      paginationNs +
+      ' ORDER BY ' +
+      nsOrderField +
+      ' ' +
+      sortDirection +
+      ', Id ' +
+      sortDirection +
+      ' LIMIT :limitSize';
 
     try {
       List<breadwinner_ns__BW_Line_Item__c> lines = Database.query(nsQuery);
@@ -101,37 +145,57 @@ public with sharing class SalesHistory {
         row.department = r.breadwinner_ns__Item__r != null
           ? r.breadwinner_ns__Item__r.breadwinner_ns__DepartmentName__c
           : null;
+        row.trandate = r.breadwinner_ns__ParentTransDate__c;
 
-        SObject tran = r.breadwinner_ns__Invoice__r != null
-          ? (SObject) r.breadwinner_ns__Invoice__r
-          : (SObject) r.breadwinner_ns__Credit_Memo__r;
+        // SObject tran = r.breadwinner_ns__Invoice__r != null
+        //   ? (SObject) r.breadwinner_ns__Invoice__r
+        //   : (SObject) r.breadwinner_ns__Credit_Memo__r;
 
-        SObject entity = (r.breadwinner_ns__Invoice__r != null &&
-          r.breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r != null)
-          ? (SObject) r.breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r
-          : (r.breadwinner_ns__Credit_Memo__r != null
-              ? (SObject) r.breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r
-              : null);
+        // SObject entity = (r.breadwinner_ns__Invoice__r != null &&
+        //   r.breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r != null)
+        //   ? (SObject) r.breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r
+        //   : (r.breadwinner_ns__Credit_Memo__r != null
+        //       ? (SObject) r.breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r
+        //       : null);
 
-        row.tranNumber = (String) tran?.get('Name');
-        row.customer = (String) entity?.get('Name');
-        row.salesRep = (String) entity?.get('breadwinner_ns__SalesRepName__c');
-        row.anniversary = (Date) entity?.get('ncf_entity_anniversary__c');
-        row.birthday = (Date) entity?.get('ncf_entity_birthdate__c');
-        row.leadsource = (String) entity
-          ?.get('ncf_entity_hamiltonleadsource__c');
+        // row.tranNumber = (String) tran?.get('Name');
+        // row.customer = (String) entity?.get('Name');
+        // row.salesRep = (String) entity?.get('breadwinner_ns__SalesRepName__c');
+        // row.anniversary = (Date) entity?.get('ncf_entity_anniversary__c');
+        // row.birthday = (Date) entity?.get('ncf_entity_birthdate__c');
+        // row.leadsource = (String) entity
+        //   ?.get('ncf_entity_hamiltonleadsource__c');
 
-        row.isNewCustomer = (Boolean) entity
-          ?.get('ncf_entity_is_new_customer__c');
-        row.isServiceOnly = (Boolean) entity
-          ?.get('ncf_entity_is_service_only__c');
-        row.ranking = (String) entity?.get('ncf_entity2__c');
+        // row.isNewCustomer = (Boolean) entity
+        //   ?.get('ncf_entity_is_new_customer__c');
+        // row.isServiceOnly = (Boolean) entity
+        //   ?.get('ncf_entity_is_service_only__c');
+        // row.ranking = (String) entity?.get('ncf_entity2__c');
 
         results.add(row);
       }
 
-      System.debug('results: ' + results);
-      return results;
+      SalesHistoryCursor next = null;
+
+      if (!results.isEmpty()) {
+        LineDetails last = results[results.size() - 1];
+        next = new SalesHistoryCursor();
+
+        next.lastId = last.id;
+        next.lastNumber = last.amount;
+        next.lastDate = last.trandate;
+      }
+
+      Boolean hasMore = results.size() >= limitSize;
+
+      SalesHistoryResponse res = new SalesHistoryResponse();
+      res.rows = results;
+      res.hasMore = hasMore;
+      res.cursor = next;
+
+      System.debug('res: ' + res);
+
+      return res;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
