@@ -20,6 +20,20 @@ public with sharing class SalesHistory {
     public Date trandate;
   }
 
+  public class LineDetailsComparator implements Comparator<LineDetails> {
+    public Integer compare(LineDetails row1, LineDetails row2) {
+      Integer returnValue = 0;
+
+      if (row1.trandate < row2.trandate) {
+        returnValue = 1;
+      } else if (row1.trandate > row2.trandate) {
+        returnValue = -1;
+      }
+
+      return returnValue;
+    }
+  }
+
   public class SalesHistoryCursor {
     @AuraEnabled
     public DateTime lastDate;
@@ -66,6 +80,11 @@ public with sharing class SalesHistory {
       'trandate' => 'breadwinner_ns__ParentTransDate__c'
     };
 
+    Map<String, String> ascSortMap = new Map<String, String>{
+      'amount' => 'custrecord_aschitempricepaid__c',
+      'trandate' => 'custrecord_aschorderdate__c'
+    };
+
     SalesHistoryCursor cursor = null;
 
     if (String.isNotBlank(cursorJson)) {
@@ -79,6 +98,10 @@ public with sharing class SalesHistory {
       ? sortMap.get(sortBy)
       : 'breadwinner_ns__ParentTransDate__c';
 
+    String ascSortField = ascSortMap.containsKey(sortBy)
+      ? ascSortMap.get(sortBy)
+      : 'custrecord_aschorderdate__c';
+
     String sortDir = (String.isNotBlank(sortDirection) &&
       sortDirection.toLowerCase() == 'asc')
       ? 'ASC'
@@ -90,9 +113,8 @@ public with sharing class SalesHistory {
       ? sortDir
       : (sortDir == 'DESC' ? 'ASC' : 'DESC');
 
-    System.debug('effectiveSortDir: ' + effectiveSortDir);
-
     String whereClause = 'breadwinner_ns__Transaction_Type__c IN (\'Invoice\', \'CreditMemo\')';
+    String ascWhereClause = '';
 
     if (String.isNotBlank(customer)) {
       whereClause += ' AND breadwinner_ns__ParentCompanyIDName__c = :customer';
@@ -113,6 +135,14 @@ public with sharing class SalesHistory {
         ' ' +
         formattedDate +
         ')';
+
+      ascWhereClause +=
+        'WHERE ' +
+        ascSortField +
+        ' ' +
+        op +
+        ' ' +
+        formattedDate;
     }
 
     String query =
@@ -137,7 +167,32 @@ public with sharing class SalesHistory {
       effectiveSortDir +
       ' LIMIT :pageSize';
 
+    String ascQuery =
+      'SELECT ' +
+      'Id, ' +
+      'custrecord_aschsku__c, ' +
+      'custrecord_aschitemqty__c, ' +
+      'custrecord_aschitempricepaid__c, ' +
+      'custrecord_aschvendor__c, ' +
+      'custrecord_aschstore__c, ' +
+      'custrecord_aschitemdepartment__c, ' +
+      'custrecord_aschitemdivision__c, ' +
+      'custrecord_aschorderdate__c ' +
+      'FROM nco_aschistoricalsales__c ' +
+      ascWhereClause +
+      ' ORDER BY ' +
+      ascSortField +
+      ' ' +
+      effectiveSortDir +
+      ', Id ' +
+      effectiveSortDir +
+      ' LIMIT :pageSize';
+
     List<breadwinner_ns__BW_Line_Item__c> records = Database.query(query);
+    List<nco_aschistoricalsales__c> ascRecords = Database.query(ascQuery);
+
+    System.debug('records: ' + records);
+    System.debug('ascRecords: ' + ascRecords);
 
     List<LineDetails> rows = new List<LineDetails>();
 
@@ -156,10 +211,36 @@ public with sharing class SalesHistory {
       rows.add(row);
     }
 
+    for (nco_aschistoricalsales__c r : ascRecords) {
+      LineDetails row = new LineDetails();
+      row.id = r.Id;
+      row.item = r.custrecord_aschsku__c;
+      row.quantity = r.custrecord_aschitemqty__c;
+      row.amount = r.custrecord_aschitempricepaid__c;
+      row.preferredVendor = r.custrecord_aschvendor__c;
+      row.location = r.custrecord_aschstore__c;
+      row.division = r.custrecord_aschitemdivision__c;
+      row.department = r.custrecord_aschitemdepartment__c;
+      row.trandate = r.custrecord_aschorderdate__c;
+      rows.add(row);
+    }
+
+    rows.sort(new LineDetailsComparator());
+
     if (!isNext)
       rows = reverseLineDetails(rows);
 
+    if (rows.size() > pageSize) {
+      List<LineDetails> truncated = new List<LineDetails>();
+
+      for (Integer i = 0; i < pageSize && i < rows.size(); i++) {
+        truncated.add(rows[i]);
+      }
+      rows = truncated;
+    }
+
     SalesHistoryResponse res = new SalesHistoryResponse();
+
     res.rows = rows;
 
     if (!rows.isEmpty()) {

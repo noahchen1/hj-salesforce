@@ -1,15 +1,11 @@
-// Use .soql files to store SOQL queries.
-// You can execute queries in VS Code by selecting the
-//     query text and running the command:
-//     SFDX: Execute SOQL Query with Currently Selected Text
-
-SELECT StageName, CreatedDate FROM Opportunity WHERE Id != null
-
-
-SELECT Id, Name
-FROM breadwinner_ns__BW_Company__c
-WHERE Name LIKE '%James%'
-ORDER BY
-  CASE WHEN Name LIKE 'James%' THEN 0 ELSE 1 END,
-  Name
-LIMIT 10
+SELECT
+  custrecord_aschsku__c,
+  custrecord_aschitemqty__c,
+  custrecord_aschitempricepaid__c,
+  custrecord_aschvendor__c,
+  custrecord_aschstore__c,
+  custrecord_aschitemdepartment__c,
+  custrecord_aschitemdivision__c,
+  custrecord_aschorderdate__c
+FROM 
+  nco_aschistoricalsales__c
