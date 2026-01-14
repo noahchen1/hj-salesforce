@@ -16,8 +16,23 @@
           key-field="id"
           data={rows}
           columns={columns}
+          onsort={handleSort}
+          sorted-by={sortBy}
+          sorted-direction={sortDirection}
           hide-checkbox-column
         ></lightning-datatable>
+        <div class="btn-container">
+          <lightning-button
+            label="Previous"
+            onclick={handlePrev}
+            disabled={isPrevDisabled}
+          ></lightning-button>
+          <lightning-button
+            label="Next"
+            onclick={handleNext}
+            disabled={isNextDisabled}
+          ></lightning-button>
+        </div>
       </div>
     </template>
   </lightning-card>

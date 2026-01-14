@@ -1,13 +1,7 @@
 public with sharing class SalesHistory {
   public class LineDetails {
     @AuraEnabled
-    public String id;
-    @AuraEnabled
-    public String tranNumber;
-    @AuraEnabled
-    public String customer;
-    @AuraEnabled
-    public String salesRep;
+    public Id id;
     @AuraEnabled
     public String item;
     @AuraEnabled
@@ -23,26 +17,12 @@ public with sharing class SalesHistory {
     @AuraEnabled
     public String division;
     @AuraEnabled
-    public Date birthday;
-    @AuraEnabled
-    public Date anniversary;
-    @AuraEnabled
-    public String leadsource;
-    @AuraEnabled
-    public Boolean isNewCustomer;
-    @AuraEnabled
-    public Boolean isServiceOnly;
-    @AuraEnabled
-    public String ranking;
-    @AuraEnabled
     public Date trandate;
   }
 
   public class SalesHistoryCursor {
     @AuraEnabled
-    public Decimal lastNumber;
-    @AuraEnabled
-    public Date lastDate;
+    public DateTime lastDate;
     @AuraEnabled
     public Id lastId;
   }
@@ -51,153 +31,153 @@ public with sharing class SalesHistory {
     @AuraEnabled
     public List<LineDetails> rows;
     @AuraEnabled
-    public Boolean hasMore;
+    public Boolean hasNext;
     @AuraEnabled
-    public SalesHistoryCursor cursor;
+    public Boolean hasPrev;
+    @AuraEnabled
+    public SalesHistoryCursor nextCursor;
+    @AuraEnabled
+    public SalesHistoryCursor prevCursor;
+  }
+
+  public static List<SalesHistory.LineDetails> reverseLineDetails(
+    List<SalesHistory.LineDetails> originalList
+  ) {
+    List<SalesHistory.LineDetails> reversedList = new List<SalesHistory.LineDetails>();
+
+    for (Integer i = originalList.size() - 1; i >= 0; i--) {
+      reversedList.add(originalList.get(i));
+    }
+
+    return reversedList;
   }
 
   @AuraEnabled(cacheable=true)
   public static SalesHistoryResponse getSalesHistory(
     String customer,
-    Integer limitSize,
-    Integer offsetSize,
-    SalesHistoryCursor cursor
+    Integer pageSize,
+    String direction, // "NEXT" | "PREV"
+    String cursorJson,
+    String sortBy,
+    String sortDirection
   ) {
-    String paginationNs = '';
-    String sortDirection = 'DESC';
-    String nsOrderField = 'breadwinner_ns__ParentTransDate__c';
+    Map<String, String> sortMap = new Map<String, String>{
+      'amount' => 'breadwinner_ns__Amount__c',
+      'trandate' => 'breadwinner_ns__ParentTransDate__c'
+    };
 
-    if (cursor != null) {
-      paginationNs =
-        ' AND (' +
-        nsOrderField +
-        ' ' +
-        (sortDirection == 'DESC' ? '<' : '>') +
-        ' :cursor.lastDate' +
-        ' OR (' +
-        nsOrderField +
-        ' = :cursor.lastDate AND Id ' +
-        (sortDirection == 'DESC' ? '<' : '>') +
-        ' :cursor.lastId))';
+    SalesHistoryCursor cursor = null;
+
+    if (String.isNotBlank(cursorJson)) {
+      cursor = (SalesHistoryCursor) JSON.deserialize(
+        cursorJson,
+        SalesHistoryCursor.class
+      );
     }
 
-    String nsQuery =
+    String sortField = sortMap.containsKey(sortBy)
+      ? sortMap.get(sortBy)
+      : 'breadwinner_ns__ParentTransDate__c';
+
+    String sortDir = (String.isNotBlank(sortDirection) &&
+      sortDirection.toLowerCase() == 'asc')
+      ? 'ASC'
+      : 'DESC';
+
+    Boolean isNext = (direction == null || direction == 'NEXT');
+
+    String effectiveSortDir = isNext
+      ? sortDir
+      : (sortDir == 'DESC' ? 'ASC' : 'DESC');
+
+    System.debug('effectiveSortDir: ' + effectiveSortDir);
+
+    String whereClause = 'breadwinner_ns__Transaction_Type__c IN (\'Invoice\', \'CreditMemo\')';
+
+    if (String.isNotBlank(customer)) {
+      whereClause += ' AND breadwinner_ns__ParentCompanyIDName__c = :customer';
+    }
+
+    if (cursor != null) {
+      String formattedDate = cursor.lastDate.formatGMT('yyyy-MM-dd');
+
+      String op = isNext
+        ? (sortDir == 'DESC' ? '<' : '>')
+        : (sortDir == 'DESC' ? '>' : '<');
+
+      whereClause +=
+        ' AND (' +
+        sortField +
+        ' ' +
+        op +
+        ' ' +
+        formattedDate +
+        ')';
+    }
+
+    String query =
       'SELECT ' +
-      'breadwinner_ns__Transaction_Type__c, ' +
+      'Id, ' +
       'breadwinner_ns__Item__r.Name, ' +
       'breadwinner_ns__Quantity__c, ' +
       'breadwinner_ns__Amount__c, ' +
       'breadwinner_ns__Item__r.ncf_item9__c, ' +
       'breadwinner_ns__LocationName__c, ' +
       'breadwinner_ns__ClassName__c, ' +
-      'breadwinner_ns__ParentTransDate__c, ' +
-      'breadwinner_ns__Item__r.breadwinner_ns__DepartmentName__c ' +
-      // 'breadwinner_ns__Invoice__r.Name, ' +
-      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.Name, ' +
-      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_anniversary__c, ' +
-      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_birthdate__c, ' +
-      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_hamiltonleadsource__c, ' +
-      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity2__c, ' +
-      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_is_new_customer__c, ' +
-      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.ncf_entity_is_service_only__c, ' +
-      // 'breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r.breadwinner_ns__SalesRepName__c, ' +
-      // 'breadwinner_ns__Credit_Memo__r.Name, ' +
-      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.Name, ' +
-      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_anniversary__c, ' +
-      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_birthdate__c, ' +
-      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_hamiltonleadsource__c, ' +
-      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity2__c, ' +
-      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_is_new_customer__c, ' +
-      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.ncf_entity_is_service_only__c, ' +
-      // 'breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r.breadwinner_ns__SalesRepName__c ' +
+      'breadwinner_ns__Item__r.breadwinner_ns__DepartmentName__c, ' +
+      'breadwinner_ns__ParentTransDate__c ' +
       'FROM breadwinner_ns__BW_Line_Item__c ' +
-      'WHERE breadwinner_ns__Transaction_Type__c IN (\'Invoice\', \'CreditMemo\') ' +
-      (String.isNotBlank(customer)
-        ? 'AND breadwinner_ns__ParentCompanyIDName__c = :customer'
-        : '') +
-      paginationNs +
+      'WHERE ' +
+      whereClause +
       ' ORDER BY ' +
-      nsOrderField +
+      sortField +
       ' ' +
-      sortDirection +
+      effectiveSortDir +
       ', Id ' +
-      sortDirection +
-      ' LIMIT :limitSize';
+      effectiveSortDir +
+      ' LIMIT :pageSize';
 
-    try {
-      List<breadwinner_ns__BW_Line_Item__c> lines = Database.query(nsQuery);
+    List<breadwinner_ns__BW_Line_Item__c> records = Database.query(query);
 
-      List<LineDetails> results = new List<LineDetails>();
+    List<LineDetails> rows = new List<LineDetails>();
 
-      for (breadwinner_ns__BW_Line_Item__c r : lines) {
-        LineDetails row = new LineDetails();
-        row.id = r.Id;
-        row.item = r.breadwinner_ns__Item__r != null
-          ? r.breadwinner_ns__Item__r.Name
-          : null;
-        row.quantity = r.breadwinner_ns__Quantity__c;
-        row.amount = r.breadwinner_ns__Amount__c;
-        row.preferredVendor = r.breadwinner_ns__Item__r != null
-          ? r.breadwinner_ns__Item__r.ncf_item9__c
-          : null;
-        row.location = r.breadwinner_ns__LocationName__c;
-        row.division = r.breadwinner_ns__ClassName__c;
-        row.department = r.breadwinner_ns__Item__r != null
-          ? r.breadwinner_ns__Item__r.breadwinner_ns__DepartmentName__c
-          : null;
-        row.trandate = r.breadwinner_ns__ParentTransDate__c;
-
-        // SObject tran = r.breadwinner_ns__Invoice__r != null
-        //   ? (SObject) r.breadwinner_ns__Invoice__r
-        //   : (SObject) r.breadwinner_ns__Credit_Memo__r;
-
-        // SObject entity = (r.breadwinner_ns__Invoice__r != null &&
-        //   r.breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r != null)
-        //   ? (SObject) r.breadwinner_ns__Invoice__r.breadwinner_ns__Entity__r
-        //   : (r.breadwinner_ns__Credit_Memo__r != null
-        //       ? (SObject) r.breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__r
-        //       : null);
-
-        // row.tranNumber = (String) tran?.get('Name');
-        // row.customer = (String) entity?.get('Name');
-        // row.salesRep = (String) entity?.get('breadwinner_ns__SalesRepName__c');
-        // row.anniversary = (Date) entity?.get('ncf_entity_anniversary__c');
-        // row.birthday = (Date) entity?.get('ncf_entity_birthdate__c');
-        // row.leadsource = (String) entity
-        //   ?.get('ncf_entity_hamiltonleadsource__c');
-
-        // row.isNewCustomer = (Boolean) entity
-        //   ?.get('ncf_entity_is_new_customer__c');
-        // row.isServiceOnly = (Boolean) entity
-        //   ?.get('ncf_entity_is_service_only__c');
-        // row.ranking = (String) entity?.get('ncf_entity2__c');
-
-        results.add(row);
-      }
-
-      SalesHistoryCursor next = null;
-
-      if (!results.isEmpty()) {
-        LineDetails last = results[results.size() - 1];
-        next = new SalesHistoryCursor();
-
-        next.lastId = last.id;
-        next.lastNumber = last.amount;
-        next.lastDate = last.trandate;
-      }
-
-      Boolean hasMore = results.size() >= limitSize;
-
-      SalesHistoryResponse res = new SalesHistoryResponse();
-      res.rows = results;
-      res.hasMore = hasMore;
-      res.cursor = next;
-
-      System.debug('res: ' + res);
-
-      return res;
-    } catch (Exception e) {
-      throw new AuraHandledException(e.getMessage());
+    for (breadwinner_ns__BW_Line_Item__c r : records) {
+      LineDetails row = new LineDetails();
+      row.id = r.Id;
+      row.item = r.breadwinner_ns__Item__r?.Name;
+      row.quantity = r.breadwinner_ns__Quantity__c;
+      row.amount = r.breadwinner_ns__Amount__c;
+      row.preferredVendor = r.breadwinner_ns__Item__r?.ncf_item9__c;
+      row.location = r.breadwinner_ns__LocationName__c;
+      row.division = r.breadwinner_ns__ClassName__c;
+      row.department = r.breadwinner_ns__Item__r
+        ?.breadwinner_ns__DepartmentName__c;
+      row.trandate = r.breadwinner_ns__ParentTransDate__c;
+      rows.add(row);
     }
+
+    if (!isNext)
+      rows = reverseLineDetails(rows);
+
+    SalesHistoryResponse res = new SalesHistoryResponse();
+    res.rows = rows;
+
+    if (!rows.isEmpty()) {
+      LineDetails first = rows[0];
+      LineDetails last = rows[rows.size() - 1];
+
+      res.prevCursor = new SalesHistoryCursor();
+      res.prevCursor.lastDate = first.trandate;
+      res.prevCursor.lastId = first.id;
+
+      res.nextCursor = new SalesHistoryCursor();
+      res.nextCursor.lastDate = last.trandate;
+      res.nextCursor.lastId = last.id;
+    }
+
+    res.hasNext = rows.size() == pageSize;
+    res.hasPrev = (cursor != null);
+
+    return res;
   }
 }
