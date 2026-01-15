@@ -191,9 +191,6 @@ public with sharing class SalesHistory {
     List<breadwinner_ns__BW_Line_Item__c> records = Database.query(query);
     List<nco_aschistoricalsales__c> ascRecords = Database.query(ascQuery);
 
-    System.debug('records: ' + records);
-    System.debug('ascRecords: ' + ascRecords);
-
     List<LineDetails> rows = new List<LineDetails>();
 
     for (breadwinner_ns__BW_Line_Item__c r : records) {
