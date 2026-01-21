@@ -6,7 +6,7 @@ trigger NsLineItem on breadwinner_ns__BW_Line_Item__c(
   if (Trigger.isInsert) {
     NsLineItemService.onAfterInsert(Trigger.new);
   } else if (Trigger.isUpdate) {
-    NsLineItemService.onAfterUpdate(Trigger.new);
+    NsLineItemService.onAfterUpdate(Trigger.new, Trigger.oldMap);
   } else if (Trigger.isDelete) {
     NsLineItemService.onAfterDelete(Trigger.old);
   }
