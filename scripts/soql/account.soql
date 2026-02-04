@@ -1,37 +1,4 @@
-// SELECT
-//   custrecord_aschsku__c,
-//   custrecord_aschitemqty__c,
-//   custrecord_aschitempricepaid__c,
-//   custrecord_aschvendor__c,
-//   custrecord_aschstore__c,
-//   custrecord_aschitemdepartment__c,
-//   custrecord_aschitemdivision__c,
-//   custrecord_aschorderdate__c
-// FROM 
-//   nco_aschistoricalsales__c
-
-// SELECT
-//   Id,
-//   breadwinner_ns__Item__r.Name,
-//   breadwinner_ns__Quantity__c,
-//   breadwinner_ns__Amount__c,
-//   breadwinner_ns__Item__r.ncf_item9__c,
-//   breadwinner_ns__LocationName__c,
-//   breadwinner_ns__ClassName__c,
-//   breadwinner_ns__Item__r.breadwinner_ns__DepartmentName__c,
-//   breadwinner_ns__ParentTransDate__c,
-//   breadwinner_ns__ParentCompanyIDName__c
-// FROM 
-//   breadwinner_ns__BW_Line_Item__c
-// GROUP BY
-//   breadwinner_ns__ParentCompanyIDName__c
-
-
-SELECT
-  SUM(breadwinner_ns__Amount__c),
-  breadwinner_ns__ParentCompanyIDName__c
-FROM 
-  breadwinner_ns__BW_Line_Item__c
-GROUP BY
-  breadwinner_ns__ParentCompanyIDName__c
-LIMIT 2001
+SELECT 
+FIELDS(ALL)
+FROM AsyncApexJob
+WHERE Id = '707V90000CprkDrIQI'

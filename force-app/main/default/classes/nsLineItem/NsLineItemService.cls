@@ -11,6 +11,8 @@ public with sharing class NsLineItemService {
     ) {
       return true;
     }
+
+    return false;
   }
 
   public static void onAfterInsert(
@@ -26,6 +28,11 @@ public with sharing class NsLineItemService {
 
     for (breadwinner_ns__BW_Line_Item__c line : lineItems) {
       Id lineId = line.Id;
+
+      List<String> parentNumbers = new List<String>{
+        line.breadwinner_ns__Invoice__c,
+        line.breadwinner_ns__Credit_Memo__c
+      };
 
       String name =
         Helpers.getFirstNonEmptyString(parentNumbers) +
@@ -160,6 +167,7 @@ public with sharing class NsLineItemService {
       Details__c = JSON.serialize(lineItems),
       Timestamp__c = Datetime.now()
     );
+
     insert newLog;
   }
 }
