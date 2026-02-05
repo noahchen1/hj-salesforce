@@ -1,8 +1,11 @@
 Id nsJobId = Database.executeBatch(new NsSalesHistoryBatch(), 200);
+System.debug('nsJobId: ' + nsJobId);
 Id ascJobId = Database.executeBatch(new AscSalesHistoryBatch(), 200);
 System.debug('ascJobId: ' + ascJobId);
 
-// Database.executeBatch(new ObjectMassDelete('Sales_History__c'), 200);
+Id deleteJobId = Database.executeBatch(new ObjectMassDelete('Sales_History__c'), 200);
+System.debug('deleteJobId: ' + deleteJobId);
+
 
 AsyncApexJob job = [
   SELECT

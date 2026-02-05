@@ -1,4 +1,6 @@
 SELECT 
 FIELDS(ALL)
 FROM AsyncApexJob
-WHERE Id = '707V90000CprkDrIQI'
+WHERE Id = '707V90000CsOqdjIQC'
+
+SELECT COUNT() FROM breadwinner_ns__BW_Line_Item__c

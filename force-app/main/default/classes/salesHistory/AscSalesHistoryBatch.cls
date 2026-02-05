@@ -9,13 +9,18 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
       'Account__c, ' +
       'custrecord_aschitempricepaid__c, ' +
       'NetSuite_Item__c, ' +
+      'custrecord_aschsku__c, ' +
       'custrecord_aschtitemcost__c, ' +
       'custrecord_aschitemdivision__c, ' +
       'custrecord_aschitemdepartment__c, ' +
       'custrecord_aschitemgroupcode__c, ' +
       'custrecord_aschitemretail__c, ' +
-      'custrecord_aschorderdate__c ' +
-      'FROM nco_aschistoricalsales__c';
+      'custrecord_aschorderdate__c, ' +
+      'custrecord_aschvendor__c, ' +
+      'custrecord_aschvendoritemnum__c, ' +
+      'custrecord_aschstore__c ' +
+      'FROM nco_aschistoricalsales__c ' +
+      'ORDER BY custrecord_aschorderdate__c DESC';
 
     return Database.getQueryLocator(query);
   }
@@ -36,13 +41,13 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
     for (Sales_History__c history : [
       SELECT
         Id,
-        Source_Id__c,
         Name,
         Sales_Rep_1__c,
         Sales_Rep_2__c,
         Account__c,
         Price_Paid__c,
         Item__c,
+        Item_Name__c,
         Cost__c,
         Division__c,
         Department__c,
@@ -50,6 +55,11 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
         Retail__c,
         Source__c,
         Order_Date__c,
+        Source_Id__c,
+        Location__c,
+        Vendor__c,
+        Vendor_Item_Number__c,
+        NetSuite_Line_Item__c,
         ASC_Historical_Sales__c
       FROM Sales_History__c
       WHERE Source__c = 'ASC' AND Source_Id__c IN :sourceIds
@@ -70,6 +80,7 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
         'Account__c' => line.Account__c,
         'Price_Paid__c' => line.custrecord_aschitempricepaid__c,
         'Item__c' => line.NetSuite_Item__c,
+        'Item_Name__c' => line.custrecord_aschsku__c,
         'Cost__c' => line.custrecord_aschtitemcost__c,
         'Division__c' => line.custrecord_aschitemdivision__c,
         'Department__c' => line.custrecord_aschitemdepartment__c,
@@ -78,6 +89,9 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
         'Source__c' => 'ASC',
         'Order_Date__c' => line.custrecord_aschorderdate__c,
         'Source_Id__c' => sourceId,
+        'Location__c' => line.custrecord_aschstore__c,
+        'Vendor__c' => line.custrecord_aschvendor__c,
+        'Vendor_Item_Number__c' => line.custrecord_aschvendoritemnum__c,
         'ASC_Historical_Sales__c' => sourceId
       };
 
@@ -96,7 +110,7 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
           Object newVal = fieldMap.get(fieldName);
           Object oldVal = existing.get(fieldName);
 
-          if (!Helpers.valuesEqual(oldVal, newVal)) {
+          if (oldVal != newVal) {
             existing.put(fieldName, newVal);
             changed = true;
           }
