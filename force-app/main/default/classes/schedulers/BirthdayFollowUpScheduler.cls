@@ -12,7 +12,7 @@ public with sharing class BirthdayFollowUpScheduler implements Schedulable {
       WHERE
         Birthdate__c != NULL
         AND CALENDAR_MONTH(Birthdate__c) = :targetMonth
-        AND Id = '001V900004GAvzRIAT'
+        AND Id = '001WJ00000XDfQaYAL'
     ];
 
     System.debug('Accounts: ' + accounts);
