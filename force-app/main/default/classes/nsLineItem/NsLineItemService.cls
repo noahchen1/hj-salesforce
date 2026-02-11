@@ -78,19 +78,43 @@ public with sharing class NsLineItemService {
     if (!toInsert.isEmpty()) {
       Database.SaveResult[] results = Database.insert(toInsert, false);
 
-      Helpers.writeLog(
-        'NS Sales History - Trigger Insert Results',
-        JSON.serialize(results)
-      );
+      for (Database.SaveResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'NS Sales History - On After Insert: Trigger Insert Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
     }
 
     if (!toUpdate.isEmpty()) {
       Database.SaveResult[] results = Database.update(toUpdate, false);
 
-      Helpers.writeLog(
-        'NS Sales History - Trigger Update Results',
-        JSON.serialize(results)
-      );
+      for (Database.SaveResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'NS Sales History - On After Insert: Trigger Update Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
     }
   }
 
@@ -173,19 +197,43 @@ public with sharing class NsLineItemService {
     if (!toInsert.isEmpty()) {
       Database.SaveResult[] results = Database.insert(toInsert, false);
 
-      Helpers.writeLog(
-        'NS Sales History - Trigger Insert Results',
-        JSON.serialize(results)
-      );
+      for (Database.SaveResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'NS Sales History - On After Update: Trigger Insert Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
     }
 
     if (!toUpdate.isEmpty()) {
       Database.SaveResult[] results = Database.update(toUpdate, false);
 
-      Helpers.writeLog(
-        'NS Sales History - Trigger Update Results',
-        JSON.serialize(results)
-      );
+      for (Database.SaveResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'NS Sales History - On After Update: Trigger Update Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
     }
   }
 
@@ -220,10 +268,22 @@ public with sharing class NsLineItemService {
     if (!existingHistory.isEmpty()) {
       Database.DeleteResult[] results = Database.delete(existingHistory, false);
 
-      Helpers.writeLog(
-        'NS Sales History - Delete Results',
-        JSON.serialize(results)
-      );
+      for (Database.DeleteResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'NS Sales History - On After Delete: Trigger Delete Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
     }
   }
 }
