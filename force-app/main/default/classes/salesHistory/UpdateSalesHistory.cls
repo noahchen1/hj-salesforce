@@ -129,6 +129,7 @@ public with sharing class UpdateSalesHistory {
           Sales_Rep__c,
           OwnerId,
           Account__c,
+          NetSuite_Company__c,
           Price_Paid__c,
           Split__c,
           Item__c,
@@ -222,23 +223,22 @@ public with sharing class UpdateSalesHistory {
             'Sales_Rep__c' => salesRepText,
             'OwnerId' => ownerId,
             'Account__c' => line.breadwinner_ns__ParentSalesforceAccount__c,
+            'NetSuite_Company__c' => line.breadwinner_ns__Invoice__r
+              ?.breadwinner_ns__Entity__c ??
+              line.breadwinner_ns__Credit_Memo__r?.breadwinner_ns__Entity__c,
             'Price_Paid__c' => pricePaid,
             'Split__c' => splitAmount,
             'Item__c' => line.breadwinner_ns__Item__c,
             'Item_Name__c' => line.breadwinner_ns__Item__r?.Name,
             'Cost__c' => line.breadwinner_ns__Item__r?.breadwinner_ns__Cost__c,
-            'Division__c' => line.breadwinner_ns__ClassName__c != null
-              ? line.breadwinner_ns__ClassName__c
-              : line.breadwinner_ns__Item__r?.breadwinner_ns__ClassName__c,
-            'Department__c' => line.Item_Merchandise_Department__c != null
-              ? line.Item_Merchandise_Department__c
-              : line.breadwinner_ns__Item__r?.ncf_item_psgss_merc_dept__c,
-            'Group_Code__c' => line.Item_Group_Code__c != null
-              ? line.Item_Group_Code__c
-              : line.breadwinner_ns__Item__r?.ncf_item_groupcode__c,
-            'Retail__c' => line.breadwinner_ns__CostEstimate__c != null
-              ? line.breadwinner_ns__CostEstimate__c
-              : line.breadwinner_ns__Item__r?.Base_Price__c,
+            'Division__c' => line.breadwinner_ns__ClassName__c ??
+              line.breadwinner_ns__Item__r?.breadwinner_ns__ClassName__c,
+            'Department__c' => line.Item_Merchandise_Department__c ??
+              line.breadwinner_ns__Item__r?.ncf_item_psgss_merc_dept__c,
+            'Group_Code__c' => line.Item_Group_Code__c ??
+              line.breadwinner_ns__Item__r?.ncf_item_groupcode__c,
+            'Retail__c' => line.breadwinner_ns__CostEstimate__c ??
+              line.breadwinner_ns__Item__r?.Base_Price__c,
             'Quantity__c' => quantity,
             'Source__c' => 'NS',
             'Order_Date__c' => line.breadwinner_ns__ParentTransDate__c,
@@ -350,6 +350,7 @@ public with sharing class UpdateSalesHistory {
           Sales_Rep__c,
           OwnerId,
           Account__c,
+          NetSuite_Company__c,
           Price_Paid__c,
           Split__c,
           Item__c,
@@ -427,6 +428,7 @@ public with sharing class UpdateSalesHistory {
             'Sales_Rep__c' => salesRepText,
             'OwnerId' => ownerId,
             'Account__c' => line.Account__c,
+            'NetSuite_Company__c' => line.NetSuite_Company__c,
             'Price_Paid__c' => pricePaid,
             'Split__c' => splitAmount,
             'Item__c' => line.NetSuite_Item__c,

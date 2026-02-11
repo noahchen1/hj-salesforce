@@ -12,6 +12,8 @@ public with sharing class NsLineItemService {
         breadwinner_ns__Credit_Memo__r.breadwinner_ns__SalesRepName__c,
         breadwinner_ns__Invoice__r.ncf_body_salesrep2__c,
         breadwinner_ns__Credit_Memo__r.ncf_body_salesrep2__c,
+        breadwinner_ns__Invoice__r.breadwinner_ns__Entity__c,
+        breadwinner_ns__Credit_Memo__r.breadwinner_ns__Entity__c,
         breadwinner_ns__ParentSalesforceAccount__c,
         breadwinner_ns__Amount__c,
         Amount_after_Discounts__c,

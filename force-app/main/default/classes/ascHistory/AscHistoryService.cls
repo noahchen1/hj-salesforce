@@ -7,6 +7,7 @@ public with sharing class AscHistoryService {
         custrecord_aschassociate1__c,
         custrecord_aschassociate2__c,
         Account__c,
+        NetSuite_Company__c,
         custrecord_aschitempricepaid__c,
         NetSuite_Item__c,
         custrecord_aschsku__c,
