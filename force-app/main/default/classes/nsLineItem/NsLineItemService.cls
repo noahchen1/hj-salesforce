@@ -25,6 +25,8 @@ public with sharing class NsLineItemService {
         Item_Group_Code__c,
         breadwinner_ns__Item__r.ncf_item_groupcode__c,
         breadwinner_ns__Item__r.Base_Price__c,
+        breadwinner_ns__CostEstimate__c,
+        breadwinner_ns__Quantity__c,
         breadwinner_ns__ParentTransDate__c,
         breadwinner_ns__LocationName__c,
         breadwinner_ns__Item__r.ncf_item9__c,

@@ -1,6 +1,21 @@
 SELECT 
-FIELDS(ALL)
-FROM AsyncApexJob
-WHERE Id = '707V90000CsOqdjIQC'
+Id
+FROM breadwinner_ns__BW_Line_Item__c
+WHERE breadwinner_ns__Transaction_Type__c IN ('Invoice', 'CashSale', 'CashRefund', 'CreditMemo')
+ORDER BY breadwinner_ns__ParentTransDate__c DESC
 
-SELECT COUNT() FROM breadwinner_ns__BW_Line_Item__c
+
+SELECT
+breadwinner_ns__Item__r.Name,
+breadwinner_ns__CostEstimate__c
+FROM
+breadwinner_ns__BW_Line_Item__c
+WHERE
+breadwinner_ns__CostEstimate__c != null
+
+
+SELECT
+Source_Id__c
+FROM
+Sales_History__c
+WHERE Source_Id__c Like 'a0XWJ000002FqH52AK%'

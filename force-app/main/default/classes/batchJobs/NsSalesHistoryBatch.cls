@@ -23,6 +23,8 @@ public with sharing class NsSalesHistoryBatch implements Database.Batchable<SObj
       'Item_Group_Code__c, ' +
       'breadwinner_ns__Item__r.ncf_item_groupcode__c, ' +
       'breadwinner_ns__Item__r.Base_Price__c, ' +
+      'breadwinner_ns__CostEstimate__c, ' +
+      'breadwinner_ns__Quantity__c, ' +
       'breadwinner_ns__ParentTransDate__c, ' +
       'breadwinner_ns__LocationName__c,  ' +
       'breadwinner_ns__Item__r.ncf_item9__c, ' +
@@ -57,17 +59,44 @@ public with sharing class NsSalesHistoryBatch implements Database.Batchable<SObj
 
     if (!toInsert.isEmpty()) {
       Database.SaveResult[] results = Database.insert(toInsert, false);
-      Helpers.writeLog(
-        'NS Sales History - Insert Results',
-        JSON.serialize(results)
-      );
+
+      for (Database.SaveResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'NS Sales History - Insert Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
     }
+
     if (!toUpdate.isEmpty()) {
       Database.SaveResult[] results = Database.update(toUpdate, false);
-      Helpers.writeLog(
-        'NS Sales History - Update Results',
-        JSON.serialize(results)
-      );
+
+      for (Database.SaveResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'NS Sales History - Update Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
     }
   }
 

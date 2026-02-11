@@ -18,6 +18,7 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
       'custrecord_aschorderdate__c, ' +
       'custrecord_aschvendor__c, ' +
       'custrecord_aschvendoritemnum__c, ' +
+      'custrecord_aschitemqty__c, ' +
       'custrecord_aschstore__c ' +
       'FROM nco_aschistoricalsales__c ' +
       'ORDER BY custrecord_aschorderdate__c DESC';
@@ -47,17 +48,44 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
 
     if (!toInsert.isEmpty()) {
       Database.SaveResult[] results = Database.insert(toInsert, false);
-      Helpers.writeLog(
-        'ASC Sales History - Insert Results',
-        JSON.serialize(results)
-      );
+
+      for (Database.SaveResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'ASC Sales History - Insert Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
     }
+
     if (!toUpdate.isEmpty()) {
       Database.SaveResult[] results = Database.update(toUpdate, false);
-      Helpers.writeLog(
-        'ASC Sales History - Update Results',
-        JSON.serialize(results)
-      );
+
+      for (Database.SaveResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'ASC Sales History - Update Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
     }
   }
 
