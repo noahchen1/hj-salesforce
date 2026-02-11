@@ -68,6 +68,7 @@ public with sharing class NsLineItemService {
     List<Sales_History__c> toInsert = updateMap.get('toInsert') != null
       ? updateMap.get('toInsert')
       : new List<Sales_History__c>();
+
     List<Sales_History__c> toUpdate = updateMap.get('toUpdate') != null
       ? updateMap.get('toUpdate')
       : new List<Sales_History__c>();
@@ -196,14 +197,23 @@ public with sharing class NsLineItemService {
     for (breadwinner_ns__BW_Line_Item__c line : lineItems) {
       deletedSourceIds.add(String.valueOf(line.Id));
     }
+
     if (deletedSourceIds.isEmpty())
       return;
 
-    List<Sales_History__c> existingHistory = [
-      SELECT Id
-      FROM Sales_History__c
-      WHERE Source__c = 'NS' AND Source_Id__c IN :deletedSourceIds
-    ];
+    List<Sales_History__c> existingHistory = new List<Sales_History__c>();
+
+    for (String Id : deletedSourceIds) {
+      String pattern = Id + '%';
+
+      existingHistory.addAll(
+        [
+          SELECT Id
+          FROM Sales_History__c
+          WHERE Source__c = 'NS' AND Source_Id__c LIKE :pattern
+        ]
+      );
+    }
 
     if (!existingHistory.isEmpty()) {
       Database.DeleteResult[] results = Database.delete(existingHistory, false);

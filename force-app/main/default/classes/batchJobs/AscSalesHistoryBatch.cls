@@ -42,8 +42,13 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
     List<Sales_History__c> toInsert = updateMap.get('toInsert') != null
       ? updateMap.get('toInsert')
       : new List<Sales_History__c>();
+
     List<Sales_History__c> toUpdate = updateMap.get('toUpdate') != null
       ? updateMap.get('toUpdate')
+      : new List<Sales_History__c>();
+
+    List<Sales_History__c> toDelete = updateMap.get('toDelete') != null
+      ? updateMap.get('toDelete')
       : new List<Sales_History__c>();
 
     if (!toInsert.isEmpty()) {
@@ -81,6 +86,27 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
 
             Helpers.writeLog(
               'ASC Sales History - Update Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
+    }
+
+    if (!toDelete.isEmpty()) {
+      Database.DeleteResult[] results = Database.delete(toDelete, false);
+
+      for (Database.DeleteResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'ASC Sales History - Delete Error',
               JSON.serialize(errMap)
             );
           }

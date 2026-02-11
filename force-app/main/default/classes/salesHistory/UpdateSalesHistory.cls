@@ -74,17 +74,25 @@ public with sharing class UpdateSalesHistory {
     if (lineItems == null || lineItems.isEmpty()) {
       return new Map<String, List<Sales_History__c>>{
         'toInsert' => new List<Sales_History__c>(),
-        'toUpdate' => new List<Sales_History__c>()
+        'toUpdate' => new List<Sales_History__c>(),
+        'toDelete' => new List<Sales_History__c>()
       };
     }
 
     Set<String> sourceIds = new Set<String>();
+    Set<Id> lineItemIds = new Set<Id>();
     Set<String> repNames = new Set<String>();
+    List<Sales_History__c> toInsert = new List<Sales_History__c>();
+    List<Sales_History__c> toUpdate = new List<Sales_History__c>();
+    List<Sales_History__c> toDelete = new List<Sales_History__c>();
 
     for (breadwinner_ns__BW_Line_Item__c line : lineItems) {
       try {
         if (!isValidTransactionType(line.breadwinner_ns__Transaction_Type__c))
           continue;
+
+        if (line.Id != null)
+          lineItemIds.add(line.Id);
 
         RepInfo repInfo = getSalesReps(line);
 
@@ -113,7 +121,7 @@ public with sharing class UpdateSalesHistory {
     }
 
     Map<String, Sales_History__c> existingBySourceId = new Map<String, Sales_History__c>();
-    if (!sourceIds.isEmpty()) {
+    if (!lineItemIds.isEmpty()) {
       for (Sales_History__c sh : [
         SELECT
           Id,
@@ -140,9 +148,13 @@ public with sharing class UpdateSalesHistory {
           NetSuite_Line_Item__c,
           ASC_Historical_Sales__c
         FROM Sales_History__c
-        WHERE Source__c = 'NS' AND Source_Id__c IN :sourceIds
+        WHERE Source__c = 'NS' AND NetSuite_Line_Item__c IN :lineItemIds
       ]) {
-        existingBySourceId.put(sh.Source_Id__c, sh);
+        if (sourceIds.contains(sh.Source_Id__c)) {
+          existingBySourceId.put(sh.Source_Id__c, sh);
+        } else {
+          toDelete.add(sh);
+        }
       }
     }
 
@@ -152,9 +164,6 @@ public with sharing class UpdateSalesHistory {
         userIdByName.put(u.Name, u.Id);
       }
     }
-
-    List<Sales_History__c> toInsert = new List<Sales_History__c>();
-    List<Sales_History__c> toUpdate = new List<Sales_History__c>();
 
     for (breadwinner_ns__BW_Line_Item__c line : lineItems) {
       try {
@@ -280,7 +289,8 @@ public with sharing class UpdateSalesHistory {
 
     return new Map<String, List<Sales_History__c>>{
       'toInsert' => toInsert,
-      'toUpdate' => toUpdate
+      'toUpdate' => toUpdate,
+      'toDelete' => toDelete
     };
   }
 
@@ -290,15 +300,22 @@ public with sharing class UpdateSalesHistory {
     if (lineItems == null || lineItems.isEmpty()) {
       return new Map<String, List<Sales_History__c>>{
         'toInsert' => new List<Sales_History__c>(),
-        'toUpdate' => new List<Sales_History__c>()
+        'toUpdate' => new List<Sales_History__c>(),
+        'toDelete' => new List<Sales_History__c>()
       };
     }
-
     Set<String> sourceIds = new Set<String>();
+    Set<Id> lineItemIds = new Set<Id>();
     Set<String> repNames = new Set<String>();
+    List<Sales_History__c> toInsert = new List<Sales_History__c>();
+    List<Sales_History__c> toUpdate = new List<Sales_History__c>();
+    List<Sales_History__c> toDelete = new List<Sales_History__c>();
 
     for (nco_aschistoricalsales__c line : lineItems) {
       try {
+        if (line.Id != null)
+          lineItemIds.add(line.Id);
+
         RepInfo repInfo = getSalesReps(line);
         if (!String.isBlank(repInfo.rep1Name))
           repNames.add(repInfo.rep1Name);
@@ -325,7 +342,7 @@ public with sharing class UpdateSalesHistory {
     }
 
     Map<String, Sales_History__c> existingBySourceId = new Map<String, Sales_History__c>();
-    if (!sourceIds.isEmpty()) {
+    if (!lineItemIds.isEmpty()) {
       for (Sales_History__c history : [
         SELECT
           Id,
@@ -354,7 +371,11 @@ public with sharing class UpdateSalesHistory {
         FROM Sales_History__c
         WHERE Source__c = 'ASC' AND Source_Id__c IN :sourceIds
       ]) {
-        existingBySourceId.put(history.Source_Id__c, history);
+        if (sourceIds.contains(history.Source_Id__c)) {
+          existingBySourceId.put(history.Source_Id__c, history);
+        } else {
+          toDelete.add(history);
+        }
       }
     }
 
@@ -364,9 +385,6 @@ public with sharing class UpdateSalesHistory {
         userIdByName.put(u.Name, u.Id);
       }
     }
-
-    List<Sales_History__c> toInsert = new List<Sales_History__c>();
-    List<Sales_History__c> toUpdate = new List<Sales_History__c>();
 
     for (nco_aschistoricalsales__c line : lineItems) {
       try {
@@ -467,7 +485,8 @@ public with sharing class UpdateSalesHistory {
 
     return new Map<String, List<Sales_History__c>>{
       'toInsert' => toInsert,
-      'toUpdate' => toUpdate
+      'toUpdate' => toUpdate,
+      'toDelete' => toDelete
     };
   }
 }
