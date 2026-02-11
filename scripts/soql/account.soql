@@ -19,7 +19,7 @@ Id,
 Source_Id__c
 FROM
 Sales_History__c
-WHERE Source_Id__c Like 'a0XWJ000002MzID2A0%'
+WHERE Source_Id__c Like 'a13WJ00001KvE8fYAF%'
 
 
 SELECT COUNT() FROM breadwinner_ns__BW_Line_Item__c;
