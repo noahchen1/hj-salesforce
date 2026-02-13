@@ -30,7 +30,7 @@ public with sharing class OpenRepairsController {
 
       String query =
         'SELECT Id, breadwinner_ns__CreatedDate__c, Name, breadwinner_ns__Entity__r.Name, breadwinner_ns__Total__c, ' +
-        'ncf_body_repair_station__c, ncf_body1__c, Days_Open__c, breadwinner_ns__Status__c ' +
+        'ncf_body_repair_station__c, ncf_body1__c, Days_Open__c, breadwinner_ns__Status__c, breadwinner_ns__InternalId__c ' +
         'FROM breadwinner_ns__BW_Sales_Order__c WHERE ncf_body_repair_order__c = TRUE';
 
       if (String.isNotBlank(name)) {

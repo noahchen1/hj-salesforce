@@ -19,7 +19,7 @@ Id,
 Source_Id__c
 FROM
 Sales_History__c
-WHERE Source_Id__c Like 'a13WJ00001KvE8fYAF%'
+WHERE Source_Id__c Like 'a0XWJ000002LSHQ2A4%'
 
 
 SELECT
@@ -28,3 +28,11 @@ breadwinner_ns__ParentCompanyIDName__c,
 breadwinner_ns__ParentCompanyName__c
 FROM breadwinner_ns__BW_Line_Item__c
 WHERE Id = 'a0XWJ000002MzID2A0'
+
+
+SELECT
+COUNT()
+FROM
+Sales_History__c
+WHERE Sales_Rep__c = 'Peter Dunn'
+AND Order_Date__c >= 2025-01-01

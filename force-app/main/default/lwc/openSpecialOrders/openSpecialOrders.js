@@ -114,7 +114,7 @@ export default class OpenSpecialOrders extends LightningElement {
     const mappedData = data.map((r) => {
       const so = r.breadwinner_ns__Sales_Order__r || {};
       const entity = so.breadwinner_ns__Entity__r || {};
-
+      const soLink = `https://5405357-sb1.app.netsuite.com/app/accounting/transactions/salesord.nl?id=${so.breadwinner_ns__InternalId__c}`;
       const needByDateObj = new Date(so.ncf_body_special_order_date__c);
       const today = new Date();
       const rowStyle =
@@ -124,7 +124,9 @@ export default class OpenSpecialOrders extends LightningElement {
 
       return {
         id: so.Id,
-        document: so.Name,
+        nsId: so.breadwinner_ns__InternalId__c,
+        document: soLink,
+        documentLabel: so.Name,
         customer: entity.Name || "",
         specialDate: this.formateDate(so.ncf_body_special_date__c),
         needByDate: this.formateDate(so.ncf_body_special_order_date__c),
@@ -145,7 +147,17 @@ export default class OpenSpecialOrders extends LightningElement {
     const base = [
       { label: "Customer", fieldName: "customer", sortable: true },
       { label: "Date", fieldName: "specialDate", sortable: true },
-      { label: "Document", fieldName: "document", sortable: true },
+      {
+        label: "Document",
+        fieldName: "document",
+        type: "url",
+        typeAttributes: {
+          label: { fieldName: "documentLabel" },
+          target: "_blank"
+        },
+        sortable: true
+      },
+      { label: "Ns Id", fieldName: "nsId", sortable: false },
       { label: "Need By Date", fieldName: "needByDate", sortable: true },
       { label: "Sales Rep", fieldName: "salesRep", sortable: true },
       { label: "Status", fieldName: "status", sortable: true },

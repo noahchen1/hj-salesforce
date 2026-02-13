@@ -36,17 +36,21 @@ export default class OpenRepairs extends LightningElement {
 
   get rows() {
     const data = this.wiredData?.data || [];
+    const mappedData = data.map((r) => {
+      const soLink = `https://5405357-sb1.app.netsuite.com/app/accounting/transactions/salesord.nl?id=${r.breadwinner_ns__InternalId__c}`;
 
-    const mappedData = data.map((r) => ({
-      id: r.Id,
-      date: this.formateDate(r.breadwinner_ns__CreatedDate__c),
-      name: r.Name,
-      total: r.breadwinner_ns__Total__c,
-      station: r.ncf_body_repair_station__c,
-      type: r.ncf_body1__c,
-      daysOpen: r.Days_Open__c,
-      customer: r?.breadwinner_ns__Entity__r?.Name || ""
-    }));
+      return {
+        id: r.Id,
+        document: soLink,
+        documentLabel: r.Name,
+        date: this.formateDate(r.breadwinner_ns__CreatedDate__c),
+        total: r.breadwinner_ns__Total__c,
+        station: r.ncf_body_repair_station__c,
+        type: r.ncf_body1__c,
+        daysOpen: r.Days_Open__c,
+        customer: r?.breadwinner_ns__Entity__r?.Name || ""
+      };
+    });
 
     return mappedData;
   }
@@ -54,7 +58,16 @@ export default class OpenRepairs extends LightningElement {
   get columns() {
     return [
       { label: "Date", fieldName: "date", sortable: true },
-      { label: "Document", fieldName: "name", sortable: true },
+      {
+        label: "Document",
+        fieldName: "document",
+        type: "url",
+        typeAttributes: {
+          label: { fieldName: "documentLabel" },
+          target: "_blank"
+        },
+        sortable: true
+      },
       { label: "Customer", fieldName: "customer", sortable: true },
       { label: "Total", fieldName: "total", sortable: true },
       { label: "Repair Station", fieldName: "station", sortable: true },

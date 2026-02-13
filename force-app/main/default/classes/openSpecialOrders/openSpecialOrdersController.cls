@@ -49,6 +49,7 @@ public with sharing class OpenSpecialOrdersController {
         'breadwinner_ns__Sales_Order__r.breadwinner_ns__SalesRepName__c, ' +
         'breadwinner_ns__Sales_Order__r.ncf_body_special_statuses__c, ' +
         'breadwinner_ns__Sales_Order__r.ncf_body_special_comments__c, ' +
+        'breadwinner_ns__Sales_Order__r.breadwinner_ns__InternalId__c, ' +
         'ncf_col_special_sku__c, ' +
         'ncf_col_special_quoted_price__c, ' +
         'ncf_col_special_order_number__c ' +
