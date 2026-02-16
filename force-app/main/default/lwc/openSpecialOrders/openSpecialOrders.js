@@ -7,6 +7,10 @@ import getSpecialOrderItemTypes from "@salesforce/apex/DropdownDataController.ge
 import getSpecialOrderStatuses from "@salesforce/apex/DropdownDataController.getSpecialOrderStatuses";
 import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
 import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
+import USER_ID from "@salesforce/user/Id";
+import USER_NAME_FIELD from "@salesforce/schema/User.Name";
+import USER_ROLE_NAME_FIELD from "@salesforce/schema/User.UserRole.Name";
+import { getRecord, getFieldValue } from "lightning/uiRecordApi";
 
 export default class OpenSpecialOrders extends LightningElement {
   @track salesRep = "";
@@ -26,6 +30,12 @@ export default class OpenSpecialOrders extends LightningElement {
   @track hideRolexOrTudor = [];
   @track sortBy = "needByDate";
   @track sortDirection = "desc";
+
+  @wire(getRecord, {
+    recordId: USER_ID,
+    fields: [USER_NAME_FIELD, USER_ROLE_NAME_FIELD]
+  })
+  userData;
 
   @wire(getOpenSpecialOrders, {
     salesRep: "$salesRep",
@@ -242,4 +252,31 @@ export default class OpenSpecialOrders extends LightningElement {
   }
 
   formateDate = (date) => (date ? new Date(date).toLocaleDateString() : "");
+
+  renderedCallback() {
+    if (!this.userData?.data) {
+      return;
+    }
+
+    const data = this.userData?.data;
+    const roleName = getFieldValue(data, USER_ROLE_NAME_FIELD);
+
+    if ((roleName || "").toLowerCase() === "associate") {
+      const userName = getFieldValue(data, USER_NAME_FIELD);
+
+      if (userName) {
+        this.salesRep = userName;
+        this.pageNumber = 1;
+        this.isRepFilterDisabled = true;
+
+        const input = this.template.querySelector(
+          'c-lookup-input[data-type="salesRep"]'
+        );
+
+        if (input) {
+          input.style.display = "none";
+        }
+      }
+    }
+  }
 }

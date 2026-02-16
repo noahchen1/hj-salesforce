@@ -36,3 +36,7 @@ FROM
 Sales_History__c
 WHERE Sales_Rep__c = 'Peter Dunn'
 AND Order_Date__c >= 2025-01-01
+
+SELECT Id, Name, UserRole.Name
+FROM User
+WHERE Name = 'Noah Chen'

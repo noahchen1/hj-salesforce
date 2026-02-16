@@ -1,7 +1,7 @@
 <template>
   <lightning-card>
     <div class="title">Open Repairs</div>
-    <template if:true={isAccountsLoading}>
+    <template if:true={isLoading}>
       <div class="loading-screen">
         <lightning-spinner
           alternative-text="Loading..."
@@ -10,8 +10,15 @@
       </div>
     </template>
 
-    <template if:false={isAccountsLoading}>
+    <template if:false={isLoading}>
       <div class="filters">
+        <c-lookup-input
+          data-id="salesrepLookup"
+          label="Sales Rep"
+          placeholder="Enter Name"
+          onsearch={handleSalesRepSearch}
+          onselect={handleSalesRepSelect}
+        ></c-lookup-input>
         <c-lookup-input
           data-id="customerLookup"
           label="Name"
@@ -19,7 +26,6 @@
           onsearch={handleCustomerSearch}
           onselect={handleCustomerSelect}
         ></c-lookup-input>
-
         <c-lookup-input
           data-id="stationLookup"
           label="Station"

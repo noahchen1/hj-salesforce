@@ -2,17 +2,31 @@ import { LightningElement, wire, track } from "lwc";
 import getOpenRepairs from "@salesforce/apex/OpenRepairsController.getOpenRepairs";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
 import searchRepairStations from "@salesforce/apex/FilterDataController.searchRepairStation";
+import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
+import USER_ID from "@salesforce/user/Id";
+import USER_NAME_FIELD from "@salesforce/schema/User.Name";
+import USER_ROLE_NAME_FIELD from "@salesforce/schema/User.UserRole.Name";
+import { getRecord, getFieldValue } from "lightning/uiRecordApi";
 
 export default class OpenRepairs extends LightningElement {
   @track name = "";
+  @track salesRep = "";
   @track pageSize = 20;
   @track pageNumber = 1;
   @track station = "";
   @track isAccountsLoading = false;
   @track sortBy = "date";
   @track sortDirection = "desc";
+  @track isLoading = false;
+
+  @wire(getRecord, {
+    recordId: USER_ID,
+    fields: [USER_NAME_FIELD, USER_ROLE_NAME_FIELD]
+  })
+  userData;
 
   @wire(getOpenRepairs, {
+    salesRep: "$salesRep",
     name: "$name",
     station: "$station",
     limitSize: "$pageSize",
@@ -90,6 +104,13 @@ export default class OpenRepairs extends LightningElement {
     this.pageNumber = 1;
   }
 
+  handleSalesRepSelect(e) {
+    const selectedSalesRep = e.detail.name;
+
+    this.salesRep = selectedSalesRep;
+    this.pageNumber = 1;
+  }
+
   handleSort(e) {
     this.sortBy = e.detail.fieldName;
     this.sortDirection = e.detail.sortDirection;
@@ -113,6 +134,27 @@ export default class OpenRepairs extends LightningElement {
     } else {
       input.setResults([]);
       this.name = "";
+    }
+  }
+
+  async handleSalesRepSearch(e) {
+    const salesRep = e.detail.searchKey;
+    const input = this.template.querySelector(
+      'c-lookup-input[data-id="salesrepLookup"]'
+    );
+
+    if (salesRep.length > 1) {
+      try {
+        const results = await searchSalesRep({ input: salesRep });
+
+        input.setResults(results);
+      } catch (error) {
+        console.error(error);
+        input.setResults([]);
+      }
+    } else {
+      input.setResults([]);
+      this.salesRep = "";
     }
   }
 
@@ -148,5 +190,34 @@ export default class OpenRepairs extends LightningElement {
     if (this.pageNumber > 1) {
       this.pageNumber -= 1;
     }
+  }
+
+  renderedCallback() {
+    if (!this.userData?.data) {
+      return;
+    }
+
+    const data = this.userData?.data;
+    const roleName = getFieldValue(data, USER_ROLE_NAME_FIELD);
+
+    if ((roleName || "").toLowerCase() === "associate") {
+      const userName = getFieldValue(data, USER_NAME_FIELD);
+
+      if (userName) {
+        this.salesRep = userName;
+        this.pageNumber = 1;
+        this.isRepFilterDisabled = true;
+
+        const input = this.template.querySelector(
+          'c-lookup-input[data-id="salesrepLookup"]'
+        );
+
+        if (input) {
+          input.style.display = "none";
+        }
+      }
+    }
+
+    this.isLoading = false;
   }
 }
