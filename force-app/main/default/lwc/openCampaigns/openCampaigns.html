@@ -1,12 +1,22 @@
 <template>
   <lightning-card>
     <div class="title">Campaign</div>
-    <div class="slds-p-bottom_small">
+    <div class="btn-container">
       <lightning-button
         label="Customize Email"
         onclick={openTemplateModal}
         variant="brand"
       ></lightning-button>
+    </div>
+    <div class="filters">
+      <lightning-combobox
+        name="campaign"
+        label="Campaign"
+        value={campaign}
+        placeholder="Select a campaign"
+        options={campaignOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
     </div>
     <template if:true={rows.length}>
       <div class="datatable-container">
@@ -30,28 +40,42 @@
             <h2 class="slds-text-heading_medium">Customize Email</h2>
           </header>
           <div class="slds-modal__content slds-p-around_medium">
+            <lightning-combobox
+              name="selectedTemplate"
+              label="Template"
+              value={selectedTemplate}
+              placeholder="Select a template"
+              options={templateOptions}
+              onchange={handleComboboxChange}
+            ></lightning-combobox>
             <lightning-input
               label="Subject"
               value={emailSubject}
               onchange={handleSubjectChange}
             ></lightning-input>
-            <lightning-textarea
+            <lightning-input-rich-text
               label="Body"
               value={emailBody}
               onchange={handleBodyChange}
-              rows="8"
-            ></lightning-textarea>
+            ></lightning-input-rich-text>
+
+            <c-custom-template></c-custom-template>
           </div>
           <footer class="slds-modal__footer slds-grid slds-grid_align-end">
             <lightning-button
               label="Cancel"
               onclick={closeTemplateModal}
-              variant="neutral"
+              variant="destructive"
             ></lightning-button>
             <lightning-button
               label="Send"
               onclick={handleEmailSend}
               variant="brand"
+            ></lightning-button>
+            <lightning-button
+              label="Save"
+              onclick={handleTemplateSave}
+              variant="neutral"
             ></lightning-button>
           </footer>
         </div>

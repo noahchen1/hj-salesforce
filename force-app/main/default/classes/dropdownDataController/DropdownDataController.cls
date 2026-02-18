@@ -77,4 +77,45 @@ public with sharing class DropdownDataController {
       throw new AuraHandledException(e.getMessage());
     }
   }
+
+  @AuraEnabled(cacheable=true)
+  public static List<Option> getCampaigns() {
+    List<Option> options = new List<Option>();
+
+    try {
+      for (AggregateResult ar : [
+        SELECT Campaign.Id campaignId, Campaign.Name campaignName
+        FROM CampaignMember
+        WHERE Account.OwnerId = :UserInfo.getUserId()
+        GROUP BY Campaign.Id, Campaign.Name
+      ]) {
+        String Id = (String) ar.get('campaignId');
+        String Name = (String) ar.get('campaignName');
+        options.add(new Option(Name, Id));
+      }
+
+      return options;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
+  public static List<Option> getCustomEmailTemplates(String type) {
+    List<Option> options = new List<Option>();
+
+    try {
+      for (Custom_Email_Template__c template : [
+        SELECT Id, Label__c
+        FROM Custom_Email_Template__c
+        WHERE Type__c = :type
+      ]) {
+        options.add(new Option(template.Label__c, template.Id));
+      }
+
+      return options;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
 }

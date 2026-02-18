@@ -19,3 +19,20 @@
   align-items: center;
   background-color: rgba(0, 0, 0, 0.5);
 }
+
+.filters,
+.btn-container,
+.datatable-container {
+  margin: 30px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.filters > * {
+  flex: 1 1 30%;
+  box-sizing: border-box;
+}
