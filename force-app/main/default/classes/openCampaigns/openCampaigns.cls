@@ -27,7 +27,7 @@ public with sharing class openCampaigns {
   }
 
   @AuraEnabled(cacheable=true)
-  public static void sendCampaignMemberEmails(
+  public static List<Map<String, Object>> sendCampaignMemberEmails(
     List<Id> memberIds,
     String subject,
     String body
@@ -73,15 +73,17 @@ public with sharing class openCampaigns {
 
     try {
       List<CampaignMember> members = [
-        SELECT Id, Account.Email__c
+        SELECT Id, Account.Email__c, Account.Name
         FROM CampaignMember
         WHERE Id IN :memberIds AND Account.OwnerId = :UserInfo.getUserId()
       ];
 
       List<Messaging.SingleEmailMessage> mails = new List<Messaging.SingleEmailMessage>();
+      List<String> recipients = new List<String>();
 
       for (CampaignMember m : members) {
         if (m.Account != null && String.isNotBlank(m.Account.Email__c)) {
+          String accountName = m.Account.Name;
           Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
 
           mail.setToAddresses(new List<String>{ m.Account.Email__c });
@@ -90,11 +92,38 @@ public with sharing class openCampaigns {
             body == null ? '' : templateHtml.replace('{templateContent}', body)
           );
           mails.add(mail);
+          recipients.add(accountName);
         }
       }
 
-      if (!mails.isEmpty())
-        List<Messaging.SendEmailResult> results = Messaging.sendEmail(mails);
+      if (mails.isEmpty())
+        return null;
+
+      List<Messaging.SendEmailResult> results = Messaging.sendEmail(mails);
+
+      List<Map<String, Object>> response = new List<Map<String, Object>>();
+
+      Integer n = Math.min(results.size(), recipients.size());
+      for (Integer i = 0; i < n; i++) {
+        Messaging.SendEmailResult result = results[i];
+
+        List<String> errs = new List<String>();
+        if (result != null && result.getErrors() != null) {
+          for (Messaging.SendEmailError err : result.getErrors()) {
+            errs.add(err.getMessage());
+          }
+        }
+
+        response.add(
+          new Map<String, Object>{
+            'recipient' => recipients[i],
+            'success' => (result != null && result.isSuccess()),
+            'errors' => errs
+          }
+        );
+      }
+
+      return response;
     } catch (Exception err) {
       throw new AuraHandledException(err.getMessage());
     }

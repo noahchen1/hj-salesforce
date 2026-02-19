@@ -1,5 +1,4 @@
 import { api, LightningElement, track, wire } from "lwc";
-import sendCampaignMemberEmails from "@salesforce/apex/openCampaigns.sendCampaignMemberEmails";
 import getCustomEmailTemplates from "@salesforce/apex/DropdownDataController.getCustomEmailTemplates";
 import { getRecord, getFieldValue, updateRecord } from "lightning/uiRecordApi";
 import CUSTOM_TEMPLATE_SUBJECT from "@salesforce/schema/Custom_Email_Template__c.Subject__c";
@@ -17,6 +16,7 @@ export default class CustomEmailEditor extends LightningElement {
   @track templateOptionsLoaded = false;
   @track templateDataLoaded = false;
   @track recipientIds = [];
+  @track isPreviewOpen = false;
 
   @api
   setTemplateType(templateType) {
@@ -36,6 +36,14 @@ export default class CustomEmailEditor extends LightningElement {
   closeModal() {
     this.isModalOpen = false;
     this.isLoading = false;
+  }
+
+  openPreview() {
+    this.isPreviewOpen = true;
+  }
+
+  closePreview() {
+    this.isPreviewOpen = false;
   }
 
   @wire(getCustomEmailTemplates, { type: "$templateType" })
@@ -132,18 +140,16 @@ export default class CustomEmailEditor extends LightningElement {
       return;
     }
 
-    try {
-      await sendCampaignMemberEmails({
-        memberIds: this.recipientIds,
-        subject: this.subject,
-        body: this.body
-      });
+    this.dispatchEvent(
+      new CustomEvent("sendemail", {
+        detail: {
+          recipientIds: this.recipientIds,
+          subject: this.subject,
+          body: this.body
+        }
+      })
+    );
 
-      this.closeModal();
-    } catch (error) {
-      console.error(error);
-
-      this.closeModal();
-    }
+    this.closeModal();
   }
 }

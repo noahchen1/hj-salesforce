@@ -1,6 +1,8 @@
 import { LightningElement, track, wire } from "lwc";
 import getCampaignMembers from "@salesforce/apex/openCampaigns.getCampaignMembers";
 import getCampaigns from "@salesforce/apex/DropdownDataController.getCampaigns";
+import sendCampaignMemberEmails from "@salesforce/apex/openCampaigns.sendCampaignMemberEmails";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 export default class OpenCampaigns extends LightningElement {
   @track sortBy = "name";
@@ -71,5 +73,114 @@ export default class OpenCampaigns extends LightningElement {
     const value = e.target.value;
 
     this[name] = value;
+  }
+
+  async handleEmailSend(e) {
+    const { recipientIds, subject, body } = e.detail;
+
+    if (!Array.isArray(recipientIds) || recipientIds.length === 0) {
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Email failed",
+          message: "No recipients selected.",
+          variant: "error"
+        })
+      );
+      return;
+    }
+
+    try {
+      const result = await sendCampaignMemberEmails({
+        memberIds: recipientIds,
+        subject,
+        body
+      });
+
+      this.showEmailResults(result);
+    } catch (err) {
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Email failed",
+          message: err?.body?.message || err?.message || "Unknown error",
+          variant: "error"
+        })
+      );
+    }
+  }
+
+  showEmailResults(resultsRaw) {
+    let results = resultsRaw;
+
+    if (typeof resultsRaw === "string") {
+      try {
+        results = JSON.parse(resultsRaw);
+      } catch {
+        results = null;
+      }
+    }
+
+    if (!Array.isArray(results) || results.length === 0) {
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Email failed",
+          message: "No results returned. Please contact your administrator.",
+          variant: "error"
+        })
+      );
+
+      return;
+    }
+
+    const sent = [];
+    const failed = [];
+    const allErrors = [];
+
+    for (const row of results) {
+      const recipient = row?.recipient || "(unknown recipient)";
+      const success = !!row?.success;
+
+      if (success) {
+        sent.push(recipient);
+      } else {
+        failed.push(recipient);
+
+        const errs = Array.isArray(row?.errors) ? row.errors : [];
+
+        for (const msg of errs) if (msg) allErrors.push(msg);
+      }
+    }
+
+    const uniqueErrors = [...new Set(allErrors)];
+    const total = results.length;
+    const sentCount = sent.length;
+    const failedCount = failed.length;
+
+    let variant = "success";
+    let title = "Email Results";
+    if (failedCount === total) {
+      variant = "error";
+      title = "Email failed";
+    } else if (failedCount > 0) {
+      variant = "warning";
+      title = "Email partially sent";
+    }
+
+    const parts = [
+      `Total: ${total}`,
+      `Sent: ${sentCount}`,
+      `Failed: ${failedCount}`
+    ];
+
+    if (sentCount) parts.push(`Sent to: ${sent.join(", ")}`);
+    if (failedCount) parts.push(`Failed: ${failed.joint(", ")}`);
+    if (uniqueErrors.length) parts.push(`Errors: ${uniqueErrors.join(", ")}`);
+
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title,
+        message: parts.join(" | "),
+        variant
+      })
+    );
   }
 }

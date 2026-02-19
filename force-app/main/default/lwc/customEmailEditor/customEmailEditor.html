@@ -1,59 +1,108 @@
 <template>
   <template if:true={isModalOpen}>
-    <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
-      <template if:true={isLoading}>
-        <div class="loading-screen">
-          <lightning-spinner
-            alternative-text="Loading..."
-            size="medium"
-          ></lightning-spinner>
-        </div>
-      </template>
-      <div class="slds-modal__container">
-        <header class="slds-modal__header">
-          <h2 class="slds-text-heading_medium">Customize Email</h2>
-        </header>
-        <div class="slds-modal__content slds-p-around_medium">
-          <lightning-combobox
-            name="selectedTemplate"
-            label="Template"
-            value={selectedTemplate}
-            placeholder="Select a template"
-            options={templateOptions}
-            onchange={handleComboboxChange}
-          ></lightning-combobox>
-          <lightning-input
-            label="Subject"
-            value={subject}
-            onchange={handleSubjectChange}
-          ></lightning-input>
-          <lightning-input-rich-text
-            label="Body"
-            value={body}
-            onchange={handleBodyChange}
-          ></lightning-input-rich-text>
+    <template if:false={isPreviewOpen}>
+      <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+        <template if:true={isLoading}>
+          <div class="loading-screen">
+            <lightning-spinner
+              alternative-text="Loading..."
+              size="medium"
+            ></lightning-spinner>
+          </div>
+        </template>
+        <div class="slds-modal__container">
+          <header class="slds-modal__header">
+            <h2 class="slds-text-heading_medium">Customize Email</h2>
+          </header>
+          <div class="slds-modal__content slds-p-around_medium">
+            <lightning-combobox
+              name="selectedTemplate"
+              label="Template"
+              value={selectedTemplate}
+              placeholder="Select a template"
+              options={templateOptions}
+              onchange={handleComboboxChange}
+            ></lightning-combobox>
+            <lightning-input
+              label="Subject"
+              value={subject}
+              onchange={handleSubjectChange}
+            ></lightning-input>
+            <lightning-input-rich-text
+              label="Body"
+              value={body}
+              onchange={handleBodyChange}
+            ></lightning-input-rich-text>
 
-          <c-custom-template></c-custom-template>
+            <!-- <c-custom-template></c-custom-template> -->
+          </div>
+          <footer class="slds-modal__footer slds-grid slds-grid_align-end">
+            <lightning-button
+              label="Preview"
+              onclick={openPreview}
+              variant="neutral"
+            ></lightning-button>
+            <lightning-button
+              label="Cancel"
+              onclick={closeModal}
+              variant="destructive"
+            ></lightning-button>
+            <lightning-button
+              label="Send"
+              onclick={handleEmailSend}
+              variant="brand"
+            ></lightning-button>
+            <lightning-button
+              label="Save"
+              onclick={handleTemplateSave}
+              variant="neutral"
+            ></lightning-button>
+          </footer>
         </div>
-        <footer class="slds-modal__footer slds-grid slds-grid_align-end">
-          <lightning-button
-            label="Cancel"
-            onclick={closeModal}
-            variant="destructive"
-          ></lightning-button>
-          <lightning-button
-            label="Send"
-            onclick={handleEmailSend}
-            variant="brand"
-          ></lightning-button>
-          <lightning-button
-            label="Save"
-            onclick={handleTemplateSave}
-            variant="neutral"
-          ></lightning-button>
-        </footer>
-      </div>
-    </section>
-    <div class="slds-backdrop slds-backdrop_open"></div>
+      </section>
+      <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <template if:true={isPreviewOpen}>
+      <section
+        role="dialog"
+        tabindex="-1"
+        class="slds-modal slds-fade-in-open slds-modal_small"
+        aria-label="Email Preview"
+      >
+        <div class="slds-modal__container">
+          <header class="slds-modal__header">
+            <h2 class="slds-text-heading_medium">Email Preview</h2>
+          </header>
+
+          <div class="slds-modal__content slds-p-around_medium">
+            <div class="slds-text-title_bold slds-m-bottom_x-small">
+              Subject
+            </div>
+            <lightning-formatted-text
+              value={subject}
+            ></lightning-formatted-text>
+
+            <div
+              class="slds-text-title_bold slds-m-top_medium slds-m-bottom_x-small"
+            >
+              Body
+            </div>
+            <lightning-formatted-rich-text
+              value={body}
+            ></lightning-formatted-rich-text>
+          </div>
+
+          <footer class="slds-modal__footer slds-grid slds-grid_align-end">
+            <lightning-button
+              label="Close"
+              onclick={closePreview}
+              variant="brand"
+            ></lightning-button>
+          </footer>
+        </div>
+      </section>
+      <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
   </template>
 </template>
