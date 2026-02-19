@@ -13,17 +13,18 @@ export default class CustomEmailEditor extends LightningElement {
   @track body = "";
   @track preview = "";
   @track isModalOpen = false;
+  @track isPreviewOpen = false;
   @track isLoading = true;
   @track isPreviewLoading = false;
   @track templateOptionsLoaded = false;
   @track templateDataLoaded = false;
   @track recipientIds = [];
-  @track isPreviewOpen = false;
-  @track getTemplateHtml;
+  @track getTemplateHtml = "";
 
   @api
   setTemplateType(templateType) {
     this.templateType = templateType;
+    console.log(this.templateType);
   }
 
   @api
@@ -47,8 +48,20 @@ export default class CustomEmailEditor extends LightningElement {
   }
 
   closeModal() {
+    this.selectedTemplate = "";
+    this.templateOptions = [];
+    this.templateType = "";
+    this.subject = "";
+    this.body = "";
+    this.preview = "";
     this.isModalOpen = false;
-    this.isLoading = false;
+    this.isPreviewOpen = false;
+    this.isLoading = true;
+    this.isPreviewLoading = false;
+    this.templateOptionsLoaded = false;
+    this.templateDataLoaded = false;
+    this.recipientIds = [];
+    this.getTemplateHtml = "";
   }
 
   async openPreview() {

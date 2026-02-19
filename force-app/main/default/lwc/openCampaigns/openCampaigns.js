@@ -12,6 +12,9 @@ export default class OpenCampaigns extends LightningElement {
   @track pageNumber = 1;
   @track pageSize = 20;
   @track campaignOptions = [];
+  @track isLoading = true;
+  @track campaignOptionsLoaded = false;
+  @track campaignMembersLoaded = false;
 
   @wire(getCampaigns)
   handleCampaigns(result) {
@@ -31,6 +34,9 @@ export default class OpenCampaigns extends LightningElement {
       campaign: r?.Campaign?.Name
     }));
 
+    this.campaignMembersLoaded = true;
+    this.checkLoadingState();
+
     return mappedData;
   }
 
@@ -45,6 +51,12 @@ export default class OpenCampaigns extends LightningElement {
   handleSort(e) {
     this.sortBy = e.detail.fieldName;
     this.sortDirection = e.detail.sortDirection;
+  }
+
+  checkLoadingState() {
+    if (this.campaignOptionsLoaded && this.campaignMembersLoaded) {
+      this.isLoading = false;
+    }
   }
 
   async openTemplateModal() {
@@ -64,6 +76,9 @@ export default class OpenCampaigns extends LightningElement {
         { label: "All", value: "" },
         ...data.map(({ label, value }) => ({ label, value }))
       ];
+
+      this.campaignOptionsLoaded = true;
+      this.checkLoadingState();
     } else if (error) {
       console.error(`Error fetching ${target}: `, error);
     }

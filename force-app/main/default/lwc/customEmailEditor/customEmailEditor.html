@@ -44,6 +44,11 @@
               variant="neutral"
             ></lightning-button>
             <lightning-button
+              label="Save"
+              onclick={handleTemplateSave}
+              variant="neutral"
+            ></lightning-button>
+            <lightning-button
               label="Cancel"
               onclick={closeModal}
               variant="destructive"
@@ -52,11 +57,6 @@
               label="Send"
               onclick={handleEmailSend}
               variant="brand"
-            ></lightning-button>
-            <lightning-button
-              label="Save"
-              onclick={handleTemplateSave}
-              variant="neutral"
             ></lightning-button>
           </footer>
         </div>
