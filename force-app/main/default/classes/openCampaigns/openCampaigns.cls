@@ -83,7 +83,7 @@ public with sharing class openCampaigns {
 
     try {
       List<CampaignMember> members = [
-        SELECT Id, Account.Email__c, Account.Name
+        SELECT Id, Account.Email__c, Account.Name, Account.Id
         FROM CampaignMember
         WHERE Id IN :memberIds AND Account.OwnerId = :UserInfo.getUserId()
       ];
@@ -99,6 +99,8 @@ public with sharing class openCampaigns {
           mail.setToAddresses(new List<String>{ m.Account.Email__c });
           mail.setSubject(subject == null ? 'Campaign update' : subject);
           mail.setHtmlBody(template == null ? '' : template);
+          mail.setWhatId(m.Account.Id);
+          mail.setSaveAsActivity(true);
           mails.add(mail);
           recipients.add(accountName);
         }
