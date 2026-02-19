@@ -44,4 +44,6 @@ WHERE Name = 'Noah Chen'
 
 SELECT Id, breadwinner_ns__Parent__c FROM breadwinner_ns__BW_Company__c WHERE Name = 'CUST105786 Jennifer Knill'
 
-SELECT FIELDS(ALL) FROM EmailTemplate LIMIT 1
+SELECT FIELDS(ALL) FROM Custom_Email_Layout__mdt LIMIT 1
+
+

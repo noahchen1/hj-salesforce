@@ -2,6 +2,7 @@ import { LightningElement, track, wire } from "lwc";
 import getCampaignMembers from "@salesforce/apex/openCampaigns.getCampaignMembers";
 import getCampaigns from "@salesforce/apex/DropdownDataController.getCampaigns";
 import sendCampaignMemberEmails from "@salesforce/apex/openCampaigns.sendCampaignMemberEmails";
+import getTemplateHtml from "@salesforce/apex/openCampaigns.getTemplateHtml";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 export default class OpenCampaigns extends LightningElement {
@@ -73,6 +74,12 @@ export default class OpenCampaigns extends LightningElement {
     const value = e.target.value;
 
     this[name] = value;
+  }
+
+  handlePreview() {
+    const emailEditor = this.template.querySelector("c-custom-email-editor");
+
+    emailEditor.setGetTemplateHTML(getTemplateHtml);
   }
 
   async handleEmailSend(e) {
@@ -172,7 +179,7 @@ export default class OpenCampaigns extends LightningElement {
     ];
 
     if (sentCount) parts.push(`Sent to: ${sent.join(", ")}`);
-    if (failedCount) parts.push(`Failed: ${failed.joint(", ")}`);
+    if (failedCount) parts.push(`Failed: ${failed.join(", ")}`);
     if (uniqueErrors.length) parts.push(`Errors: ${uniqueErrors.join(", ")}`);
 
     this.dispatchEvent(

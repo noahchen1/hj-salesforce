@@ -1,6 +1,6 @@
 public with sharing class openCampaigns {
   @AuraEnabled(cacheable=true)
-  public static list<CampaignMember> getCampaignMembers(String campaignId) {
+  public static List<CampaignMember> getCampaignMembers(String campaignId) {
     try {
       String query =
         'SELECT ' +
@@ -27,11 +27,10 @@ public with sharing class openCampaigns {
   }
 
   @AuraEnabled(cacheable=true)
-  public static List<Map<String, Object>> sendCampaignMemberEmails(
-    List<Id> memberIds,
-    String subject,
-    String body
-  ) {
+  public static String getTemplateHtml(String subject, String body) {
+    if (String.isEmpty(subject) || String.isEmpty(body))
+      return null;
+
     String templateHtml =
       '<!DOCTYPE html>\n' +
       '<html>\n' +
@@ -71,6 +70,17 @@ public with sharing class openCampaigns {
       '</body>\n' +
       '</html>';
 
+    return templateHtml.replace('{templateContent}', body);
+  }
+
+  @AuraEnabled(cacheable=true)
+  public static List<Map<String, Object>> sendCampaignMemberEmails(
+    List<Id> memberIds,
+    String subject,
+    String body
+  ) {
+    String template = getTemplateHtml(subject, body);
+
     try {
       List<CampaignMember> members = [
         SELECT Id, Account.Email__c, Account.Name
@@ -88,9 +98,7 @@ public with sharing class openCampaigns {
 
           mail.setToAddresses(new List<String>{ m.Account.Email__c });
           mail.setSubject(subject == null ? 'Campaign update' : subject);
-          mail.setHtmlBody(
-            body == null ? '' : templateHtml.replace('{templateContent}', body)
-          );
+          mail.setHtmlBody(template == null ? '' : template);
           mails.add(mail);
           recipients.add(accountName);
         }

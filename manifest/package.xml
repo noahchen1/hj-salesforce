@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Custom_Email_Layout__mdt.Default_Email_Wrapper</members>
+        <name>CustomMetadata</name>
+    </types>
+    <version>64.0</version>
+</Package>
