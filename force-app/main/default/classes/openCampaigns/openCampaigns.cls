@@ -12,7 +12,8 @@ public with sharing class openCampaigns {
         'CampaignMember ' +
         'WHERE Account.OwnerId = \'' +
         UserInfo.getUserId() +
-        '\'';
+        '\' ' +
+        'AND status = \'Notsent\'';
 
       if (String.isNotEmpty(campaignId)) {
         query += ' AND Campaign.Id = :campaignId';
@@ -73,28 +74,36 @@ public with sharing class openCampaigns {
     return templateHtml.replace('{templateContent}', body);
   }
 
-  @AuraEnabled(cacheable=true)
+  @AuraEnabled
   public static List<Map<String, Object>> sendCampaignMemberEmails(
     List<Id> memberIds,
     String subject,
     String body
   ) {
-    String template = getTemplateHtml(subject, body);
-
     try {
       List<CampaignMember> members = [
-        SELECT Id, Account.Email__c, Account.Name, Account.Id
+        SELECT
+          Id,
+          Account.Email__c,
+          Account.Name,
+          Account.First_Name__c,
+          Account.Id
         FROM CampaignMember
         WHERE Id IN :memberIds AND Account.OwnerId = :UserInfo.getUserId()
       ];
 
       List<Messaging.SingleEmailMessage> mails = new List<Messaging.SingleEmailMessage>();
       List<String> recipients = new List<String>();
+      List<Id> recipientMemberIds = new List<Id>();
 
       for (CampaignMember m : members) {
         if (m.Account != null && String.isNotBlank(m.Account.Email__c)) {
           String accountName = m.Account.Name;
+          String firstName = m.Account.First_Name__c;
           Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+
+          String parsedBody = body.replace('{customer}', firstName);
+          String template = getTemplateHtml(subject, parsedBody);
 
           mail.setToAddresses(new List<String>{ m.Account.Email__c });
           mail.setSubject(subject == null ? 'Campaign update' : subject);
@@ -103,6 +112,7 @@ public with sharing class openCampaigns {
           mail.setSaveAsActivity(true);
           mails.add(mail);
           recipients.add(accountName);
+          recipientMemberIds.add(m.Id);
         }
       }
 
@@ -110,27 +120,46 @@ public with sharing class openCampaigns {
         return null;
 
       List<Messaging.SendEmailResult> results = Messaging.sendEmail(mails);
-
       List<Map<String, Object>> response = new List<Map<String, Object>>();
-
+      List<Id> sentMemberIds = new List<Id>();
       Integer n = Math.min(results.size(), recipients.size());
+
       for (Integer i = 0; i < n; i++) {
         Messaging.SendEmailResult result = results[i];
-
+        Boolean isSuccess = result != null && result.isSuccess();
         List<String> errs = new List<String>();
+
         if (result != null && result.getErrors() != null) {
           for (Messaging.SendEmailError err : result.getErrors()) {
             errs.add(err.getMessage());
           }
         }
 
+        if (isSuccess) {
+          sentMemberIds.add(recipientMemberIds[i]);
+        }
+
         response.add(
           new Map<String, Object>{
             'recipient' => recipients[i],
-            'success' => (result != null && result.isSuccess()),
+            'success' => isSuccess,
             'errors' => errs
           }
         );
+      }
+
+      if (!sentMemberIds.isEmpty()) {
+        List<CampaignMember> membersToUpdate = [
+          SELECT Id
+          FROM CampaignMember
+          WHERE Id IN :sentMemberIds
+        ];
+
+        for (CampaignMember member : membersToUpdate) {
+          member.Status = 'Sent';
+        }
+
+        update membersToUpdate;
       }
 
       return response;

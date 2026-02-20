@@ -24,7 +24,6 @@ export default class CustomEmailEditor extends LightningElement {
   @api
   setTemplateType(templateType) {
     this.templateType = templateType;
-    console.log(this.templateType);
   }
 
   @api

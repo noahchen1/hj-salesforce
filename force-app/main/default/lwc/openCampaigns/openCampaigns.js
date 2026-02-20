@@ -4,6 +4,7 @@ import getCampaigns from "@salesforce/apex/DropdownDataController.getCampaigns";
 import sendCampaignMemberEmails from "@salesforce/apex/openCampaigns.sendCampaignMemberEmails";
 import getTemplateHtml from "@salesforce/apex/openCampaigns.getTemplateHtml";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { refreshApex } from "@salesforce/apex";
 
 export default class OpenCampaigns extends LightningElement {
   @track sortBy = "name";
@@ -119,6 +120,8 @@ export default class OpenCampaigns extends LightningElement {
       });
 
       this.showEmailResults(result);
+
+      return refreshApex(this.wiredData);
     } catch (err) {
       this.dispatchEvent(
         new ShowToastEvent({
