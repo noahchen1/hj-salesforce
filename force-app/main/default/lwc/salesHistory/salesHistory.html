@@ -1,14 +1,13 @@
 <template>
-  <template if:true={isLoading}>
-    <div class="loading-screen">
-      <lightning-spinner
-        alternative-text="Loading..."
-        size="medium"
-      ></lightning-spinner>
-    </div>
-  </template>
-
   <lightning-card>
+    <template if:true={isLoading}>
+      <div class="loading-screen">
+        <lightning-spinner
+          alternative-text="Loading..."
+          size="medium"
+        ></lightning-spinner>
+      </div>
+    </template>
     <div class="title">Transaction History</div>
     <div class="filters">
       <c-lookup-input
@@ -18,6 +17,44 @@
         onsearch={handleLookupSearch}
         onselect={handleLookupSelect}
       ></c-lookup-input>
+      <c-lookup-input
+        data-type="salesRep"
+        label="Sales Rep"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <c-lookup-input
+        data-type="item"
+        label="Item"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-combobox
+        name="division"
+        label="Division"
+        value={division}
+        placeholder="Select"
+        options={divisionOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
+      <lightning-combobox
+        name="department"
+        label="Merchandise Department"
+        value={department}
+        placeholder="Select"
+        options={departmentOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
+      <lightning-combobox
+        name="groupcode"
+        label="Group Code"
+        value={groupcode}
+        placeholder="Select"
+        options={groupcodeOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
     </div>
     <template if:true={rows.length}>
       <div class="datatable-container">

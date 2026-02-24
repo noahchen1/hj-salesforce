@@ -79,6 +79,70 @@ public with sharing class DropdownDataController {
   }
 
   @AuraEnabled(cacheable=true)
+  public static List<Option> getDivisions() {
+    List<Option> options = new List<Option>();
+
+    try {
+      for (AggregateResult ar : [
+        SELECT Division__c division
+        FROM Sales_History__c
+        WHERE Division__c NOT IN ('Opening Balance', 'Shipping (7)')
+        GROUP BY Division__c
+      ]) {
+        String divisionName = (String) ar.get('division');
+
+        options.add(new Option(divisionName, divisionName));
+      }
+
+      return options;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
+  public static List<Option> getDepartments() {
+    List<Option> options = new List<Option>();
+
+    try {
+      for (AggregateResult ar : [
+        SELECT Department__c department
+        FROM Sales_History__c
+        GROUP BY Department__c
+      ]) {
+        String departmentName = (String) ar.get('department');
+
+        options.add(new Option(departmentName, departmentName));
+      }
+
+      return options;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
+  public static List<Option> getGroupCodes() {
+    List<Option> options = new List<Option>();
+
+    try {
+      for (AggregateResult ar : [
+        SELECT Group_Code__c groupcode
+        FROM Sales_History__c
+        GROUP BY Group_Code__c
+      ]) {
+        String groupCodeName = (String) ar.get('groupcode');
+
+        options.add(new Option(groupCodeName, groupCodeName));
+      }
+
+      return options;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
   public static List<Option> getCampaigns() {
     List<Option> options = new List<Option>();
 

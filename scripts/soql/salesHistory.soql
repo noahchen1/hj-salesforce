@@ -20,6 +20,7 @@ SELECT
     MAX(Account__r.Lifetime_Spend_Number__c) lifetime_spend,
     SUM(Price_Paid__c) total_spend
 FROM Sales_History__c
+WHERE Item_Name__c = 'JMGBR0431'
 GROUP BY
     Account__r.Name,
     Account__r.First_Name__c,
@@ -41,4 +42,12 @@ GROUP BY
     Account__r.AccountSource
 ORDER BY Account__r.Birthdate__c DESC NULLS LAST 
 LIMIT 10
-OFFSET 100
+
+
+
+SELECT
+Group_Code__c groupcode 
+FROM
+Sales_History__c
+GROUP BY
+Group_Code__c 

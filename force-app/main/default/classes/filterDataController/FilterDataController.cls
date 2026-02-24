@@ -158,4 +158,23 @@ public with sharing class FilterDataController {
 
     return vendorNums;
   }
+
+  @AuraEnabled(cacheable=true)
+  public static List<LookupResult> searchItem(String input) {
+    List<LookupResult> items = new List<LookupResult>();
+
+    try {
+      for (breadwinner_ns__BW_Item__c item : [
+        SELECT Id, Name
+        FROM breadwinner_ns__BW_Item__c
+        WHERE Name LIKE :input + '%'
+      ]) {
+        items.add(new LookupResult(item.Id, item.Name));
+      }
+
+      return items;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
 }

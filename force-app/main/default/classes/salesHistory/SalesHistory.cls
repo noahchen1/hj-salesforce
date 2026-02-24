@@ -2,6 +2,11 @@ public with sharing class SalesHistory {
   @AuraEnabled(cacheable=true)
   public static List<AggregateResult> getSalesHistory(
     String customer,
+    String salesRep,
+    String item,
+    String division,
+    String department,
+    String groupcode,
     Integer pageSize,
     Integer offsetSize,
     String sortBy,
@@ -21,10 +26,30 @@ public with sharing class SalesHistory {
       ? 'ASC'
       : 'DESC';
 
-    String whereClause = '';
+    List<String> whereParts = new List<String>();
 
     if (String.isNotBlank(customer)) {
-      whereClause += ' WHERE Account__r.Name = :customer';
+      whereParts.add('Account__r.Name = :customer ');
+    }
+
+    if (String.isNotBlank(salesRep)) {
+      whereParts.add('Account__r.Sales_Rep__c = :salesrep ');
+    }
+
+    if (String.isNotBlank(item)) {
+      whereParts.add('Item_Name__c = :item ');
+    }
+
+    if (String.isNotBlank(division)) {
+      whereParts.add('Division__c = :division ');
+    }
+
+    if (String.isNotBlank(department)) {
+      whereParts.add('Department__c = :department ');
+    }
+
+    if (String.isNotBlank(groupcode)) {
+      whereParts.add('Group_Code__c = :groupcode ');
     }
 
     String query =
@@ -49,8 +74,13 @@ public with sharing class SalesHistory {
       'Account__r.AccountSource account_source, ' +
       'MAX(Account__r.Lifetime_Spend_Number__c) lifetime_spend, ' +
       'SUM(Price_Paid__c) total_spend ' +
-      'FROM Sales_History__c ' +
-      whereClause +
+      'FROM Sales_History__c ';
+
+    if (!whereParts.isEmpty()) {
+      query += ' WHERE ' + String.join(whereParts, ' AND ');
+    }
+
+    query +=
       'GROUP BY ' +
       'Account__r.Name, ' +
       'Account__r.First_Name__c, ' +
