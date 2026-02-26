@@ -56,3 +56,20 @@ LastName
 FROM    
 Account
 
+
+SELECT
+breadwinner_ns__Entity_Type__c
+FROM
+breadwinner_ns__BW_Company__c
+GROUP BY 
+breadwinner_ns__Entity_Type__c
+
+SELECT
+Name,
+Birthdate__c
+FROM Account
+WHERE 
+(
+    CALENDAR_MONTH(Account__r.Birthdate__c) <= 2 AND CALENDAR_MONTH(Account__r.Birthdate__c) >= 2
+    AND ( DAY_IN_MONTH(Account__r.Birthdate__c) <= 20 OR DAY_IN_MONTH(Account__r.Birthdate__c) >= 20)
+)

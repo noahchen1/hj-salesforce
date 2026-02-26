@@ -29,4 +29,14 @@ public with sharing class Helpers {
 
     return String.valueOf(a).equals(String.valueOf(b));
   }
+
+  public static Integer toIntOrNull(String s) {
+    if (String.isBlank(s))
+      return null;
+    try {
+      return Integer.valueOf(s.trim());
+    } catch (Exception e) {
+      return null;
+    }
+  }
 }

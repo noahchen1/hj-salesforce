@@ -8,3 +8,10 @@ FIELDS(ALL)
 FROM AsyncApexJob
 WHERE Id = '707WJ00008DD2JOYA1'
 
+SELECT
+breadwinner_ns__Location__r.Name Location,
+SUM(breadwinner_ns__QuantityOnHand__c) quantity
+FROM
+breadwinner_ns__BW_Inventory_Location__c
+GROUP BY
+breadwinner_ns__Location__r.Name

@@ -7,11 +7,26 @@ public with sharing class SalesHistory {
     String division,
     String department,
     String groupcode,
+    Date purchaseStartDate,
+    Date purchaseEndDate,
+    String birthdayStartMonth,
+    String birthdayStartDay,
+    String birthdayEndMonth,
+    String birthdayEndDay,
+    String vendor,
+    String vendorItemNum,
+    Boolean isServiceOnly,
+    Boolean isNewCustomer,
     Integer pageSize,
     Integer offsetSize,
     String sortBy,
     String sortDirection
   ) {
+    System.debug('birthdayStartMonth: ' + birthdayStartMonth);
+    System.debug('birthdayStartDay: ' + birthdayStartDay);
+    System.debug('birthdayEndMonth: ' + birthdayEndMonth);
+    System.debug('birthdayEndDay: ' + birthdayEndDay);
+
     Map<String, String> sortMap = new Map<String, String>{
       'totalSpend' => 'SUM(Price_Paid__c)',
       'birthday' => 'Account__r.Birthdate__c'
@@ -52,6 +67,80 @@ public with sharing class SalesHistory {
       whereParts.add('Group_Code__c = :groupcode ');
     }
 
+    if (String.isNotBlank(vendor)) {
+      whereParts.add('Vendor__c = :vendor ');
+    }
+
+    if (String.isNotBlank(vendorItemNum)) {
+      whereParts.add('Vendor_Item_Number__c = :vendorItemNum ');
+    }
+
+    if (isServiceOnly == true) {
+      whereParts.add('Account__r.Is_Service_Only__c = true ');
+    }
+
+    if (isNewCustomer == true) {
+      whereParts.add('Account__r.Is_New_Customer__c = true ');
+    }
+
+    if (purchaseStartDate != null) {
+      whereParts.add('Order_Date__c >= :purchaseStartDate ');
+    }
+
+    if (purchaseEndDate != null) {
+      whereParts.add('Order_Date__c <= :purchaseEndDate ');
+    }
+
+    if (
+      String.isNotEmpty(birthdayStartMonth) ||
+      String.isNotEmpty(birthdayEndMonth) ||
+      String.isNotEmpty(birthdayStartDay) ||
+      String.isNotEmpty(birthdayEndDay)
+    ) {
+      Integer bdStartMonth = Helpers.toIntOrNull(birthdayStartMonth);
+      Integer bdEndMonth = Helpers.toIntOrNull(birthdayEndMonth);
+      Integer bdStartDay = Helpers.toIntOrNull(birthdayStartDay);
+      Integer bdEndDay = Helpers.toIntOrNull(birthdayEndDay);
+
+      List<String> bdParts = new List<String>();
+
+      if (bdStartMonth != null && bdEndMonth != null) {
+        bdParts.add(
+          'CALENDAR_MONTH(Account__r.Birthdate__c) <= :bdEndMonth AND CALENDAR_MONTH(Account__r.Birthdate__c) >= :bdStartMonth'
+        );
+
+        if (bdStartDay != null && bdEndDay != null) {
+          bdParts.add(
+            '( DAY_IN_MONTH(Account__r.Birthdate__c) <= :bdEndDay AND DAY_IN_MONTH(Account__r.Birthdate__c) >= :bdStartDay)'
+          );
+        } else if (bdStartDay != null) {
+          bdParts.add('DAY_IN_MONTH(Account__r.Birthdate__c) >= :bdStartDay');
+        } else if (bdEndDay != null) {
+          bdParts.add('DAY_IN_MONTH(Account__r.Birthdate__c) <= :bdEndDay');
+        }
+      } else if (bdStartMonth != null) {
+        if (bdStartDay != null) {
+          bdParts.add('DAY_IN_MONTH(Account__r.Birthdate__c) >= :bdStartDay');
+        }
+
+        bdParts.add(
+          'CALENDAR_MONTH(Account__r.Birthdate__c) >= :bdStartMonth '
+        );
+      } else if (bdEndMonth != null) {
+        if (bdEndDay != null) {
+          bdParts.add('DAY_IN_MONTH(Account__r.Birthdate__c) <= :bdEndDay');
+        }
+
+        bdParts.add('CALENDAR_MONTH(Account__r.Birthdate__c) <= :bdEndMonth ');
+      }
+
+      if (!bdParts.isEmpty()) {
+        String bdCondition = '(' + String.join(bdParts, ' AND ') + ')';
+
+        whereParts.add(bdCondition);
+      }
+    }
+
     String query =
       'SELECT ' +
       'Account__r.Name customer, ' +
@@ -77,6 +166,9 @@ public with sharing class SalesHistory {
       'FROM Sales_History__c ';
 
     if (!whereParts.isEmpty()) {
+      System.debug(
+        'conditions: ' + ' WHERE ' + String.join(whereParts, ' AND ')
+      );
       query += ' WHERE ' + String.join(whereParts, ' AND ');
     }
 
@@ -106,6 +198,8 @@ public with sharing class SalesHistory {
       direction +
       ' NULLS LAST ' +
       'LIMIT :pageSize OFFSET :offsetSize';
+
+    System.debug('query: ' + query);
 
     List<AggregateResult> results = Database.query(query);
 

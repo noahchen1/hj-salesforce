@@ -20,7 +20,7 @@ SELECT
     MAX(Account__r.Lifetime_Spend_Number__c) lifetime_spend,
     SUM(Price_Paid__c) total_spend
 FROM Sales_History__c
-WHERE Item_Name__c = 'JMGBR0431'
+WHERE Order_Date__c >= 2026-02-03 00:00:00
 GROUP BY
     Account__r.Name,
     Account__r.First_Name__c,

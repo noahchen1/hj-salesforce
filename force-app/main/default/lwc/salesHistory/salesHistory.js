@@ -6,6 +6,8 @@ import searchItem from "@salesforce/apex/FilterDataController.searchItem";
 import getDivisions from "@salesforce/apex/DropdownDataController.getDivisions";
 import getDepartments from "@salesforce/apex/DropdownDataController.getDepartments";
 import getGroupCodes from "@salesforce/apex/DropdownDataController.getGroupCodes";
+import searchVendor from "@salesforce/apex/FilterDataController.searchVendor";
+import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
 
 export default class SalesHistory extends LightningElement {
   @track isLoading = true;
@@ -18,11 +20,21 @@ export default class SalesHistory extends LightningElement {
   @track sortDirection = "desc";
   @track tableDataLoaded = false;
   @track divisionOptions = [];
-  @track division = "";
+  @track division = null;
   @track departmentOptions = [];
-  @track department = "";
+  @track department = null;
   @track groupcodeOptions = [];
-  @track groupcode = "";
+  @track groupcode = null;
+  @track purchaseStartDate = null;
+  @track purchaseEndDate = null;
+  @track vendor = null;
+  @track vendorItemNum = null;
+  @track birthdayStartMonth = "";
+  @track birthdayStartDay = "";
+  @track birthdayEndMonth = "";
+  @track birthdayEndDay = "";
+  @track isServiceOnly = false;
+  @track isNewCustomer = false;
 
   tableData = [];
   wireError;
@@ -49,6 +61,16 @@ export default class SalesHistory extends LightningElement {
     division: "$division",
     department: "$department",
     groupcode: "$groupcode",
+    purchaseStartDate: "$purchaseStartDate",
+    purchaseEndDate: "$purchaseEndDate",
+    birthdayStartMonth: "$birthdayStartMonth",
+    birthdayStartDay: "$birthdayStartDay",
+    birthdayEndMonth: "$birthdayEndMonth",
+    birthdayEndDay: "$birthdayEndDay",
+    vendor: "$vendor",
+    vendorItemNum: "$vendorItemNum",
+    isServiceOnly: "$isServiceOnly",
+    isNewCustomer: "$isNewCustomer",
     pageSize: "$pageSize",
     offsetSize: "$offset",
     sortBy: "$sortBy",
@@ -63,6 +85,8 @@ export default class SalesHistory extends LightningElement {
       this.tableData = [];
       this.wireError = error;
       this.isLoading = false;
+
+      console.error(error);
     }
   }
 
@@ -133,6 +157,51 @@ export default class SalesHistory extends LightningElement {
     ];
   }
 
+  get monthOptions() {
+    return [
+      { label: "All", value: "" },
+      ...Array.from({ length: 12 }, (_, i) => {
+        const mm = String(i + 1);
+        return { label: mm, value: mm };
+      })
+    ];
+  }
+
+  get birthdayStartDayOptions() {
+    return this.buildDayOptionsForMonth(this.birthdayStartMonth);
+  }
+
+  get birthdayEndDayOptions() {
+    return this.buildDayOptionsForMonth(this.birthdayEndMonth);
+  }
+
+  buildDayOptionsForMonth(monthValue) {
+    const maxDays = this.getMaxDaysForMonth(monthValue);
+
+    return [
+      { label: "All", value: "" },
+      ...Array.from({ length: maxDays }, (_, i) => {
+        const dd = String(i + 1);
+
+        return { label: dd, value: dd };
+      })
+    ];
+  }
+
+  getMaxDaysForMonth(monthValue) {
+    const monthNum = parseInt(monthValue, 10);
+
+    if (!monthNum || monthNum < 1 || monthNum > 12) {
+      return 31;
+    }
+
+    if (monthNum === 2) {
+      return 29;
+    }
+
+    return [4, 6, 9, 11].includes(monthNum) ? 30 : 31;
+  }
+
   processPicklistWire({ data, error }, target) {
     if (data) {
       this[target] = [
@@ -151,24 +220,21 @@ export default class SalesHistory extends LightningElement {
   }
 
   handleNext() {
-    if (!this.hasNext) return;
-
-    this.direction = "NEXT";
-    this.cursorJson = this.nextCursor ? JSON.stringify(this.nextCursor) : null;
+    this.pageNumber += 1;
+    this.isLoading = true;
   }
 
   handlePrev() {
-    if (!this.hasPrev) return;
-
-    this.direction = "PREV";
-    this.cursorJson = this.prevCursor ? JSON.stringify(this.prevCursor) : null;
+    if (this.pageNumber > 1) {
+      this.pageNumber -= 1;
+      this.isLoading = true;
+    }
   }
 
   handleSort(e) {
-    this.direction = "NEXT";
-    this.cursorJson = null;
     this.sortBy = e.detail.fieldName;
     this.sortDirection = e.detail.sortDirection;
+    this.isLoading = true;
   }
 
   async handleLookupSearch(e) {
@@ -187,6 +253,10 @@ export default class SalesHistory extends LightningElement {
       searchFn = searchCustomer;
     } else if (type === "item") {
       searchFn = searchItem;
+    } else if (type === "vendor") {
+      searchFn = searchVendor;
+    } else if (type === "vendorItemNum") {
+      searchFn = searchVendorNum;
     }
 
     if (searchKey.length > 1 && searchFn) {
@@ -215,6 +285,46 @@ export default class SalesHistory extends LightningElement {
     this[name] = value;
   }
 
+  handleDateChange(e) {
+    const name = e.target.name;
+    const value = e.target.value;
+
+    this[name] = value;
+  }
+
+  handleInputChange(e) {
+    const name = e.target.name;
+
+    if (name === "isServiceOnly" || name === "isNewCustomer") {
+      const checked = e.target.checked;
+
+      this[name] = checked;
+    } else {
+      const value = e.target.value;
+
+      this[name] = value;
+    }
+
+    if (name === "birthdayStartMonth") {
+      const maxDays = this.getMaxDaysForMonth(this.birthdayStartMonth);
+      const currentDay = parseInt(this.birthdayStartDay, 10);
+
+      if (currentDay && currentDay > maxDays) {
+        this.birthdayStartDay = "";
+      }
+    }
+
+    if (name === "birthdayEndMonth") {
+      const maxDays = this.getMaxDaysForMonth(this.birthdayEndMonth);
+      const currentDay = parseInt(this.birthdayEndDay, 10);
+      if (currentDay && currentDay > maxDays) {
+        this.birthdayEndDay = "";
+      }
+    }
+
+    this.isLoading = true;
+  }
+
   handleLookupSelect(e) {
     const type = e.target.dataset.type;
     const selectedName = e.detail.name;
@@ -223,11 +333,11 @@ export default class SalesHistory extends LightningElement {
     this.pageNumber = 1;
   }
 
-  get disableNext() {
-    return !this.hasNext || this.isLoading;
+  get isPrevDisabled() {
+    return this.pageNumber === 1;
   }
 
-  get disablePrev() {
-    return !this.hasPrev || this.isLoading;
+  get isNextDisabled() {
+    return this.rows.length < this.pageSize;
   }
 }

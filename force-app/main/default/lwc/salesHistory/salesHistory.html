@@ -1,85 +1,184 @@
 <template>
   <lightning-card>
-    <template if:true={isLoading}>
-      <div class="loading-screen">
+    <div class="widget-boundary">
+      <div if:true={isLoading} class="spinner-container">
         <lightning-spinner
           alternative-text="Loading..."
           size="medium"
         ></lightning-spinner>
       </div>
-    </template>
-    <div class="title">Transaction History</div>
-    <div class="filters">
-      <c-lookup-input
-        data-type="customer"
-        label="Customer"
-        placeholder="Enter Customer"
-        onsearch={handleLookupSearch}
-        onselect={handleLookupSelect}
-      ></c-lookup-input>
-      <c-lookup-input
-        data-type="salesRep"
-        label="Sales Rep"
-        placeholder="Enter Name"
-        onsearch={handleLookupSearch}
-        onselect={handleLookupSelect}
-      ></c-lookup-input>
-      <c-lookup-input
-        data-type="item"
-        label="Item"
-        placeholder="Enter Name"
-        onsearch={handleLookupSearch}
-        onselect={handleLookupSelect}
-      ></c-lookup-input>
-      <lightning-combobox
-        name="division"
-        label="Division"
-        value={division}
-        placeholder="Select"
-        options={divisionOptions}
-        onchange={handleComboboxChange}
-      ></lightning-combobox>
-      <lightning-combobox
-        name="department"
-        label="Merchandise Department"
-        value={department}
-        placeholder="Select"
-        options={departmentOptions}
-        onchange={handleComboboxChange}
-      ></lightning-combobox>
-      <lightning-combobox
-        name="groupcode"
-        label="Group Code"
-        value={groupcode}
-        placeholder="Select"
-        options={groupcodeOptions}
-        onchange={handleComboboxChange}
-      ></lightning-combobox>
-    </div>
-    <template if:true={rows.length}>
-      <div class="datatable-container">
-        <lightning-datatable
-          key-field="id"
-          data={rows}
-          columns={columns}
-          onsort={handleSort}
-          sorted-by={sortBy}
-          sorted-direction={sortDirection}
-          hide-checkbox-column
-        ></lightning-datatable>
-        <div class="btn-container">
-          <lightning-button
-            label="Previous"
-            onclick={handlePrev}
-            disabled={isPrevDisabled}
-          ></lightning-button>
-          <lightning-button
-            label="Next"
-            onclick={handleNext}
-            disabled={isNextDisabled}
-          ></lightning-button>
-        </div>
+
+      <div class="title">Transaction History</div>
+
+      <div class="filters">
+        <c-lookup-input
+          data-type="customer"
+          label="Customer"
+          placeholder="Enter Customer"
+          onsearch={handleLookupSearch}
+          onselect={handleLookupSelect}
+        ></c-lookup-input>
+
+        <c-lookup-input
+          data-type="salesRep"
+          label="Sales Rep"
+          placeholder="Enter Name"
+          onsearch={handleLookupSearch}
+          onselect={handleLookupSelect}
+        ></c-lookup-input>
+
+        <c-lookup-input
+          data-type="item"
+          label="Item"
+          placeholder="Enter Name"
+          onsearch={handleLookupSearch}
+          onselect={handleLookupSelect}
+        ></c-lookup-input>
+
+        <lightning-combobox
+          name="division"
+          label="Division"
+          value={division}
+          placeholder="Select"
+          options={divisionOptions}
+          onchange={handleInputChange}
+        ></lightning-combobox>
+
+        <lightning-combobox
+          name="department"
+          label="Merchandise Department"
+          value={department}
+          placeholder="Select"
+          options={departmentOptions}
+          onchange={handleInputChange}
+        ></lightning-combobox>
+
+        <lightning-combobox
+          name="groupcode"
+          label="Group Code"
+          value={groupcode}
+          placeholder="Select"
+          options={groupcodeOptions}
+          onchange={handleInputChange}
+        ></lightning-combobox>
+
+        <c-lookup-input
+          data-type="vendor"
+          label="Vendor"
+          placeholder="Enter Name"
+          onsearch={handleLookupSearch}
+          onselect={handleLookupSelect}
+        ></c-lookup-input>
+
+        <c-lookup-input
+          data-type="vendorItemNum"
+          label="Vendor Item Number"
+          placeholder="Enter Name"
+          onsearch={handleLookupSearch}
+          onselect={handleLookupSelect}
+        ></c-lookup-input>
+
+        <lightning-input
+          name="purchaseStartDate"
+          type="date"
+          label="Purchase Start Date"
+          value={purchaseStartDate}
+          onchange={handleInputChange}
+        ></lightning-input>
+
+        <lightning-input
+          name="purchaseEndDate"
+          type="date"
+          label="Purchase End Date"
+          value={purchaseEndDate}
+          onchange={handleInputChange}
+        ></lightning-input>
+
+        <lightning-combobox
+          name="birthdayStartMonth"
+          label="Birthday Start Month"
+          value={birthdayStartMonth}
+          placeholder="MM"
+          options={monthOptions}
+          onchange={handleInputChange}
+        ></lightning-combobox>
+
+        <lightning-combobox
+          name="birthdayStartDay"
+          label="Birthday Start Day"
+          value={birthdayStartDay}
+          placeholder="DD"
+          options={birthdayStartDayOptions}
+          onchange={handleInputChange}
+        ></lightning-combobox>
+
+        <lightning-combobox
+          name="birthdayEndMonth"
+          label="Birthday End Month"
+          value={birthdayEndMonth}
+          placeholder="MM"
+          options={monthOptions}
+          onchange={handleInputChange}
+        ></lightning-combobox>
+
+        <lightning-combobox
+          name="birthdayEndDay"
+          label="Birthday End Day"
+          value={birthdayEndDay}
+          placeholder="DD"
+          options={birthdayEndDayOptions}
+          onchange={handleInputChange}
+        ></lightning-combobox>
+
+        <lightning-input
+          name="isServiceOnly"
+          type="checkbox"
+          label="Service Only"
+          value={isServiceOnly}
+          onchange={handleInputChange}
+        ></lightning-input>
+
+        <lightning-input
+          name="isNewCustomer"
+          type="checkbox"
+          label="New Customer"
+          value={isNewCustomer}
+          onchange={handleInputChange}
+        ></lightning-input>
       </div>
-    </template>
+
+      <template if:true={rows.length}>
+        <div class="datatable-container">
+          <lightning-datatable
+            key-field="id"
+            data={rows}
+            columns={columns}
+            onsort={handleSort}
+            sorted-by={sortBy}
+            sorted-direction={sortDirection}
+            hide-checkbox-column
+          ></lightning-datatable>
+
+          <div class="btn-container">
+            <lightning-button
+              label="Previous"
+              onclick={handlePrev}
+              disabled={isPrevDisabled}
+            ></lightning-button>
+            <lightning-button
+              label="Next"
+              onclick={handleNext}
+              disabled={isNextDisabled}
+            ></lightning-button>
+          </div>
+        </div>
+      </template>
+
+      <template if:false={rows.length}>
+        <div class="slds-p-around_medium slds-text-align_center">
+          No data found.
+        </div>
+      </template>
+    </div>
   </lightning-card>
 </template>
