@@ -68,8 +68,6 @@ SELECT
 Name,
 Birthdate__c
 FROM Account
-WHERE 
-(
-    CALENDAR_MONTH(Account__r.Birthdate__c) <= 2 AND CALENDAR_MONTH(Account__r.Birthdate__c) >= 2
-    AND ( DAY_IN_MONTH(Account__r.Birthdate__c) <= 20 OR DAY_IN_MONTH(Account__r.Birthdate__c) >= 20)
-)
+
+WHERE (
+    (CALENDAR_MONTH(Account__r.Birthdate__c) = :bdStartMonth AND DAY_IN_MONTH(Account__r.Birthdate__c) >= :bdStartDay) OR (CALENDAR_MONTH(Account__r.Birthdate__c) > :bdStartMonth AND CALENDAR_MONTH(Account__r.Birthdate__c) < :bdEndMonth) OR (CALENDAR_MONTH(Account__r.Birthdate__c) = :bdEndMonth AND DAY_IN_MONTH(Account__r.Birthdate__c) <= :bdEndDay))

@@ -6,6 +6,7 @@
 .widget-boundary {
   position: relative;
   overflow: hidden;
+  min-height: 900px;
 }
 
 .filters {

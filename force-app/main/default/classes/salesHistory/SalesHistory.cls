@@ -102,42 +102,89 @@ public with sharing class SalesHistory {
       Integer bdStartDay = Helpers.toIntOrNull(birthdayStartDay);
       Integer bdEndDay = Helpers.toIntOrNull(birthdayEndDay);
 
-      List<String> bdParts = new List<String>();
-
-      if (bdStartMonth != null && bdEndMonth != null) {
-        bdParts.add(
-          'CALENDAR_MONTH(Account__r.Birthdate__c) <= :bdEndMonth AND CALENDAR_MONTH(Account__r.Birthdate__c) >= :bdStartMonth'
-        );
-
-        if (bdStartDay != null && bdEndDay != null) {
-          bdParts.add(
-            '( DAY_IN_MONTH(Account__r.Birthdate__c) <= :bdEndDay AND DAY_IN_MONTH(Account__r.Birthdate__c) >= :bdStartDay)'
-          );
-        } else if (bdStartDay != null) {
-          bdParts.add('DAY_IN_MONTH(Account__r.Birthdate__c) >= :bdStartDay');
-        } else if (bdEndDay != null) {
-          bdParts.add('DAY_IN_MONTH(Account__r.Birthdate__c) <= :bdEndDay');
-        }
-      } else if (bdStartMonth != null) {
-        if (bdStartDay != null) {
-          bdParts.add('DAY_IN_MONTH(Account__r.Birthdate__c) >= :bdStartDay');
-        }
-
-        bdParts.add(
-          'CALENDAR_MONTH(Account__r.Birthdate__c) >= :bdStartMonth '
-        );
-      } else if (bdEndMonth != null) {
-        if (bdEndDay != null) {
-          bdParts.add('DAY_IN_MONTH(Account__r.Birthdate__c) <= :bdEndDay');
-        }
-
-        bdParts.add('CALENDAR_MONTH(Account__r.Birthdate__c) <= :bdEndMonth ');
+      if (bdStartMonth == null) {
+        bdStartDay = null;
       }
 
-      if (!bdParts.isEmpty()) {
-        String bdCondition = '(' + String.join(bdParts, ' AND ') + ')';
+      if (bdEndMonth == null) {
+        bdEndDay = null;
+      }
 
-        whereParts.add(bdCondition);
+      List<String> conditions = new List<String>();
+
+      if (bdStartMonth != null && bdEndMonth == null) {
+        if (bdStartDay != null) {
+          conditions.add(
+            '(CALENDAR_MONTH(Account__r.Birthdate__c) > :bdStartMonth ' +
+              'OR (CALENDAR_MONTH(Account__r.Birthdate__c) = :bdStartMonth ' +
+              'AND DAY_IN_MONTH(Account__r.Birthdate__c) >= :bdStartDay))'
+          );
+        } else {
+          conditions.add(
+            'CALENDAR_MONTH(Account__r.Birthdate__c) >= :bdStartMonth'
+          );
+        }
+      } else if (bdEndMonth != null && bdStartMonth == null) {
+        if (bdEndDay != null) {
+          conditions.add(
+            '(CALENDAR_MONTH(Account__r.Birthdate__c) < :bdEndMonth ' +
+              'OR (CALENDAR_MONTH(Account__r.Birthdate__c) = :bdEndMonth ' +
+              'AND DAY_IN_MONTH(Account__r.Birthdate__c) <= :bdEndDay))'
+          );
+        } else {
+          conditions.add(
+            'CALENDAR_MONTH(Account__r.Birthdate__c) <= :bdEndMonth'
+          );
+        }
+      } else if (
+        bdStartMonth != null &&
+        bdEndMonth != null &&
+        bdStartMonth <= bdEndMonth
+      ) {
+        if (bdStartMonth == bdEndMonth) {
+          conditions.add(
+            '(CALENDAR_MONTH(Account__r.Birthdate__c) = :bdStartMonth ' +
+              (bdStartDay != null
+                ? 'AND DAY_IN_MONTH(Account__r.Birthdate__c) >= :bdStartDay '
+                : '') +
+              (bdEndDay != null
+                ? 'AND DAY_IN_MONTH(Account__r.Birthdate__c) <= :bdEndDay '
+                : '') +
+              ')'
+          );
+        } else {
+          String startCondition =
+            '(CALENDAR_MONTH(Account__r.Birthdate__c) = :bdStartMonth ' +
+            (bdStartDay != null
+              ? 'AND DAY_IN_MONTH(Account__r.Birthdate__c) >= :bdStartDay'
+              : '') +
+            ')';
+
+          String endCondition =
+            '(CALENDAR_MONTH(Account__r.Birthdate__c) = :bdEndMonth ' +
+            (bdEndDay != null
+              ? 'AND DAY_IN_MONTH(Account__r.Birthdate__c) <= :bdEndDay'
+              : '') +
+            ')';
+
+          String middleCondition =
+            '(CALENDAR_MONTH(Account__r.Birthdate__c) > :bdStartMonth ' +
+            'AND CALENDAR_MONTH(Account__r.Birthdate__c) < :bdEndMonth)';
+
+          conditions.add(
+            '(' +
+              startCondition +
+              ' OR ' +
+              middleCondition +
+              ' OR ' +
+              endCondition +
+              ')'
+          );
+        }
+      }
+
+      if (!conditions.isEmpty()) {
+        whereParts.add('(' + String.join(conditions, ' AND ') + ')');
       }
     }
 
