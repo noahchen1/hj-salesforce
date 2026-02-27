@@ -8,6 +8,9 @@ import getDepartments from "@salesforce/apex/DropdownDataController.getDepartmen
 import getGroupCodes from "@salesforce/apex/DropdownDataController.getGroupCodes";
 import searchVendor from "@salesforce/apex/FilterDataController.searchVendor";
 import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
+import getAllCampaigns from "@salesforce/apex/DropdownDataController.getAllCampaigns";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import enqueueAddAccountsToCampaign from "@salesforce/apex/SalesHistoryCampaignController.enqueueAddAccountsToCampaign";
 
 export default class SalesHistory extends LightningElement {
   @track isLoading = true;
@@ -35,6 +38,9 @@ export default class SalesHistory extends LightningElement {
   @track birthdayEndDay = "";
   @track isServiceOnly = false;
   @track isNewCustomer = false;
+  @track isModalOpen = false;
+  @track campaignOptions = [];
+  @track selectedCampaign = null;
 
   tableData = [];
   wireError;
@@ -52,6 +58,11 @@ export default class SalesHistory extends LightningElement {
   @wire(getGroupCodes)
   handleGroupCodes(results) {
     this.processPicklistWire(results, "groupcodeOptions");
+  }
+
+  @wire(getAllCampaigns)
+  handleCampaigns(result) {
+    this.processPicklistWire(result, "campaignOptions");
   }
 
   @wire(getSalesHistory, {
@@ -322,7 +333,9 @@ export default class SalesHistory extends LightningElement {
       }
     }
 
-    this.isLoading = true;
+    if (name !== "selectedCampaign") {
+      this.isLoading = true;
+    }
   }
 
   handleLookupSelect(e) {
@@ -331,6 +344,71 @@ export default class SalesHistory extends LightningElement {
 
     this[type] = selectedName;
     this.pageNumber = 1;
+  }
+
+  openCampaignModal() {
+    this.isModalOpen = true;
+  }
+
+  closeCampaignModal() {
+    this.isModalOpen = false;
+  }
+
+  async handleAddToCampaign() {
+    console.log("clicked!");
+    console.log(this.selectedCampaign);
+
+    if (!this.selectedCampaign) {
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Missing Campaign",
+          message: "Enter a Campaign Id First.",
+          variant: "Warning"
+        })
+      );
+    }
+
+    try {
+      const jobId = await enqueueAddAccountsToCampaign({
+        campaignId: this.selectedCampaign,
+        customer: this.customer,
+        salesRep: this.salesRep,
+        item: this.item,
+        division: this.division,
+        department: this.department,
+        groupcode: this.groupcode,
+        purchaseStartDate: this.purchaseStartDate,
+        purchaseEndDate: this.purchaseEndDate,
+        birthdayStartMonth: this.birthdayStartMonth,
+        birthdayStartDay: this.birthdayStartDay,
+        birthdayEndMonth: this.birthdayEndMonth,
+        birthdayEndDay: this.birthdayEndDay,
+        vendor: this.vendor,
+        vendorItemNum: this.vendorItemNum,
+        isServiceOnly: this.isServiceOnly,
+        isNewCustomer: this.isNewCustomer,
+        sortBy: this.sortBy,
+        sortDirection: this.sortDirection
+      });
+
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Batch Started",
+          message: `Accounts are being added. Job Id: ${jobId}`,
+          variant: "success"
+        })
+      );
+    } catch (error) {
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Error",
+          message: e?.body?.message || "Failed to start add-to-campaign job.",
+          variant: "error"
+        })
+      );
+    } finally {
+      this.isModalOpen = false;
+    }
   }
 
   get isPrevDisabled() {

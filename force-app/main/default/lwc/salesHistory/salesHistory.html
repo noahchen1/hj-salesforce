@@ -145,6 +145,12 @@
           value={isNewCustomer}
           onchange={handleInputChange}
         ></lightning-input>
+
+        <lightning-button
+          label="Add To Campaign"
+          variant="brand"
+          onclick={openCampaignModal}
+        ></lightning-button>
       </div>
 
       <template if:true={rows.length}>
@@ -178,6 +184,52 @@
         <div class="slds-p-around_medium slds-text-align_center">
           No data found.
         </div>
+      </template>
+
+      <template if:true={isModalOpen}>
+        <section
+          role="dialog"
+          tabindex="-1"
+          class="slds-modal slds-fade-in-open"
+        >
+          <!-- <template if:true={isLoading}>
+            <div class="loading-screen">
+              <lightning-spinner
+                alternative-text="Loading..."
+                size="medium"
+              ></lightning-spinner>
+            </div>
+          </template> -->
+
+          <div class="slds-modal__container">
+            <header class="slds-modal__header">
+              <h2 class="slds-text-heading_medium">Customize Email</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium">
+              <lightning-combobox
+                name="selectedCampaign"
+                label="Select A Campaign"
+                value={selectedCampaign}
+                placeholder=""
+                options={campaignOptions}
+                onchange={handleInputChange}
+              ></lightning-combobox>
+            </div>
+            <footer class="slds-modal__footer slds-grid slds-grid_align-end">
+              <lightning-button
+                label="Close"
+                onclick={closeCampaignModal}
+                variant="brand"
+              ></lightning-button>
+              <lightning-button
+                label="Add To Campaign"
+                onclick={handleAddToCampaign}
+                variant="brand"
+              ></lightning-button>
+            </footer>
+          </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
       </template>
     </div>
   </lightning-card>

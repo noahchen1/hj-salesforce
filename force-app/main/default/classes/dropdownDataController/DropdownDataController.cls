@@ -165,6 +165,27 @@ public with sharing class DropdownDataController {
   }
 
   @AuraEnabled(cacheable=true)
+  public static List<Option> getAllCampaigns() {
+    List<Option> options = new List<Option>();
+
+    try {
+      for (AggregateResult ar : [
+        SELECT Campaign.Id campaignId, Campaign.Name campaignName
+        FROM CampaignMember
+        GROUP BY Campaign.Id, Campaign.Name
+      ]) {
+        String Id = (String) ar.get('campaignId');
+        String Name = (String) ar.get('campaignName');
+        options.add(new Option(Name, Id));
+      }
+
+      return options;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
   public static List<Option> getCustomEmailTemplates(String type) {
     List<Option> options = new List<Option>();
 
