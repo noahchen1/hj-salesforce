@@ -11,6 +11,7 @@ import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorN
 import getAllCampaigns from "@salesforce/apex/DropdownDataController.getAllCampaigns";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import enqueueAddAccountsToCampaign from "@salesforce/apex/SalesHistoryCampaignController.enqueueAddAccountsToCampaign";
+import generateCsv from "@salesforce/apex/SalesHistoryCampaignController.generateCsv";
 
 export default class SalesHistory extends LightningElement {
   @track isLoading = true;
@@ -408,6 +409,47 @@ export default class SalesHistory extends LightningElement {
       );
     } finally {
       this.isModalOpen = false;
+    }
+  }
+
+  async exportCsv() {
+    try {
+      const jobId = await generateCsv({
+        customer: this.customer,
+        salesRep: this.salesRep,
+        item: this.item,
+        division: this.division,
+        department: this.department,
+        groupcode: this.groupcode,
+        purchaseStartDate: this.purchaseStartDate,
+        purchaseEndDate: this.purchaseEndDate,
+        birthdayStartMonth: this.birthdayStartMonth,
+        birthdayStartDay: this.birthdayStartDay,
+        birthdayEndMonth: this.birthdayEndMonth,
+        birthdayEndDay: this.birthdayEndDay,
+        vendor: this.vendor,
+        vendorItemNum: this.vendorItemNum,
+        isServiceOnly: this.isServiceOnly,
+        isNewCustomer: this.isNewCustomer,
+        sortBy: this.sortBy,
+        sortDirection: this.sortDirection
+      });
+
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "CSV Batch Started",
+          message: `Job Id: ${jobId}`,
+          variant: "success"
+        })
+      );
+    } catch (error) {
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Error",
+          message: e?.body?.message || "Failed to start add-to-campaign job.",
+          variant: "error"
+        })
+      );
     }
   }
 

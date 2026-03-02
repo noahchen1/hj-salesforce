@@ -50,4 +50,49 @@ public with sharing class SalesHistoryCampaignController {
       200
     );
   }
+
+  @AuraEnabled
+  public static Id generateCsv(
+    String customer,
+    String salesRep,
+    String item,
+    String division,
+    String department,
+    String groupcode,
+    Date purchaseStartDate,
+    Date purchaseEndDate,
+    String birthdayStartMonth,
+    String birthdayStartDay,
+    String birthdayEndMonth,
+    String birthdayEndDay,
+    String vendor,
+    String vendorItemNum,
+    Boolean isServiceOnly,
+    Boolean isNewCustomer,
+    String sortBy,
+    String sortDirection
+  ) {
+    SalesHistoryDownloadBatch.FilterCriteria criteria = new SalesHistoryDownloadBatch.FilterCriteria();
+
+    criteria.customer = customer;
+    criteria.salesRep = salesRep;
+    criteria.item = item;
+    criteria.division = division;
+    criteria.department = department;
+    criteria.groupcode = groupcode;
+    criteria.purchaseStartDate = purchaseStartDate;
+    criteria.purchaseEndDate = purchaseEndDate;
+    criteria.birthdayStartMonth = birthdayStartMonth;
+    criteria.birthdayStartDay = birthdayStartDay;
+    criteria.birthdayEndMonth = birthdayEndMonth;
+    criteria.birthdayEndDay = birthdayEndDay;
+    criteria.vendor = vendor;
+    criteria.vendorItemNum = vendorItemNum;
+    criteria.isServiceOnly = isServiceOnly;
+    criteria.isNewCustomer = isNewCustomer;
+    criteria.sortBy = sortBy;
+    criteria.sortDirection = sortDirection;
+
+    return Database.executeBatch(new SalesHistoryDownloadBatch(criteria), 200);
+  }
 }

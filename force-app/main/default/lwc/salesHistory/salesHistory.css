@@ -1,5 +1,6 @@
 .filters,
-.datatable-container {
+.datatable-container,
+.add-to-campaign-container {
   margin: 30px;
 }
 
@@ -41,4 +42,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.add-to-campaign-close-btn,
+.add-to-campaign-btn {
+  margin: 0 5px;
 }

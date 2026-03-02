@@ -10,6 +10,20 @@
 
       <div class="title">Transaction History</div>
 
+      <div class="add-to-campaign-container">
+        <lightning-button
+          label="Add To Campaign"
+          variant="brand"
+          onclick={openCampaignModal}
+        ></lightning-button>
+
+        <lightning-button
+          label="Export"
+          variant="brand"
+          onclick={exportCsv}
+        ></lightning-button>
+      </div>
+
       <div class="filters">
         <c-lookup-input
           data-type="customer"
@@ -145,12 +159,6 @@
           value={isNewCustomer}
           onchange={handleInputChange}
         ></lightning-input>
-
-        <lightning-button
-          label="Add To Campaign"
-          variant="brand"
-          onclick={openCampaignModal}
-        ></lightning-button>
       </div>
 
       <template if:true={rows.length}>
@@ -192,15 +200,6 @@
           tabindex="-1"
           class="slds-modal slds-fade-in-open"
         >
-          <!-- <template if:true={isLoading}>
-            <div class="loading-screen">
-              <lightning-spinner
-                alternative-text="Loading..."
-                size="medium"
-              ></lightning-spinner>
-            </div>
-          </template> -->
-
           <div class="slds-modal__container">
             <header class="slds-modal__header">
               <h2 class="slds-text-heading_medium">Customize Email</h2>
@@ -217,11 +216,13 @@
             </div>
             <footer class="slds-modal__footer slds-grid slds-grid_align-end">
               <lightning-button
+                class="add-to-campaign-close-btn"
                 label="Close"
                 onclick={closeCampaignModal}
                 variant="brand"
               ></lightning-button>
               <lightning-button
+                class="add-to-campaign-btn"
                 label="Add To Campaign"
                 onclick={handleAddToCampaign}
                 variant="brand"
