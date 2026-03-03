@@ -356,9 +356,6 @@ export default class SalesHistory extends LightningElement {
   }
 
   async handleAddToCampaign() {
-    console.log("clicked!");
-    console.log(this.selectedCampaign);
-
     if (!this.selectedCampaign) {
       this.dispatchEvent(
         new ShowToastEvent({
@@ -403,7 +400,8 @@ export default class SalesHistory extends LightningElement {
       this.dispatchEvent(
         new ShowToastEvent({
           title: "Error",
-          message: e?.body?.message || "Failed to start add-to-campaign job.",
+          message:
+            error?.body?.message || "Failed to start add-to-campaign job.",
           variant: "error"
         })
       );
@@ -446,7 +444,8 @@ export default class SalesHistory extends LightningElement {
       this.dispatchEvent(
         new ShowToastEvent({
           title: "Error",
-          message: e?.body?.message || "Failed to start add-to-campaign job.",
+          message:
+            error?.body?.message || "Failed to start add-to-campaign job.",
           variant: "error"
         })
       );

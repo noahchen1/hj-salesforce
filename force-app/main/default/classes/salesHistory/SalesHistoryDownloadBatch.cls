@@ -326,7 +326,7 @@ public with sharing class SalesHistoryDownloadBatch implements Database.Batchabl
 
   public void finish(Database.BatchableContext bc) {
     csvContent +=
-      'Name,First Name,Last Name,Email,Phone,Mobile,Street,City,State,Postal,Country,' +
+      'Customer,First Name,Last Name,Email,Phone,Mobile,Street,City,State,Postal,Country,' +
       'Subsidiary,Sales Rep,Birthdate,Anniversary,Ranking,Is New Customer,Account Source,' +
       'Lifetime Spend,Total Spend\n';
 
@@ -374,15 +374,36 @@ public with sharing class SalesHistoryDownloadBatch implements Database.Batchabl
         '\n';
     }
 
-    Document csvFile = new Document(
-      Name = 'SalesHistoryExport',
-      Body = Blob.valueOf(csvContent),
-      FolderId = '00la5000005LkkzAAC',
-      Type = 'csv',
-      ContentType = 'application/vnd.ms-excel'
-    );
+    ContentVersion cv = new ContentVersion();
+    cv.Title = 'SalesHistoryExport.csv';
+    cv.PathOnClient = 'SalesHistoryExport.csv';
+    cv.VersionData = Blob.valueOf(csvContent);
 
-    insert csvFile;
+    insert cv;
+
+    Id requesterUserId = [
+      SELECT CreatedById
+      FROM AsyncApexJob
+      WHERE Id = :bc.getJobId()
+      LIMIT 1
+    ]
+    .CreatedById;
+
+    ContentVersion insertedCv = [
+      SELECT Id, ContentDocumentId
+      FROM ContentVersion
+      WHERE Id = :cv.Id
+      LIMIT 1
+    ];
+
+    try {
+      sendExportReadyNotification(
+        requesterUserId,
+        insertedCv.ContentDocumentId
+      );
+    } catch (Exception e) {
+      System.debug('Notification failed: ' + e.getMessage());
+    }
   }
 
   private String escape(String input) {
@@ -392,5 +413,24 @@ public with sharing class SalesHistoryDownloadBatch implements Database.Batchabl
       input = '"' + input.replace('"', '""') + '"';
     }
     return input;
+  }
+
+  private void sendExportReadyNotification(Id userId, Id contentDocumentId) {
+    CustomNotificationType cnt = [
+      SELECT Id
+      FROM CustomNotificationType
+      WHERE DeveloperName = 'Sales_History_Export'
+      LIMIT 1
+    ];
+
+    Messaging.CustomNotification n = new Messaging.CustomNotification();
+    n.setNotificationTypeId(cnt.Id);
+    n.setTitle('Sales History Export Ready');
+    n.setBody('Your SalesHistoryExport.csv file is ready to download.');
+    if (contentDocumentId != null) {
+      n.setTargetId(contentDocumentId);
+    }
+
+    n.send(new Set<String>{ String.valueOf(userId) });
   }
 }
