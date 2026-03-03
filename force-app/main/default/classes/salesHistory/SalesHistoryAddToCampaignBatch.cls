@@ -260,8 +260,24 @@ public with sharing class SalesHistoryAddToCampaignBatch implements Database.Bat
     }
 
     if (!toInsert.isEmpty()) {
-      Helpers.writeLog('toInsert', JSON.serialize(toInsert));
-      Database.insert(toInsert);
+      Database.SaveResult[] results = Database.insert(toInsert, false);
+
+      for (Database.SaveResult result : results) {
+        if (!result.isSuccess()) {
+          for (Database.Error err : result.getErrors()) {
+            Map<String, Object> errMap = new Map<String, Object>{
+              'objectId' => result.getId(),
+              'message' => err.getMessage(),
+              'affected fields' => err.getFields()
+            };
+
+            Helpers.writeLog(
+              'Sales History Add To Campaign Error',
+              JSON.serialize(errMap)
+            );
+          }
+        }
+      }
     }
   }
 

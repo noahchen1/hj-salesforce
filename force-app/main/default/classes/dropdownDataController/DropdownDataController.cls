@@ -179,6 +179,10 @@ public with sharing class DropdownDataController {
         options.add(new Option(Name, Id));
       }
 
+      for (Campaign campaign : [SELECT Id, Name FROM Campaign]) {
+        options.add(new Option(campaign.Name, campaign.Id));
+      }
+
       return options;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
