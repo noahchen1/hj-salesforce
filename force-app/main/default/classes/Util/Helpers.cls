@@ -39,4 +39,29 @@ public with sharing class Helpers {
       return null;
     }
   }
+
+  @AuraEnabled(cacheable=true)
+  public static Map<String, String> getPicklistLabels(
+    String objectName,
+    String fieldName
+  ) {
+    Map<String, String> picklistMap = new Map<String, String>();
+
+    try {
+      Schema.SObjectType sObjectType = Schema.getGlobalDescribe()
+        .get(objectName);
+      Schema.DescribeFieldResult fieldResult = sObjectType.getDescribe()
+        .fields.getMap()
+        .get(fieldName)
+        .getDescribe();
+
+      for (Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
+        picklistMap.put(entry.getValue(), entry.getLabel());
+      }
+    } catch (Exception e) {
+      System.debug('Error getting picklist labels: ' + e.getMessage());
+    }
+
+    return picklistMap;
+  }
 }

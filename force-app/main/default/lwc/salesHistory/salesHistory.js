@@ -13,6 +13,7 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import enqueueAddAccountsToCampaign from "@salesforce/apex/SalesHistoryCampaignController.enqueueAddAccountsToCampaign";
 import generateCsv from "@salesforce/apex/SalesHistoryCampaignController.generateCsv";
 import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
+import getPicklistLabels from "@salesforce/apex/Helpers.getPicklistLabels";
 
 export default class SalesHistory extends LightningElement {
   @track isLoading = true;
@@ -45,6 +46,7 @@ export default class SalesHistory extends LightningElement {
   @track selectedCampaign = null;
   @track locationOptions = [];
   @track selectedLocations = [];
+  @track accountSourceMap = {};
 
   tableData = [];
   wireError;
@@ -160,7 +162,7 @@ export default class SalesHistory extends LightningElement {
         anniversary: r.anniversary,
         ranking: r.ranking,
         isNewCustomer: r.is_new_customer,
-        accountSource: r.account_source,
+        accountSource: this.getPicklistLabel("AccountSource", r.account_source),
         lifetimeSpend: r.lifetime_spend,
         totalSpend: r.total_spend
       };
@@ -384,6 +386,22 @@ export default class SalesHistory extends LightningElement {
     this.isModalOpen = false;
   }
 
+  async loadPicklistLabels(objectName, fieldName) {
+    try {
+      const labels = await getPicklistLabels({ objectName, fieldName });
+
+      this.accountSourceMap[fieldName] = labels;
+    } catch (error) {
+      console.error("Error loading picklist labels:", error);
+    }
+  }
+
+  getPicklistLabel(fieldName, apiName) {
+    const map = this.accountSourceMap[fieldName] || {};
+
+    return map[apiName] || apiName;
+  }
+
   async handleAddToCampaign() {
     if (!this.selectedCampaign) {
       this.dispatchEvent(
@@ -479,5 +497,9 @@ export default class SalesHistory extends LightningElement {
         })
       );
     }
+  }
+
+  connectedCallback() {
+    this.loadPicklistLabels("Account", "AccountSource");
   }
 }

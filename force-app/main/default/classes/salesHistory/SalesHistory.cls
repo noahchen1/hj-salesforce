@@ -23,8 +23,6 @@ public with sharing class SalesHistory {
     String sortBy,
     String sortDirection
   ) {
-    System.debug('locations: ' + locations);
-
     Map<String, String> sortMap = new Map<String, String>{
       'totalSpend' => 'SUM(Price_Paid__c)',
       'birthday' => 'Account__r.Birthdate__c'
@@ -247,8 +245,6 @@ public with sharing class SalesHistory {
       direction +
       ' NULLS LAST ' +
       'LIMIT :pageSize OFFSET :offsetSize';
-
-    System.debug('query: ' + query);
 
     List<AggregateResult> results = Database.query(query);
 

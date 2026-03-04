@@ -82,3 +82,6 @@ SELECT FIELDS(ALL) FROM ContentVersion LIMIT 1
 Select Title FROM ContentDocument
 
 SELECT FIELDS(ALL) FROM ContentDocument WHERE Title = 'image009' LIMIT 1
+
+
+SELECT toLabel(AccountSource) FROM Account GROUP BY AccountSource

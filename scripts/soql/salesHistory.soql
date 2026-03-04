@@ -16,11 +16,12 @@ SELECT
     Account__r.Anniversary__c anniversary,
     Account__r.Ranking__c ranking,
     Account__r.Is_New_Customer__c is_new_customer,
-    Account__r.AccountSource account_source,
+    toLabel(Account__r.AccountSource) account_source,
     MAX(Account__r.Lifetime_Spend_Number__c) lifetime_spend,
     SUM(Price_Paid__c) total_spend
 FROM Sales_History__c
-WHERE Order_Date__c >= 2026-02-03 00:00:00
+WHERE Order_Date__c >= 2026-02-03
+AND Account__r.Lifetime_Spend_Number__c != NULL
 GROUP BY
     Account__r.Name,
     Account__r.First_Name__c,
