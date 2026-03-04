@@ -2,6 +2,7 @@ public with sharing class SalesHistory {
   @AuraEnabled(cacheable=true)
   public static List<AggregateResult> getSalesHistory(
     String customer,
+    List<String> locations,
     String salesRep,
     String item,
     String division,
@@ -22,10 +23,7 @@ public with sharing class SalesHistory {
     String sortBy,
     String sortDirection
   ) {
-    System.debug('birthdayStartMonth: ' + birthdayStartMonth);
-    System.debug('birthdayStartDay: ' + birthdayStartDay);
-    System.debug('birthdayEndMonth: ' + birthdayEndMonth);
-    System.debug('birthdayEndDay: ' + birthdayEndDay);
+    System.debug('locations: ' + locations);
 
     Map<String, String> sortMap = new Map<String, String>{
       'totalSpend' => 'SUM(Price_Paid__c)',
@@ -45,6 +43,10 @@ public with sharing class SalesHistory {
 
     if (String.isNotBlank(customer)) {
       whereParts.add('Account__r.Name = :customer ');
+    }
+
+    if (!locations.isEmpty()) {
+      whereParts.add('Location__c IN :locations ');
     }
 
     if (String.isNotBlank(salesRep)) {

@@ -108,57 +108,70 @@
           onchange={handleInputChange}
         ></lightning-input>
 
-        <lightning-combobox
-          name="birthdayStartMonth"
-          label="Birthday Start Month"
-          value={birthdayStartMonth}
-          placeholder="MM"
-          options={monthOptions}
-          onchange={handleInputChange}
-        ></lightning-combobox>
+        <c-multi-select
+          label="Location"
+          name="locaiton"
+          options={locationOptions}
+          onchange={handleLocationChange}
+        ></c-multi-select>
 
-        <lightning-combobox
-          name="birthdayStartDay"
-          label="Birthday Start Day"
-          value={birthdayStartDay}
-          placeholder="DD"
-          options={birthdayStartDayOptions}
-          onchange={handleInputChange}
-        ></lightning-combobox>
+        <div>
+          <lightning-input
+            name="isServiceOnly"
+            type="checkbox"
+            label="Service Only"
+            value={isServiceOnly}
+            onchange={handleInputChange}
+          ></lightning-input>
 
-        <lightning-combobox
-          name="birthdayEndMonth"
-          label="Birthday End Month"
-          value={birthdayEndMonth}
-          placeholder="MM"
-          options={monthOptions}
-          onchange={handleInputChange}
-        ></lightning-combobox>
+          <lightning-input
+            name="isNewCustomer"
+            type="checkbox"
+            label="New Customer"
+            value={isNewCustomer}
+            onchange={handleInputChange}
+          ></lightning-input>
+        </div>
 
-        <lightning-combobox
-          name="birthdayEndDay"
-          label="Birthday End Day"
-          value={birthdayEndDay}
-          placeholder="DD"
-          options={birthdayEndDayOptions}
-          onchange={handleInputChange}
-        ></lightning-combobox>
+        <div class="birthday-container">
+          <lightning-combobox
+            name="birthdayStartMonth"
+            label="Birthday Start Month"
+            value={birthdayStartMonth}
+            placeholder="MM"
+            options={monthOptions}
+            onchange={handleInputChange}
+          ></lightning-combobox>
 
-        <lightning-input
-          name="isServiceOnly"
-          type="checkbox"
-          label="Service Only"
-          value={isServiceOnly}
-          onchange={handleInputChange}
-        ></lightning-input>
+          <lightning-combobox
+            name="birthdayStartDay"
+            label="Birthday Start Day"
+            value={birthdayStartDay}
+            placeholder="DD"
+            options={birthdayStartDayOptions}
+            onchange={handleInputChange}
+            disabled={isBirthdayStartDayDisabled}
+          ></lightning-combobox>
 
-        <lightning-input
-          name="isNewCustomer"
-          type="checkbox"
-          label="New Customer"
-          value={isNewCustomer}
-          onchange={handleInputChange}
-        ></lightning-input>
+          <lightning-combobox
+            name="birthdayEndMonth"
+            label="Birthday End Month"
+            value={birthdayEndMonth}
+            placeholder="MM"
+            options={monthOptions}
+            onchange={handleInputChange}
+          ></lightning-combobox>
+
+          <lightning-combobox
+            name="birthdayEndDay"
+            label="Birthday End Day"
+            value={birthdayEndDay}
+            placeholder="DD"
+            options={birthdayEndDayOptions}
+            onchange={handleInputChange}
+            disabled={isBirthdayEndDayDisabled}
+          ></lightning-combobox>
+        </div>
       </div>
 
       <template if:true={rows.length}>

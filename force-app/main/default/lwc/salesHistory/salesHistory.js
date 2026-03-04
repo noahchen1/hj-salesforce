@@ -12,6 +12,7 @@ import getAllCampaigns from "@salesforce/apex/DropdownDataController.getAllCampa
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import enqueueAddAccountsToCampaign from "@salesforce/apex/SalesHistoryCampaignController.enqueueAddAccountsToCampaign";
 import generateCsv from "@salesforce/apex/SalesHistoryCampaignController.generateCsv";
+import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
 
 export default class SalesHistory extends LightningElement {
   @track isLoading = true;
@@ -42,6 +43,8 @@ export default class SalesHistory extends LightningElement {
   @track isModalOpen = false;
   @track campaignOptions = [];
   @track selectedCampaign = null;
+  @track locationOptions = [];
+  @track selectedLocations = [];
 
   tableData = [];
   wireError;
@@ -61,6 +64,18 @@ export default class SalesHistory extends LightningElement {
     this.processPicklistWire(results, "groupcodeOptions");
   }
 
+  @wire(getLocations)
+  handleLocations({ data, error }) {
+    if (data) {
+      this.locationOptions = [
+        { label: "All", value: "", selected: true },
+        ...data.map(({ label, value }) => ({ label, value }))
+      ];
+    } else if (error) {
+      console.error("Error loading locations: ", error);
+    }
+  }
+
   @wire(getAllCampaigns)
   handleCampaigns(result) {
     this.processPicklistWire(result, "campaignOptions");
@@ -68,6 +83,7 @@ export default class SalesHistory extends LightningElement {
 
   @wire(getSalesHistory, {
     customer: "$customer",
+    locations: "$selectedLocations",
     salesRep: "$salesRep",
     item: "$item",
     division: "$division",
@@ -104,6 +120,22 @@ export default class SalesHistory extends LightningElement {
 
   get offset() {
     return (this.pageNumber - 1) * this.pageSize;
+  }
+
+  get isPrevDisabled() {
+    return this.pageNumber === 1;
+  }
+
+  get isNextDisabled() {
+    return this.rows.length < this.pageSize;
+  }
+
+  get isBirthdayStartDayDisabled() {
+    return !this.birthdayStartMonth;
+  }
+
+  get isBirthdayEndDayDisabled() {
+    return !this.birthdayEndMonth;
   }
 
   get rows() {
@@ -225,12 +257,6 @@ export default class SalesHistory extends LightningElement {
     }
   }
 
-  checkLoadingState() {
-    if (this.tableDataLoaded) {
-      this.isLoading = false;
-    }
-  }
-
   handleNext() {
     this.pageNumber += 1;
     this.isLoading = true;
@@ -290,20 +316,6 @@ export default class SalesHistory extends LightningElement {
     }
   }
 
-  handleComboboxChange(e) {
-    const name = e.target.name;
-    const value = e.target.value;
-
-    this[name] = value;
-  }
-
-  handleDateChange(e) {
-    const name = e.target.name;
-    const value = e.target.value;
-
-    this[name] = value;
-  }
-
   handleInputChange(e) {
     const name = e.target.name;
 
@@ -324,12 +336,21 @@ export default class SalesHistory extends LightningElement {
       if (currentDay && currentDay > maxDays) {
         this.birthdayStartDay = "";
       }
+
+      if (!this.birthdayStartMonth) {
+        this.birthdayStartDay = "";
+      }
     }
 
     if (name === "birthdayEndMonth") {
       const maxDays = this.getMaxDaysForMonth(this.birthdayEndMonth);
       const currentDay = parseInt(this.birthdayEndDay, 10);
+
       if (currentDay && currentDay > maxDays) {
+        this.birthdayEndDay = "";
+      }
+
+      if (!this.birthdayEndMonth) {
         this.birthdayEndDay = "";
       }
     }
@@ -337,6 +358,8 @@ export default class SalesHistory extends LightningElement {
     if (name !== "selectedCampaign") {
       this.isLoading = true;
     }
+
+    this.pageNumber = 1;
   }
 
   handleLookupSelect(e) {
@@ -345,6 +368,12 @@ export default class SalesHistory extends LightningElement {
 
     this[type] = selectedName;
     this.pageNumber = 1;
+  }
+
+  async handleLocationChange(e) {
+    this.selectedLocations = [...e.detail.value.filter((v) => v !== "All")];
+
+    this.isLoading = true;
   }
 
   openCampaignModal() {
@@ -450,13 +479,5 @@ export default class SalesHistory extends LightningElement {
         })
       );
     }
-  }
-
-  get isPrevDisabled() {
-    return this.pageNumber === 1;
-  }
-
-  get isNextDisabled() {
-    return this.rows.length < this.pageSize;
   }
 }

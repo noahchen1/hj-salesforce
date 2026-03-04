@@ -4,6 +4,10 @@
   margin: 30px;
 }
 
+.add-to-campaign-container lightning-button {
+  margin-right: 5px;
+}
+
 .widget-boundary {
   position: relative;
   overflow: hidden;
@@ -47,4 +51,12 @@
 .add-to-campaign-close-btn,
 .add-to-campaign-btn {
   margin: 0 5px;
+}
+
+.birthday-container {
+  display: flex;
+}
+
+.birthday-container lightning-combobox {
+  margin-right: 10px;
 }
