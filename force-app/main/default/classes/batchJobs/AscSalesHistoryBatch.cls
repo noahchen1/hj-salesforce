@@ -1,4 +1,7 @@
 public with sharing class AscSalesHistoryBatch implements Database.Batchable<SObject> {
+  @TestVisible
+  private static Map<String, List<Sales_History__c>> testOverrideMap;
+
   public Database.QueryLocator start(Database.BatchableContext bc) {
     String query =
       'SELECT ' +
@@ -34,9 +37,11 @@ public with sharing class AscSalesHistoryBatch implements Database.Batchable<SOb
     if (scope == null || scope.isEmpty())
       return;
 
-    Map<String, List<Sales_History__c>> updateMap = UpdateSalesHistory.getUpdatesFromAscHistory(
-      scope
-    );
+    Map<String, List<Sales_History__c>> updateMap = Test.isRunningTest() &&
+      testOverrideMap != null
+      ? testOverrideMap
+      : UpdateSalesHistory.getUpdatesFromAscHistory(scope);
+
     if (updateMap == null)
       return;
 

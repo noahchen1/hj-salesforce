@@ -53,6 +53,7 @@ public with sharing class NsSalesHistoryBatch implements Database.Batchable<SObj
       testOverrideMap != null
       ? testOverrideMap
       : UpdateSalesHistory.getUpdatesFromNsLineItems(scope);
+
     if (updateMap == null)
       return;
 
