@@ -1,4 +1,7 @@
 public with sharing class NsSalesHistoryBatch implements Database.Batchable<SObject> {
+  @TestVisible
+  private static Map<String, List<Sales_History__c>> testOverrideMap;
+
   public Database.QueryLocator start(Database.BatchableContext bc) {
     String query =
       'SELECT ' +
@@ -46,11 +49,14 @@ public with sharing class NsSalesHistoryBatch implements Database.Batchable<SObj
     if (scope == null || scope.isEmpty())
       return;
 
-    Map<String, List<Sales_History__c>> updateMap = UpdateSalesHistory.getUpdatesFromNsLineItems(
-      scope
-    );
+    Map<String, List<Sales_History__c>> updateMap = Test.isRunningTest() &&
+      testOverrideMap != null
+      ? testOverrideMap
+      : UpdateSalesHistory.getUpdatesFromNsLineItems(scope);
     if (updateMap == null)
       return;
+
+    System.debug('update map: ' + updateMap);
 
     List<Sales_History__c> toInsert = updateMap.get('toInsert') != null
       ? updateMap.get('toInsert')
@@ -68,6 +74,7 @@ public with sharing class NsSalesHistoryBatch implements Database.Batchable<SObj
       Database.SaveResult[] results = Database.insert(toInsert, false);
 
       for (Database.SaveResult result : results) {
+        System.debug('result: ' + result);
         if (!result.isSuccess()) {
           for (Database.Error err : result.getErrors()) {
             Map<String, Object> errMap = new Map<String, Object>{
@@ -107,9 +114,11 @@ public with sharing class NsSalesHistoryBatch implements Database.Batchable<SObj
     }
 
     if (!toDelete.isEmpty()) {
+      System.debug('toDelete: ' + toDelete);
       Database.DeleteResult[] results = Database.delete(toDelete, false);
 
       for (Database.DeleteResult result : results) {
+        System.debug('result: ' + result);
         if (!result.isSuccess()) {
           for (Database.Error err : result.getErrors()) {
             Map<String, Object> errMap = new Map<String, Object>{
