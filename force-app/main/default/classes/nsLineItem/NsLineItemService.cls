@@ -1,4 +1,7 @@
 public with sharing class NsLineItemService {
+  @TestVisible
+  private static Map<String, List<Sales_History__c>> testOverrideMap;
+
   public static List<breadwinner_ns__BW_Line_Item__c> getLines(
     Set<Id> lineIds
   ) {
@@ -60,9 +63,10 @@ public with sharing class NsLineItemService {
 
     List<breadwinner_ns__BW_Line_Item__c> newLines = getLines(newLineIds);
 
-    Map<String, List<Sales_History__c>> updateMap = UpdateSalesHistory.getUpdatesFromNsLineItems(
-      newLines
-    );
+    Map<String, List<Sales_History__c>> updateMap = Test.isRunningTest() &&
+      testOverrideMap != null
+      ? testOverrideMap
+      : UpdateSalesHistory.getUpdatesFromNsLineItems(newLines);
 
     if (updateMap == null)
       return;
@@ -180,9 +184,10 @@ public with sharing class NsLineItemService {
 
     List<breadwinner_ns__BW_Line_Item__c> changedLines = getLines(changedIds);
 
-    Map<String, List<Sales_History__c>> updateMap = UpdateSalesHistory.getUpdatesFromNsLineItems(
-      changedLines
-    );
+    Map<String, List<Sales_History__c>> updateMap = Test.isRunningTest() &&
+      testOverrideMap != null
+      ? testOverrideMap
+      : UpdateSalesHistory.getUpdatesFromNsLineItems(changedLines);
 
     if (updateMap == null)
       return;
