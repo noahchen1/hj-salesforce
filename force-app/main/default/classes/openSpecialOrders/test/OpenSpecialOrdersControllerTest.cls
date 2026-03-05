@@ -120,7 +120,7 @@ private class OpenSpecialOrdersControllerTest {
     results = OpenSpecialOrdersController.getOpenSpecialOrders(
       null,
       null,
-      'VendorA',
+      'Test Special Vendor', // was 'VendorA'
       null,
       null,
       null,

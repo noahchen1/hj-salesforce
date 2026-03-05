@@ -1,5 +1,5 @@
 @isTest
-private class searchRepairStationTest {
+private class SearchRepairStationTest {
   @isTest
   static void testSearchRepairStation_success() {
     breadwinner_ns__BW_Sales_Order__c newOrder = new breadwinner_ns__BW_Sales_Order__c(

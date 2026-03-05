@@ -35,6 +35,7 @@ private class OpenRepairsControllerTest {
 
     Test.startTest();
     List<breadwinner_ns__BW_Sales_Order__c> results = OpenRepairsController.getOpenRepairs(
+      null,
       'Test Customer',
       null,
       10,
@@ -52,6 +53,7 @@ private class OpenRepairsControllerTest {
 
     List<breadwinner_ns__BW_Sales_Order__c> stationResults = OpenRepairsController.getOpenRepairs(
       null,
+      null,
       'StationA',
       10,
       0,
@@ -66,6 +68,7 @@ private class OpenRepairsControllerTest {
     System.Assert(stationResults[0].Name == 'Order1', 'Should return Order1');
 
     List<breadwinner_ns__BW_Sales_Order__c> bothResults = OpenRepairsController.getOpenRepairs(
+      null,
       'Test Customer',
       'StationB',
       10,
@@ -81,6 +84,7 @@ private class OpenRepairsControllerTest {
     System.Assert(bothResults[0].Name == 'Order2', 'Should return Order2');
 
     List<breadwinner_ns__BW_Sales_Order__c> limitedResults = OpenRepairsController.getOpenRepairs(
+      null,
       'Test Customer',
       null,
       1,
@@ -106,6 +110,7 @@ private class OpenRepairsControllerTest {
     List<breadwinner_ns__BW_Sales_Order__c> results = OpenRepairsController.getOpenRepairs(
       null,
       null,
+      null,
       10,
       0,
       'invalidField',
@@ -126,7 +131,15 @@ private class OpenRepairsControllerTest {
 
     Test.startTest();
     try {
-      OpenRepairsController.getOpenRepairs(null, null, -1, 0, 'name', 'asc');
+      OpenRepairsController.getOpenRepairs(
+        null,
+        null,
+        null,
+        -1,
+        0,
+        'name',
+        'asc'
+      );
       System.assert(false, 'Exception should have been thrown');
     } catch (AurahandledException e) {
       System.Assert(
