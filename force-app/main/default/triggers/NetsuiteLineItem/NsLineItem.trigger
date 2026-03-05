@@ -3,7 +3,7 @@ trigger NsLineItem on breadwinner_ns__BW_Line_Item__c(
   after update,
   after delete
 ) {
-  if (Test.isRunningTest())
+  if (Test.isRunningTest() && !NsLineItemService.ignoreTrigger)
     return;
 
   if (Trigger.isInsert) {

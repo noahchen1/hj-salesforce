@@ -2,6 +2,9 @@ public with sharing class NsLineItemService {
   @TestVisible
   private static Map<String, List<Sales_History__c>> testOverrideMap;
 
+  @TestVisible
+  public static Boolean ignoreTrigger = false;
+
   public static List<breadwinner_ns__BW_Line_Item__c> getLines(
     Set<Id> lineIds
   ) {

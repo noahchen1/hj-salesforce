@@ -3,7 +3,7 @@ trigger AscHistory on nco_aschistoricalsales__c(
   after update,
   after delete
 ) {
-  if (Test.isRunningTest())
+  if (Test.isRunningTest() && !AscHistoryService.ignoreTrigger)
     return;
 
   if (Trigger.isInsert) {

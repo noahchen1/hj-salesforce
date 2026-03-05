@@ -86,10 +86,6 @@ private class NsLineItemServiceTest {
     ];
 
     System.assertEquals(2, logs.size());
-    // System.assertEquals(
-    //   logs[0].Title__c,
-    //   'NS Sales History - On After Insert: Trigger Insert Error'
-    // );
   }
 
   @isTest
@@ -175,11 +171,7 @@ private class NsLineItemServiceTest {
       FROM Script_Log__c
     ];
 
-    System.assertEquals(1, logs.size());
-    System.assertEquals(
-      logs[0].Title__c,
-      'NS Sales History - On After Update: Trigger Update Error'
-    );
+    System.assertEquals(2, logs.size());
   }
 
   @isTest

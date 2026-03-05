@@ -2,6 +2,9 @@ public with sharing class AscHistoryService {
   @TestVisible
   private static Map<String, List<Sales_History__c>> testOverrideMap;
 
+  @TestVisible
+  public static Boolean ignoreTrigger = false;
+
   private static List<nco_aschistoricalsales__c> getLines(Set<Id> lineIds) {
     return [
       SELECT
