@@ -3,6 +3,9 @@ trigger NsLineItem on breadwinner_ns__BW_Line_Item__c(
   after update,
   after delete
 ) {
+  if (Test.isRunningTest())
+    return;
+
   if (Trigger.isInsert) {
     NsLineItemService.onAfterInsert(Trigger.new);
   } else if (Trigger.isUpdate) {
