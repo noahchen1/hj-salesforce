@@ -1,4 +1,7 @@
 public with sharing class AscHistoryService {
+  @TestVisible
+  private static Map<String, List<Sales_History__c>> testOverrideMap;
+
   private static List<nco_aschistoricalsales__c> getLines(Set<Id> lineIds) {
     return [
       SELECT
@@ -38,9 +41,10 @@ public with sharing class AscHistoryService {
 
     List<nco_aschistoricalsales__c> newLines = getLines(newLineIds);
 
-    Map<String, List<Sales_History__c>> updateMap = UpdateSalesHistory.getUpdatesFromAscHistory(
-      newLines
-    );
+    Map<String, List<Sales_History__c>> updateMap = Test.isRunningTest() &&
+      testOverrideMap != null
+      ? testOverrideMap
+      : UpdateSalesHistory.getUpdatesFromAscHistory(newLines);
 
     if (updateMap == null)
       return;
@@ -151,9 +155,10 @@ public with sharing class AscHistoryService {
 
     List<nco_aschistoricalsales__c> changedLines = getLines(changedIds);
 
-    Map<String, List<Sales_History__c>> updateMap = UpdateSalesHistory.getUpdatesFromAscHistory(
-      changedLines
-    );
+    Map<String, List<Sales_History__c>> updateMap = Test.isRunningTest() &&
+      testOverrideMap != null
+      ? testOverrideMap
+      : UpdateSalesHistory.getUpdatesFromAscHistory(changedLines);
 
     if (updateMap == null)
       return;
