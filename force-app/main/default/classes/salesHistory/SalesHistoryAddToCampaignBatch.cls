@@ -1,83 +1,53 @@
 public with sharing class SalesHistoryAddToCampaignBatch implements Database.Batchable<SObject> {
-  public class FilterCriteria {
-    @AuraEnabled
-    public String customer;
-    @AuraEnabled
-    public String salesRep;
-    @AuraEnabled
-    public String item;
-    @AuraEnabled
-    public String division;
-    @AuraEnabled
-    public String department;
-    @AuraEnabled
-    public String groupcode;
-    @AuraEnabled
-    public Date purchaseStartDate;
-    @AuraEnabled
-    public Date purchaseEndDate;
-    @AuraEnabled
-    public String birthdayStartMonth;
-    @AuraEnabled
-    public String birthdayStartDay;
-    @AuraEnabled
-    public String birthdayEndMonth;
-    @AuraEnabled
-    public String birthdayEndDay;
-    @AuraEnabled
-    public String vendor;
-    @AuraEnabled
-    public String vendorItemNum;
-    @AuraEnabled
-    public Boolean isServiceOnly;
-    @AuraEnabled
-    public Boolean isNewCustomer;
-    @AuraEnabled
-    public String sortBy;
-    @AuraEnabled
-    public String sortDirection;
-  }
-
   private final Id campaignId;
-  private final FilterCriteria criteria;
+  private final SalesHistoryModels.FilterCriteria criteria;
 
   public SalesHistoryAddToCampaignBatch(
     Id campaignId,
-    FilterCriteria criteria
+    SalesHistoryModels.FilterCriteria criteria
   ) {
     this.campaignId = campaignId;
     this.criteria = criteria;
   }
 
   public Database.QueryLocator start(Database.BatchableContext bc) {
+    String customer = criteria?.customer;
+    List<String> locations = (criteria?.locations == null)
+      ? new List<String>()
+      : criteria.locations;
+    String salesRep = criteria?.salesRep;
+    String item = criteria?.item;
+    String division = criteria?.division;
+    String department = criteria?.department;
+    String groupcode = criteria?.groupcode;
+    Date purchaseStartDate = criteria?.purchaseStartDate;
+    Date purchaseEndDate = criteria?.purchaseEndDate;
+    String birthdayStartMonth = criteria?.birthdayStartMonth;
+    String birthdayStartDay = criteria?.birthdayStartDay;
+    String birthdayEndMonth = criteria?.birthdayEndMonth;
+    String birthdayEndDay = criteria?.birthdayEndDay;
+    String vendor = criteria?.vendor;
+    String vendorItemNum = criteria?.vendorItemNum;
+    Boolean isServiceOnly = (criteria?.isServiceOnly == true);
+    Boolean isNewCustomer = (criteria?.isNewCustomer == true);
+    Integer pageSize = criteria?.pageSize;
+    Integer offsetSize = criteria?.offsetSize;
+    String sortBy = criteria?.sortBy;
+    String sortDirection = criteria?.sortDirection;
+
     Map<String, String> sortMap = new Map<String, String>{
       'totalSpend' => 'SUM(Price_Paid__c)',
       'birthday' => 'Account__r.Birthdate__c'
     };
 
-    String sortField = sortMap.containsKey(criteria.sortBy)
-      ? sortMap.get(criteria.sortBy)
+    String sortField = sortMap.containsKey(sortBy)
+      ? sortMap.get(sortBy)
       : 'SUM(Price_Paid__c)';
 
-    String direction = (String.isNotBlank(criteria.sortDirection) &&
-      criteria.sortDirection.toLowerCase() == 'asc')
+    String direction = (String.isNotBlank(sortDirection) &&
+      sortDirection.toLowerCase() == 'asc')
       ? 'ASC'
       : 'DESC';
-
-    String customer = criteria != null ? criteria.customer : null;
-    String salesRep = criteria != null ? criteria.salesRep : null;
-    String item = criteria != null ? criteria.item : null;
-    String division = criteria != null ? criteria.division : null;
-    String department = criteria != null ? criteria.department : null;
-    String groupcode = criteria != null ? criteria.groupcode : null;
-    String vendor = criteria != null ? criteria.vendor : null;
-    String vendorItemNum = criteria != null ? criteria.vendorItemNum : null;
-    Boolean isServiceOnly = criteria != null ? criteria.isServiceOnly : false;
-    Boolean isNewCustomer = criteria != null ? criteria.isNewCustomer : false;
-    Date purchaseStartDate = criteria != null
-      ? criteria.purchaseStartDate
-      : null;
-    Date purchaseEndDate = criteria != null ? criteria.purchaseEndDate : null;
 
     List<String> whereParts = new List<String>();
 
@@ -130,15 +100,15 @@ public with sharing class SalesHistoryAddToCampaignBatch implements Database.Bat
     }
 
     if (
-      String.isNotEmpty(criteria.birthdayStartMonth) ||
-      String.isNotEmpty(criteria.birthdayEndMonth) ||
-      String.isNotEmpty(criteria.birthdayStartDay) ||
-      String.isNotEmpty(criteria.birthdayEndDay)
+      String.isNotEmpty(birthdayStartMonth) ||
+      String.isNotEmpty(birthdayEndMonth) ||
+      String.isNotEmpty(birthdayStartDay) ||
+      String.isNotEmpty(birthdayEndDay)
     ) {
-      Integer bdStartMonth = Helpers.toIntOrNull(criteria.birthdayStartMonth);
-      Integer bdEndMonth = Helpers.toIntOrNull(criteria.birthdayEndMonth);
-      Integer bdStartDay = Helpers.toIntOrNull(criteria.birthdayStartDay);
-      Integer bdEndDay = Helpers.toIntOrNull(criteria.birthdayEndDay);
+      Integer bdStartMonth = Helpers.toIntOrNull(birthdayStartMonth);
+      Integer bdEndMonth = Helpers.toIntOrNull(birthdayEndMonth);
+      Integer bdStartDay = Helpers.toIntOrNull(birthdayStartDay);
+      Integer bdEndDay = Helpers.toIntOrNull(birthdayEndDay);
 
       if (bdStartMonth == null) {
         bdStartDay = null;

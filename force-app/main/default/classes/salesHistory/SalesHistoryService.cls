@@ -1,28 +1,31 @@
-public with sharing class SalesHistory {
-  @AuraEnabled(cacheable=true)
-  public static List<AggregateResult> getSalesHistory(
-    String customer,
-    List<String> locations,
-    String salesRep,
-    String item,
-    String division,
-    String department,
-    String groupcode,
-    Date purchaseStartDate,
-    Date purchaseEndDate,
-    String birthdayStartMonth,
-    String birthdayStartDay,
-    String birthdayEndMonth,
-    String birthdayEndDay,
-    String vendor,
-    String vendorItemNum,
-    Boolean isServiceOnly,
-    Boolean isNewCustomer,
-    Integer pageSize,
-    Integer offsetSize,
-    String sortBy,
-    String sortDirection
+public with sharing class SalesHistoryService {
+  public static List<AggregateResult> querySalesHistory(
+    SalesHistoryModels.FilterCriteria criteria
   ) {
+    String customer = criteria?.customer;
+    List<String> locations = (criteria?.locations == null)
+      ? new List<String>()
+      : criteria.locations;
+    String salesRep = criteria?.salesRep;
+    String item = criteria?.item;
+    String division = criteria?.division;
+    String department = criteria?.department;
+    String groupcode = criteria?.groupcode;
+    Date purchaseStartDate = criteria?.purchaseStartDate;
+    Date purchaseEndDate = criteria?.purchaseEndDate;
+    String birthdayStartMonth = criteria?.birthdayStartMonth;
+    String birthdayStartDay = criteria?.birthdayStartDay;
+    String birthdayEndMonth = criteria?.birthdayEndMonth;
+    String birthdayEndDay = criteria?.birthdayEndDay;
+    String vendor = criteria?.vendor;
+    String vendorItemNum = criteria?.vendorItemNum;
+    Boolean isServiceOnly = (criteria?.isServiceOnly == true);
+    Boolean isNewCustomer = (criteria?.isNewCustomer == true);
+    Integer pageSize = criteria?.pageSize;
+    Integer offsetSize = criteria?.offsetSize;
+    String sortBy = criteria?.sortBy;
+    String sortDirection = criteria?.sortDirection;
+
     Map<String, String> sortMap = new Map<String, String>{
       'totalSpend' => 'SUM(Price_Paid__c)',
       'birthday' => 'Account__r.Birthdate__c'
@@ -48,7 +51,7 @@ public with sharing class SalesHistory {
     }
 
     if (String.isNotBlank(salesRep)) {
-      whereParts.add('Account__r.Sales_Rep__c = :salesrep ');
+      whereParts.add('Account__r.Sales_Rep__c = :salesRep ');
     }
 
     if (String.isNotBlank(item)) {

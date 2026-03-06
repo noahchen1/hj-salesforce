@@ -1,5 +1,5 @@
 import { LightningElement, track, wire } from "lwc";
-import getSalesHistory from "@salesforce/apex/SalesHistory.getSalesHistory";
+import getSalesHistory from "@salesforce/apex/SalesHistoryController.getSalesHistory";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
 import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
 import searchItem from "@salesforce/apex/FilterDataController.searchItem";
@@ -10,8 +10,8 @@ import searchVendor from "@salesforce/apex/FilterDataController.searchVendor";
 import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
 import getAllCampaigns from "@salesforce/apex/DropdownDataController.getAllCampaigns";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
-import enqueueAddAccountsToCampaign from "@salesforce/apex/SalesHistoryCampaignController.enqueueAddAccountsToCampaign";
-import generateCsv from "@salesforce/apex/SalesHistoryCampaignController.generateCsv";
+import enqueueAddAccountsToCampaign from "@salesforce/apex/SalesHistoryController.enqueueAddAccountsToCampaign";
+import generateCsv from "@salesforce/apex/SalesHistoryController.generateCsv";
 import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
 import getPicklistLabels from "@salesforce/apex/Helpers.getPicklistLabels";
 
