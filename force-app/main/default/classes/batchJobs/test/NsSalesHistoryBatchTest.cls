@@ -120,7 +120,10 @@ private class NsSalesHistoryBatchTest {
 
     System.assert(!didThrow, 'Job executed without exceptions');
 
-    List<Sales_History__c> record = [SELECT Name, Id FROM Sales_History__c];
+    List<Sales_History__c> record = [
+      SELECT Name, Id, Quantity__c
+      FROM Sales_History__c
+    ];
 
     System.assertEquals(1, record.size());
     System.assertEquals(record[0].Quantity__c, 1);
@@ -156,10 +159,6 @@ private class NsSalesHistoryBatchTest {
     };
 
     NsSalesHistoryBatch.testOverrideMap = overrideMap;
-
-    Test.startTest();
-    Database.executeBatch(new NsSalesHistoryBatch(), 1);
-    Test.stopTest();
 
     Test.startTest();
     Database.executeBatch(new NsSalesHistoryBatch(), 1);
