@@ -13,7 +13,7 @@ private class CampaignMemberServiceTest {
       accounts.add(
         new Account(
           Name = 'Account' + i,
-          Account_Email__c = 'test' + i + '@test.com',
+          Email__c = 'test' + i + '@test.com',
           First_Name__c = 'First' + i,
           Last_Name__c = 'Last' + i
         )
@@ -57,13 +57,13 @@ private class CampaignMemberServiceTest {
 
     Account acc1 = new Account(
       Name = 'Account1',
-      Account_Email__c = 'test1@test.com',
+      Email__c = 'test1@test.com',
       First_Name__c = 'First1',
       Last_Name__c = 'Last1'
     );
     Account acc2 = new Account(
       Name = 'Account2',
-      Account_Email__c = 'test2@test.com',
+      Email__c = 'test2@test.com',
       First_Name__c = 'First2',
       Last_Name__c = 'Last2'
     );
@@ -103,7 +103,7 @@ private class CampaignMemberServiceTest {
 
     Account testAccount = new Account(
       Name = 'Test Account',
-      Account_Email__c = 'test1@test.com',
+      Email__c = 'test1@test.com',
       First_Name__c = 'First1',
       Last_Name__c = 'Last1'
     );
@@ -160,7 +160,7 @@ private class CampaignMemberServiceTest {
   static void testOnAfterInsert_missingCampaignId() {
     Account acc = new Account(
       Name = 'No Campaign Account',
-      Account_Email__c = 'no-campaign@example.com',
+      Email__c = 'no-campaign@example.com',
       First_Name__c = 'No',
       Last_Name__c = 'Campaign'
     );
@@ -185,7 +185,7 @@ private class CampaignMemberServiceTest {
   static void testOnAfterInsert_campaignIdNotInMap() {
     Account acc = new Account(
       Name = 'Ghost Account',
-      Account_Email__c = 'ghost@example.com',
+      Email__c = 'ghost@example.com',
       First_Name__c = 'Ghost',
       Last_Name__c = 'Campaign'
     );
