@@ -124,7 +124,7 @@ export default class OpenSpecialOrders extends LightningElement {
     const mappedData = data.map((r) => {
       const so = r.breadwinner_ns__Sales_Order__r || {};
       const entity = so.breadwinner_ns__Entity__r || {};
-      const soLink = `https://5405357-sb1.app.netsuite.com/app/accounting/transactions/salesord.nl?id=${so.breadwinner_ns__InternalId__c}`;
+      const soLink = `https://5405357.app.netsuite.com/app/accounting/transactions/salesord.nl?id=${so.breadwinner_ns__InternalId__c}`;
       const needByDateObj = new Date(so.ncf_body_special_order_date__c);
       const today = new Date();
       const rowStyle =
@@ -261,7 +261,7 @@ export default class OpenSpecialOrders extends LightningElement {
     const data = this.userData?.data;
     const roleName = getFieldValue(data, USER_ROLE_NAME_FIELD);
 
-    if ((roleName || "").toLowerCase() === "associate") {
+    if ((roleName || "").toLowerCase() === "sales associate") {
       const userName = getFieldValue(data, USER_NAME_FIELD);
 
       if (userName) {

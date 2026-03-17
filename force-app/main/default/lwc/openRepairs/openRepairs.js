@@ -51,7 +51,7 @@ export default class OpenRepairs extends LightningElement {
   get rows() {
     const data = this.wiredData?.data || [];
     const mappedData = data.map((r) => {
-      const soLink = `https://5405357-sb1.app.netsuite.com/app/accounting/transactions/salesord.nl?id=${r.breadwinner_ns__InternalId__c}`;
+      const soLink = `https://5405357.app.netsuite.com/app/accounting/transactions/salesord.nl?id=${r.breadwinner_ns__InternalId__c}`;
 
       return {
         id: r.Id,
@@ -200,7 +200,7 @@ export default class OpenRepairs extends LightningElement {
     const data = this.userData?.data;
     const roleName = getFieldValue(data, USER_ROLE_NAME_FIELD);
 
-    if ((roleName || "").toLowerCase() === "associate") {
+    if ((roleName || "").toLowerCase() === "sales associate") {
       const userName = getFieldValue(data, USER_NAME_FIELD);
 
       if (userName) {
