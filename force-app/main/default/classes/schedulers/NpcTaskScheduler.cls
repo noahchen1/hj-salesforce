@@ -8,13 +8,13 @@ public with sharing class NpcTaskScheduler implements Schedulable {
         breadwinner_ns__Invoice__r.breadwinner_ns__Salesforce_Account__c,
         breadwinner_ns__Invoice__r.OwnerId,
         breadwinner_ns__Item__c,
-        breadwinner_ns__Item__r.Name,
-        Amount_after_Discounts__c
+        breadwinner_ns__Item__r.Name
       FROM breadwinner_ns__BW_Line_Item__c
       WHERE
-        Amount_after_Discounts__c >= 5000
+        (Amount_after_Discounts__c >= 5000
+        OR breadwinner_ns__Amount__c >= 5000)
         AND breadwinner_ns__Invoice__c != NULL
-        AND breadwinner_ns__Invoice__r.breadwinner_ns__TranDate__c >= :Date.today()
+        AND breadwinner_ns__Invoice__r.breadwinner_ns__TranDate__c = :Date.today()
           .addDays(-7)
     ];
 

@@ -86,23 +86,16 @@ SELECT FIELDS(ALL) FROM ContentDocument WHERE Title = 'image009' LIMIT 1
 
 SELECT toLabel(AccountSource) FROM Account GROUP BY AccountSource
 
+SELECT Id, breadwinner_ns__Credit_Memo__c FROM breadwinner_ns__BW_Line_Item__c WHERE Id = 'a0Xcv0000067uM1EAI'
+
+
 
 SELECT
-    breadwinner_ns__Invoice__c,
-    breadwinner_ns__Invoice__r.Name,
-    breadwinner_ns__Invoice__r.breadwinner_ns__Salesforce_Account__c,
-    breadwinner_ns__Invoice__r.Owner.Id,
-    breadwinner_ns__Item__c,
-    breadwinner_ns__Item__r.Name,
-    Amount_after_Discounts__c
-FROM 
-    breadwinner_ns__BW_Line_Item__c 
-WHERE 
-    Amount_after_Discounts__c >= 5000
-    AND breadwinner_ns__Invoice__c != NULL
-    AND breadwinner_ns__Invoice__r.breadwinner_ns__TranDate__c >= 2025-07-01
-
-
-String jobName = 'NPC Task Scheduler - Daily 9AM';
-String cronExp = '0 0 9 * * ?';
-System.schedule(jobName, cronExp, new NpcTaskScheduler());
+  breadwinner_ns__Item__c,
+  breadwinner_ns__Item__r.Name
+FROM breadwinner_ns__BW_Line_Item__c
+WHERE
+  (Amount_after_Discounts__c >= 5000
+  OR breadwinner_ns__Amount__c >= 5000)
+  AND breadwinner_ns__Invoice__c != NULL
+  AND breadwinner_ns__Invoice__r.breadwinner_ns__TranDate__c = 2026-03-11

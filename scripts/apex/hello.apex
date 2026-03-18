@@ -45,10 +45,10 @@ template.Template__c =
   '</body>\n' +
   '</html>';
 
-  insert template;
-
-
-
-
+insert template;
 
 new NpcTaskScheduler().execute(null);
+
+String jobName = 'NPC Task Scheduler - Daily 9AM';
+String cronExp = '0 0 9 * * ?';
+System.schedule(jobName, cronExp, new NpcTaskScheduler());

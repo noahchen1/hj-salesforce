@@ -2,7 +2,8 @@
 private class NpcTaskSchedulerTest {
   static breadwinner_ns__BW_Line_Item__c createLineItem(
     String suffix,
-    Decimal amount
+    Decimal amount,
+    Date tranDate
   ) {
     Account account = new Account(Name = 'NPC Account ' + suffix);
     insert account;
@@ -15,7 +16,7 @@ private class NpcTaskSchedulerTest {
     breadwinner_ns__BW_Invoice__c invoice = new breadwinner_ns__BW_Invoice__c(
       Name = 'INV-' + suffix,
       breadwinner_ns__Salesforce_Account__c = account.Id,
-      breadwinner_ns__TranDate__c = Date.today()
+      breadwinner_ns__TranDate__c = tranDate
     );
     insert invoice;
 
@@ -35,10 +36,11 @@ private class NpcTaskSchedulerTest {
   static void createsTaskForElligibleLine() {
     breadwinner_ns__BW_Line_Item__c eligibleLineItem = createLineItem(
       'Eligible',
-      5500
+      5500,
+      Date.today().addDays(-7)
     );
 
-    createLineItem('BelowThreshold', 4999);
+    createLineItem('BelowThreshold', 4999, Date.today().addDays(-7));
 
     Test.startTest();
     new NpcTaskScheduler().execute(null);
@@ -119,7 +121,8 @@ private class NpcTaskSchedulerTest {
   static void skipsLinesWithTasksCreated() {
     breadwinner_ns__BW_Line_Item__c lineItem = createLineItem(
       'ExistingTask',
-      6000
+      6000,
+      Date.today().addDays(-7)
     );
 
     breadwinner_ns__BW_Line_Item__c existingLineItem = [
@@ -160,6 +163,27 @@ private class NpcTaskSchedulerTest {
       1,
       taskCount,
       'The scheduler should not create a duplicate task.'
+    );
+  }
+
+  @isTest
+  static void skipsLinesOutsideTargetTranDate() {
+    createLineItem('WrongDate', 6000, Date.today().addDays(-6));
+
+    Test.startTest();
+    new NpcTaskScheduler().execute(null);
+    Test.stopTest();
+
+    Integer taskCount = [
+      SELECT COUNT()
+      FROM Task
+      WHERE Subject = 'Reminder: Complete NPC'
+    ];
+
+    System.assertEquals(
+      0,
+      taskCount,
+      'The scheduler should skip line items whose invoice date is not exactly seven days ago.'
     );
   }
 }
