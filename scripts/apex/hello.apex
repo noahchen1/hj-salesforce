@@ -48,3 +48,7 @@ template.Template__c =
   insert template;
 
 
+
+
+
+new NpcTaskScheduler().execute(null);
