@@ -108,3 +108,13 @@ SELECT Id, breadwinner_ns__Credit_Memo__c FROM breadwinner_ns__BW_Line_Item__c W
         OR breadwinner_ns__Invoice__r.breadwinner_ns__TranDate__c = 2026-03-13)
 
 SELECT FIELDS(ALL) FROM User WHERE Name LIKE 'Cassandra%' LIMIT 1
+
+
+SELECT Name, Item__r.Name, Order_Date__c FROM Sales_History__c ORDER BY Order_Date__c DESC LIMIT 1
+SELECT COUNT() FROM Sales_History__c
+
+
+ SELECT FolderName,Title FROM Dashboard WHERE Type = 'LoggedInUser' OR Type = 'MyTeamUser'
+
+
+ SELECT Name, Owner.Name FROM Sales_History__c WHERE Sales_Rep__c = 'Lauren Tischler'

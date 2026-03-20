@@ -1,5 +1,5 @@
 Id deleteJobId = Database.executeBatch(
-  new ObjectMassDelete('Script_Log__c'),
+  new ObjectMassDelete('Sales_History__c'),
   200
 );
 System.debug('deleteJobId: ' + deleteJobId);
