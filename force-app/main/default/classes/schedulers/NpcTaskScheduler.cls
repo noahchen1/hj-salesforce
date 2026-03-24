@@ -18,7 +18,9 @@ public with sharing class NpcTaskScheduler implements Schedulable {
         AND (breadwinner_ns__Invoice__r.breadwinner_ns__TranDate__c = :Date.today()
           .addDays(-7)
         OR breadwinner_ns__Invoice__r.breadwinner_ns__TranDate__c = :Date.today()
-          .addDays(-6)) //This part needs to be changed for the official process
+          .addDays(-6)
+        OR breadwinner_ns__Invoice__r.breadwinner_ns__TranDate__c = :Date.today()
+          .addDays(-5)) //This part needs to be changed for the official process
     ];
 
     Set<Id> lineItemIds = new Set<Id>();

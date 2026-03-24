@@ -179,7 +179,7 @@ private class NpcTaskSchedulerTest {
 
   @isTest
   static void skipsLinesOutsideTargetTranDate() {
-    createLineItem('WrongDate', 6000, Date.today().addDays(-5), null);
+    createLineItem('WrongDate', 6000, Date.today().addDays(-1), null);
 
     Test.startTest();
     new NpcTaskScheduler().execute(null);
