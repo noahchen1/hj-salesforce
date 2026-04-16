@@ -44,62 +44,58 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>
-                <c-lookup-input
-                    data-type="item"
-                    placeholder="Enter Item"
-                    onsearch={handleLookupSearch}
-                    onselect={handleLookupSelect}
-                ></c-lookup-input>
-              <!-- <lightning-input
-                class="table-field"
-                variant="label-hidden"
-                type="text"
-                placeholder="Enter item"
-              ></lightning-input> -->
-            </td>
-            <td>
-              <select class="table-select">
-                <option>Pending</option>
-                <option>Approved</option>
-                <option>Backordered</option>
-              </select>
-            </td>
-            <td>
-              <lightning-input
-                class="table-field"
-                variant="label-hidden"
-                type="text"
-                placeholder="Add a note"
-              ></lightning-input>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <lightning-input
-                class="table-field"
-                variant="label-hidden"
-                type="text"
-                placeholder="Enter item"
-              ></lightning-input>
-            </td>
-            <td>
-              <select class="table-select">
-                <option>Pending</option>
-                <option selected>Approved</option>
-                <option>Backordered</option>
-              </select>
-            </td>
-            <td>
-              <lightning-input
-                class="table-field"
-                variant="label-hidden"
-                type="text"
-                placeholder="Add a note"
-              ></lightning-input>
-            </td>
-          </tr>
+          <template for:each={rows} for:item="row" for:index="index">
+            <tr key={row.id}>
+              <td>
+                <lightning-input
+                  data-index={index}
+                  data-field="item"
+                  value={row.item}
+                  variant="label-hidden"
+                  type="text"
+                  placeholder="Enter item"
+                  onchange={handleRowChange}
+                  onfocus={handleFocus}
+                ></lightning-input>
+                <template if:true={row.showAction}>
+                  <div class="row-action-container">
+                    <lightning-button
+                      label="Add Row"
+                      data-index={index}
+                      onclick={addRow}
+                    ></lightning-button>
+                    <lightning-button
+                      label="Remove Row"
+                      data-index={index}
+                      onclick={removeRow}
+                      disabled={row.disableRemove}
+                    ></lightning-button>
+                  </div>
+                </template>
+              </td>
+              <td>
+                <lightning-combobox
+                  data-index={index}
+                  data-field="status"
+                  value={row.status}
+                  options={statusOptions}
+                  variant="label-hidden"
+                  onchange={handleRowChange}
+                ></lightning-combobox>
+              </td>
+              <td>
+                <lightning-input
+                  data-index={index}
+                  data-field="notes"
+                  value={row.notes}
+                  variant="label-hidden"
+                  type="text"
+                  placeholder="Add a note"
+                  onchange={handleRowChange}
+                ></lightning-input>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>

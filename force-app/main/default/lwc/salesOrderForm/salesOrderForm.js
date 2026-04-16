@@ -1,4 +1,4 @@
-import { LightningElement, track, wire } from "lwc";
+import { LightningElement, wire } from "lwc";
 import { CurrentPageReference } from "lightning/navigation";
 import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
@@ -13,6 +13,22 @@ export default class SalesOrderForm extends LightningElement {
   item = "";
   location = "";
   locationOptions = [];
+  rows = [
+    {
+      id: 1,
+      item: "",
+      status: "Pending",
+      notes: "",
+      showAction: true,
+      disableRemove: true
+    }
+  ];
+  statusOptions = [
+    { label: "Pending", value: "Pending" },
+    { label: "Approved", value: "Approved" },
+    { label: "Backordered", value: "Backordered" }
+  ];
+  nextRowId = 2;
 
   @wire(CurrentPageReference)
   getStateParameters(pageRef) {
@@ -85,7 +101,66 @@ export default class SalesOrderForm extends LightningElement {
     }
   }
 
-  renderedCallback() {
-    console.log("component rerendered");
+  handleRowChange(e) {
+    const index = Number(e.target.dataset.index);
+    const field = e.target.dataset.field;
+    const value = e.target.value;
+    const updatedRows = [...this.rows];
+
+    updatedRows[index][field] = value;
+    this.rows = updatedRows;
+  }
+
+  // renderedCallback() {
+  //   console.log("component rerendered");
+  // }
+
+  addRow(e) {
+    const index = Number(e.target.dataset.index);
+
+    try {
+      const newRow = {
+        id: this.nextRowId++,
+        item: "",
+        status: "Pending",
+        notes: "",
+        showAction: false,
+        disableRemove: false
+      };
+
+      const updatedRows = [...this.rows];
+      updatedRows.splice(index + 1, 0, newRow);
+
+      this.rows = updatedRows;
+    } catch (error) {
+      console.error(
+        `Error occured when changing values for line item ${index}`
+      );
+      console.error(error);
+    }
+  }
+
+  removeRow(e) {
+    const index = Number(e.target.dataset.index);
+
+    const updatedRows = [...this.rows];
+    updatedRows.splice(index, 1);
+
+    this.rows = updatedRows;
+  }
+
+  handleFocus(e) {
+    const index = Number(e.target.dataset.index);
+    const updatedRows = [...this.rows];
+
+    updatedRows.forEach((row, idx) => {
+      if (idx === index) {
+        row.showAction = true;
+      } else {
+        row.showAction = false;
+      }
+    });
+
+    this.rows = updatedRows;
   }
 }

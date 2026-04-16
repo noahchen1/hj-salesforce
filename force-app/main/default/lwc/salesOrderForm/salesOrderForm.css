@@ -65,3 +65,15 @@
 .table-field {
   display: block;
 }
+
+.row-action-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: #ffffff;
+  border: 1px solid #d8dde6;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 5px 5px rgba(15, 23, 42, 0.16);
+  white-space: nowrap;
+}
