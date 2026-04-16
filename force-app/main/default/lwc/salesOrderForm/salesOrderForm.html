@@ -1,0 +1,107 @@
+<template>
+  <lightning-card title="Sales Order Form" class="main-container">
+    <div class="form-body">
+      <c-lookup-input
+        data-type="customer"
+        label="Customer"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-input label="Date" type="date"></lightning-input>
+      <c-lookup-input
+        data-type="salesRep1"
+        label="Sales Rep"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <c-lookup-input
+        data-type="salesRep2"
+        label="Sales Rep 2"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-combobox
+        name="location"
+        label="Location"
+        value={location}
+        placeholder="Select a location"
+        options={locationOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
+    </div>
+
+    <div class="table-section">
+      <h3 class="table-title">Order Items</h3>
+      <table class="order-table">
+        <thead>
+          <tr>
+            <th scope="col">Item</th>
+            <th scope="col">Status</th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+                <c-lookup-input
+                    data-type="item"
+                    placeholder="Enter Item"
+                    onsearch={handleLookupSearch}
+                    onselect={handleLookupSelect}
+                ></c-lookup-input>
+              <!-- <lightning-input
+                class="table-field"
+                variant="label-hidden"
+                type="text"
+                placeholder="Enter item"
+              ></lightning-input> -->
+            </td>
+            <td>
+              <select class="table-select">
+                <option>Pending</option>
+                <option>Approved</option>
+                <option>Backordered</option>
+              </select>
+            </td>
+            <td>
+              <lightning-input
+                class="table-field"
+                variant="label-hidden"
+                type="text"
+                placeholder="Add a note"
+              ></lightning-input>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <lightning-input
+                class="table-field"
+                variant="label-hidden"
+                type="text"
+                placeholder="Enter item"
+              ></lightning-input>
+            </td>
+            <td>
+              <select class="table-select">
+                <option>Pending</option>
+                <option selected>Approved</option>
+                <option>Backordered</option>
+              </select>
+            </td>
+            <td>
+              <lightning-input
+                class="table-field"
+                variant="label-hidden"
+                type="text"
+                placeholder="Add a note"
+              ></lightning-input>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </lightning-card>
+</template>
