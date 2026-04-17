@@ -6,6 +6,7 @@ import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
 import searchItem from "@salesforce/apex/FilterDataController.searchItem";
 import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
 import { getFieldValue, getRecord } from "lightning/uiRecordApi";
+import createSo from "@salesforce/apex/SoService.createSo";
 
 export default class SalesOrderForm extends LightningElement {
   recordId;
@@ -209,5 +210,14 @@ export default class SalesOrderForm extends LightningElement {
     this.rows = updatedRows;
   }
 
-  saveOrder(e) {}
+  async saveOrder() {
+    console.log("save btn clicked!");
+
+    try {
+      await createSo();
+      console.log("createSo completed");
+    } catch (error) {
+      console.error("createSo failed", error);
+    }
+  }
 }
