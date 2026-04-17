@@ -4,21 +4,23 @@ import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
 import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
 import searchItem from "@salesforce/apex/FilterDataController.searchItem";
+import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
+import { getFieldValue, getRecord } from "lightning/uiRecordApi";
 
 export default class SalesOrderForm extends LightningElement {
   recordId;
   customer = "";
   salesRep1 = "";
   salesRep2 = "";
-  item = "";
   location = "";
   locationOptions = [];
   rows = [
     {
       id: 1,
       item: "",
-      status: "Pending",
-      notes: "",
+      quantity: "",
+      rate: "",
+      amount: "",
       showAction: true,
       disableRemove: true
     }
@@ -29,11 +31,33 @@ export default class SalesOrderForm extends LightningElement {
     { label: "Backordered", value: "Backordered" }
   ];
   nextRowId = 2;
+  selectedItemId;
+  selectedItemRowIndex = null;
 
   @wire(CurrentPageReference)
   getStateParameters(pageRef) {
     if (pageRef) {
       this.recordId = pageRef.state?.c__recordId;
+    }
+  }
+
+  @wire(getRecord, {
+    recordId: "$selectedItemId",
+    fields: [BASE_PRICE]
+  })
+  wiredItemRecord({ data, error }) {
+    if (data && this.selectedItemRowIndex !== null) {
+      const basePrice = getFieldValue(data, BASE_PRICE);
+      const updatedRows = [...this.rows];
+
+      if (updatedRows[this.selectedItemRowIndex]) {
+        updatedRows[this.selectedItemRowIndex].quantity = 1;
+        updatedRows[this.selectedItemRowIndex].rate = basePrice ?? "";
+        updatedRows[this.selectedItemRowIndex].amount = basePrice ?? "";
+        this.rows = updatedRows;
+      }
+    } else if (error) {
+      console.error("Error fetching item base price", error);
     }
   }
 
@@ -45,9 +69,7 @@ export default class SalesOrderForm extends LightningElement {
   async handleLookupSearch(e) {
     const type = e.target.dataset.type;
     const searchKey = e.detail.searchKey;
-    const input = this.template.querySelector(
-      `c-lookup-input[data-type="${type}"]`
-    );
+    const input = e.target;
 
     let searchFn;
 
@@ -78,10 +100,32 @@ export default class SalesOrderForm extends LightningElement {
     }
   }
 
-  handleLookupSelect(e) {
-    const type = e.target.dataset.type;
-    const selectedName = e.detail.name;
-    this[type] = selectedName;
+  async handleLookupSelect(e) {
+    try {
+      const type = e.target.dataset.type;
+      const selectedName = e.detail.name;
+
+      if (type === "item") {
+        const itemId = e.detail.id;
+        const index = Number(e.target.dataset.index);
+        const updatedRows = [...this.rows];
+
+        if (updatedRows[index]) {
+          updatedRows[index].item = selectedName;
+          this.rows = updatedRows;
+        }
+
+        this.selectedItemRowIndex = index;
+        this.selectedItemId = itemId;
+
+        return;
+      }
+
+      this[type] = selectedName;
+    } catch (error) {
+      console.error(`Error occured when setting item for line item ${index}`);
+      console.error(error);
+    }
   }
 
   handleComboboxChange(e) {
@@ -122,8 +166,9 @@ export default class SalesOrderForm extends LightningElement {
       const newRow = {
         id: this.nextRowId++,
         item: "",
-        status: "Pending",
-        notes: "",
+        quantity: "",
+        rate: "",
+        amount: "",
         showAction: false,
         disableRemove: false
       };
@@ -163,4 +208,6 @@ export default class SalesOrderForm extends LightningElement {
 
     this.rows = updatedRows;
   }
+
+  saveOrder(e) {}
 }

@@ -6,6 +6,8 @@
       placeholder={placeholder}
       value={searchKey}
       onchange={handleInputChange}
+      onfocus={handleFocus}
+      variant={variant}
     ></lightning-input>
     <template if:true={showResultsOrLoading}>
       <ul class="lookup-dropdown" style={dropdownStyle}>

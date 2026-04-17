@@ -1,3 +1,7 @@
+.main-container {
+  min-height: 900px;
+}
+
 .form-body {
   display: flex;
   flex-wrap: wrap;

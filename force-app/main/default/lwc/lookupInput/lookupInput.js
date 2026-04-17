@@ -1,13 +1,14 @@
 import { LightningElement, track, api } from "lwc";
 
 export default class LookupInput extends LightningElement {
-  @api label = "Search";
+  @api label = "";
   @api placeholder = "Type to search...";
   @track searchKey = "";
   @track results = [];
   @track showResults = false;
   @track dropdownStyle = "";
   @track isLoading = false;
+  debounceTimer;
 
   @api
   setResults(results) {
@@ -22,6 +23,10 @@ export default class LookupInput extends LightningElement {
 
   get showResultsOrLoading() {
     return this.showResults || this.isLoading;
+  }
+
+  get variant() {
+    return this.label?.trim() ? "standard" : "label-hidden";
   }
 
   renderedCallback() {
@@ -42,9 +47,21 @@ export default class LookupInput extends LightningElement {
       this.showResults = false;
     }
 
+    clearTimeout(this.debounceTimer);
+
+    this.debounceTimer = setTimeout(() => {
+      this.dispatchEvent(
+        new CustomEvent("search", {
+          detail: { searchKey: this.searchKey }
+        })
+      );
+    }, 400);
+  }
+
+  handleFocus(e) {
     this.dispatchEvent(
-      new CustomEvent("search", {
-        detail: { searchKey: this.searchKey }
+      new CustomEvent("focus", {
+        target: e.target
       })
     );
   }
@@ -59,5 +76,9 @@ export default class LookupInput extends LightningElement {
         detail: { id, name }
       })
     );
+  }
+
+  disconnectedCallback() {
+    clearTimeout(this.debounceTimer);
   }
 }

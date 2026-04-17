@@ -1,103 +1,131 @@
 <template>
-  <lightning-card title="Sales Order Form" class="main-container">
-    <div class="form-body">
-      <c-lookup-input
-        data-type="customer"
-        label="Customer"
-        placeholder="Enter Name"
-        onsearch={handleLookupSearch}
-        onselect={handleLookupSelect}
-      ></c-lookup-input>
-      <lightning-input label="Date" type="date"></lightning-input>
-      <c-lookup-input
-        data-type="salesRep1"
-        label="Sales Rep"
-        placeholder="Enter Name"
-        onsearch={handleLookupSearch}
-        onselect={handleLookupSelect}
-      ></c-lookup-input>
-      <c-lookup-input
-        data-type="salesRep2"
-        label="Sales Rep 2"
-        placeholder="Enter Name"
-        onsearch={handleLookupSearch}
-        onselect={handleLookupSelect}
-      ></c-lookup-input>
-      <lightning-combobox
-        name="location"
-        label="Location"
-        value={location}
-        placeholder="Select a location"
-        options={locationOptions}
-        onchange={handleComboboxChange}
-      ></lightning-combobox>
-    </div>
+  <lightning-card title="Sales Order Form">
+    <div class="main-container">
+      <div>
+        <lightning-button
+          label="Save"
+          variant="brand"
+          onclick={saveOrder}
+        ></lightning-button>
+      </div>
+      <div class="form-body">
+        <c-lookup-input
+          data-type="customer"
+          label="Customer"
+          placeholder="Enter Name"
+          onsearch={handleLookupSearch}
+          onselect={handleLookupSelect}
+        ></c-lookup-input>
+        <lightning-input label="Date" type="date"></lightning-input>
+        <c-lookup-input
+          data-type="salesRep1"
+          label="Sales Rep"
+          placeholder="Enter Name"
+          onsearch={handleLookupSearch}
+          onselect={handleLookupSelect}
+        ></c-lookup-input>
+        <c-lookup-input
+          data-type="salesRep2"
+          label="Sales Rep 2"
+          placeholder="Enter Name"
+          onsearch={handleLookupSearch}
+          onselect={handleLookupSelect}
+        ></c-lookup-input>
+        <lightning-combobox
+          name="location"
+          label="Location"
+          value={location}
+          placeholder="Select a location"
+          options={locationOptions}
+          onchange={handleComboboxChange}
+        ></lightning-combobox>
+      </div>
 
-    <div class="table-section">
-      <h3 class="table-title">Order Items</h3>
-      <table class="order-table">
-        <thead>
-          <tr>
-            <th scope="col">Item</th>
-            <th scope="col">Status</th>
-            <th scope="col">Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          <template for:each={rows} for:item="row" for:index="index">
-            <tr key={row.id}>
-              <td>
-                <lightning-input
-                  data-index={index}
-                  data-field="item"
-                  value={row.item}
-                  variant="label-hidden"
-                  type="text"
-                  placeholder="Enter item"
-                  onchange={handleRowChange}
-                  onfocus={handleFocus}
-                ></lightning-input>
-                <template if:true={row.showAction}>
-                  <div class="row-action-container">
-                    <lightning-button
-                      label="Add Row"
-                      data-index={index}
-                      onclick={addRow}
-                    ></lightning-button>
-                    <lightning-button
-                      label="Remove Row"
-                      data-index={index}
-                      onclick={removeRow}
-                      disabled={row.disableRemove}
-                    ></lightning-button>
-                  </div>
-                </template>
-              </td>
-              <td>
-                <lightning-combobox
-                  data-index={index}
-                  data-field="status"
-                  value={row.status}
-                  options={statusOptions}
-                  variant="label-hidden"
-                  onchange={handleRowChange}
-                ></lightning-combobox>
-              </td>
-              <td>
-                <lightning-input
-                  data-index={index}
-                  data-field="notes"
-                  value={row.notes}
-                  variant="label-hidden"
-                  type="text"
-                  placeholder="Add a note"
-                  onchange={handleRowChange}
-                ></lightning-input>
-              </td>
+      <div class="table-section">
+        <h3 class="table-title">Order Items</h3>
+        <table class="order-table">
+          <thead>
+            <tr>
+              <th scope="col">Item</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Rate</th>
+              <th scope="col">Amount</th>
             </tr>
-          </template>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <template for:each={rows} for:item="row" for:index="index">
+              <tr key={row.id}>
+                <td>
+                  <c-lookup-input
+                    data-index={index}
+                    data-type="item"
+                    label=""
+                    placeholder="Enter Item Name"
+                    onsearch={handleLookupSearch}
+                    onselect={handleLookupSelect}
+                    onfocus={handleFocus}
+                  ></c-lookup-input>
+                  <template if:true={row.showAction}>
+                    <div class="row-action-container">
+                      <lightning-button
+                        label="Add Row"
+                        data-index={index}
+                        onclick={addRow}
+                      ></lightning-button>
+                      <lightning-button
+                        label="Remove Row"
+                        data-index={index}
+                        onclick={removeRow}
+                        disabled={row.disableRemove}
+                      ></lightning-button>
+                    </div>
+                  </template>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="quantity"
+                    value={row.quantity}
+                    variant="label-hidden"
+                    type="number"
+                    placeholder=""
+                    onchange={handleRowChange}
+                    onfocus={handleFocus}
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="rate"
+                    value={row.rate}
+                    variant="label-hidden"
+                    type="number"
+                    formatter="currency"
+                    step="0.01"
+                    placeholder=""
+                    onchange={handleRowChange}
+                    onfocus={handleFocus}
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="amount"
+                    value={row.amount}
+                    variant="label-hidden"
+                    type="number"
+                    formatter="currency"
+                    step="0.01"
+                    placeholder=""
+                    onchange={handleRowChange}
+                    onfocus={handleFocus}
+                  ></lightning-input>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
     </div>
   </lightning-card>
 </template>
