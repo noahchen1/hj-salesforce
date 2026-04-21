@@ -79,6 +79,49 @@ public with sharing class DropdownDataController {
   }
 
   @AuraEnabled(cacheable=true)
+  public static List<Option> getSubsidiaries() {
+    List<Option> options = new List<Option>();
+
+    try {
+      for (breadwinner_ns__BW_Subsidiary__c sub : [
+        SELECT breadwinner_ns__InternalId__c, Name
+        FROM breadwinner_ns__BW_Subsidiary__c
+        WHERE
+          breadwinner_ns__InternalId__c != NULL
+          AND breadwinner_ns__InternalId__c NOT IN ('31', '32', '33')
+      ]) {
+        options.add(new Option(sub.Name, sub.breadwinner_ns__InternalId__c));
+      }
+
+      return options;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
+  public static List<Option> getSubsidiaryLocations(String subsidiary) {
+    List<Option> options = new List<Option>();
+
+    try {
+      for (breadwinner_ns__BW_Location__c location : [
+        SELECT breadwinner_ns__InternalId__c, Name
+        FROM breadwinner_ns__BW_Location__c
+        WHERE
+          breadwinner_ns__Subsidiary__r.breadwinner_ns__InternalId__c = :subsidiary
+      ]) {
+        options.add(
+          new Option(location.Name, location.breadwinner_ns__InternalId__c)
+        );
+      }
+
+      return options;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
   public static List<Option> getDivisions() {
     List<Option> options = new List<Option>();
 

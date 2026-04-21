@@ -2,11 +2,12 @@ import { LightningElement, wire } from "lwc";
 import { CurrentPageReference } from "lightning/navigation";
 import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
-import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
+import getSubsidiaries from "@salesforce/apex/DropdownDataController.getSubsidiaries";
 import searchItem from "@salesforce/apex/FilterDataController.searchItem";
 import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
 import { getFieldValue, getRecord } from "lightning/uiRecordApi";
-import createSo from "@salesforce/apex/SoService.createSo";
+import saveSalesOrder from "@salesforce/apex/SoService.saveSalesOrder";
+import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 
 export default class SalesOrderForm extends LightningElement {
   recordId;
@@ -15,6 +16,8 @@ export default class SalesOrderForm extends LightningElement {
   salesRep2 = "";
   location = "";
   locationOptions = [];
+  subsidiary = "";
+  subsidiaryOptions = [];
   rows = [
     {
       id: 1,
@@ -42,6 +45,15 @@ export default class SalesOrderForm extends LightningElement {
     }
   }
 
+  get isLocationDisabled() {
+    return !this.subsidiary;
+  }
+
+  @wire(getSubsidiaryLocations, { subsidiary: "$subsidiary" })
+  handleLocations(results) {
+    this.processPicklistWire(results, "locationOptions");
+  }
+
   @wire(getRecord, {
     recordId: "$selectedItemId",
     fields: [BASE_PRICE]
@@ -62,9 +74,14 @@ export default class SalesOrderForm extends LightningElement {
     }
   }
 
-  @wire(getLocations)
-  handleLocations(results) {
-    this.processPicklistWire(results, "locationOptions");
+  async connectedCallback() {
+    try {
+      const [subsidiaries] = await Promise.all([getSubsidiaries()]);
+
+      this.processPicklistWire({ data: subsidiaries }, "subsidiaryOptions");
+    } catch (error) {
+      console.error("Error fetching dropdown data:", error);
+    }
   }
 
   async handleLookupSearch(e) {
@@ -124,13 +141,20 @@ export default class SalesOrderForm extends LightningElement {
 
       this[type] = selectedName;
     } catch (error) {
-      console.error(`Error occured when setting item for line item ${index}`);
+      console.error(
+        `Error occured when setting item for line item ${e.target.dataset.index}`
+      );
       console.error(error);
     }
   }
 
   handleComboboxChange(e) {
     const name = e.target.name;
+    const value = e.target.value;
+
+    if (name === "subsidiary" && this.subsidiary !== value) {
+      this.location = "";
+    }
 
     this[name] = e.target.value;
   }
@@ -138,7 +162,7 @@ export default class SalesOrderForm extends LightningElement {
   processPicklistWire({ data, error }, target) {
     if (data) {
       this[target] = [
-        { label: "All", value: "" },
+        { label: "Select", value: "" },
         ...data.map(({ label, value }) => ({ label, value }))
       ];
     } else if (error) {
@@ -214,7 +238,7 @@ export default class SalesOrderForm extends LightningElement {
     console.log("save btn clicked!");
 
     try {
-      await createSo();
+      await saveSalesOrder();
       console.log("createSo completed");
     } catch (error) {
       console.error("createSo failed", error);
