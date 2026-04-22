@@ -16,7 +16,12 @@
           onsearch={handleLookupSearch}
           onselect={handleLookupSelect}
         ></c-lookup-input>
-        <lightning-input label="Date" type="date"></lightning-input>
+        <lightning-input
+          label="Date"
+          type="date"
+          value={date}
+          onchange={handleDateChange}
+        ></lightning-input>
         <c-lookup-input
           data-type="salesRep1"
           label="Sales Rep"
@@ -51,6 +56,10 @@
       </div>
 
       <div class="table-section">
+        <template if:true={showTableOverlay}>
+          <div class="table-overlay"></div>
+        </template>
+
         <h3 class="table-title">Order Items</h3>
         <table class="order-table">
           <thead>

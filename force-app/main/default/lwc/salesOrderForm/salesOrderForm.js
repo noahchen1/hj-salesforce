@@ -8,10 +8,13 @@ import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price
 import { getFieldValue, getRecord } from "lightning/uiRecordApi";
 import saveSalesOrder from "@salesforce/apex/SoService.saveSalesOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
+import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
+import LightningAlert from "lightning/alert";
 
 export default class SalesOrderForm extends LightningElement {
   recordId;
   customer = "";
+  date = new Date().toISOString();
   salesRep1 = "";
   salesRep2 = "";
   location = "";
@@ -74,6 +77,16 @@ export default class SalesOrderForm extends LightningElement {
     }
   }
 
+  get showTableOverlay() {
+    return !(
+      this.customer &&
+      this.salesRep1 &&
+      this.subsidiary &&
+      this.location &&
+      this.date
+    );
+  }
+
   async connectedCallback() {
     try {
       const [subsidiaries] = await Promise.all([getSubsidiaries()]);
@@ -122,10 +135,24 @@ export default class SalesOrderForm extends LightningElement {
     try {
       const type = e.target.dataset.type;
       const selectedName = e.detail.name;
+      const itemId = e.detail.id;
+      const index = Number(e.target.dataset.index);
 
       if (type === "item") {
-        const itemId = e.detail.id;
-        const index = Number(e.target.dataset.index);
+        const itemIsAvailable = await checkOnHand({
+          itemName: selectedName,
+          nsLocationId: this.location,
+          qtyRequested: 1
+        });
+
+        if (!itemIsAvailable) {
+          await LightningAlert.open({
+            label: "Warning!",
+            message: "This item is not available at the selected location",
+            theme: "warning"
+          });
+        }
+
         const updatedRows = [...this.rows];
 
         if (updatedRows[index]) {
@@ -140,11 +167,8 @@ export default class SalesOrderForm extends LightningElement {
       }
 
       this[type] = selectedName;
-    } catch (error) {
-      console.error(
-        `Error occured when setting item for line item ${e.target.dataset.index}`
-      );
-      console.error(error);
+    } catch (err) {
+      this.showErrors(err);
     }
   }
 
@@ -170,11 +194,29 @@ export default class SalesOrderForm extends LightningElement {
     }
   }
 
-  handleRowChange(e) {
+  async handleRowChange(e) {
     const index = Number(e.target.dataset.index);
     const field = e.target.dataset.field;
     const value = e.target.value;
     const updatedRows = [...this.rows];
+
+    if (field === "quantity") {
+      const itemName = updatedRows[index].item;
+
+      const itemIsAvailable = await checkOnHand({
+        itemName: itemName,
+        nsLocationId: this.location,
+        qtyRequested: value
+      });
+
+      if (!itemIsAvailable) {
+        await LightningAlert.open({
+          label: "Warning!",
+          message: "This item is not available at the selected location",
+          theme: "warning"
+        });
+      }
+    }
 
     updatedRows[index][field] = value;
     this.rows = updatedRows;
@@ -243,5 +285,15 @@ export default class SalesOrderForm extends LightningElement {
     } catch (error) {
       console.error("createSo failed", error);
     }
+  }
+
+  handleDateChange(e) {
+    this.date = e.target.value;
+  }
+
+  showErrors(err) {
+    console.error(err.name);
+    console.error(err.message);
+    console.error(err.stack);
   }
 }
