@@ -93,43 +93,37 @@ export default class SalesOrderForm extends LightningElement {
 
   async connectedCallback() {
     try {
-      const [subsidiaries, employeeData] = await Promise.all([
+      const [subsidiaries, emp] = await Promise.all([
         getSubsidiaries(),
-        getEmployeeData({ id: USER_ID })
+        getEmployeeData({ userId: USER_ID })
       ]);
 
       this.processPicklistWire({ data: subsidiaries }, "subsidiaryOptions");
 
-      const preferredSalesRepId = employeeData?.employeeInfo?.id ?? "";
-      const preferredSalesRepName = employeeData?.employeeInfo?.name ?? "";
-      const preferredSubsidiary = employeeData?.subsidiary?.id ?? "";
-      const preferredLocation = employeeData?.location?.id ?? "";
+      this.subsidiary = emp.subsidiaryId || "";
+      this.location = emp.locationId || "";
+      this.salesRep1 = emp.employeeId || "";
 
-      // Prepopulate subsidiary combobox directly
-      this.subsidiary = preferredSubsidiary;
-
-      if (preferredSalesRepName && preferredSalesRepId) {
-        const salesRep1Lookup = this.template.querySelector(
+      if (emp.employeeId && emp.employeeName) {
+        const lookup = this.template.querySelector(
           'c-lookup-input[data-type="salesRep1"]'
         );
-
-        this.salesRep1 = preferredSalesRepId;
-        salesRep1Lookup.setSelected(preferredSalesRepName);
+        lookup?.setSelected(emp.employeeName);
       }
 
       if (this.subsidiary) {
         const locations = await getSubsidiaryLocations({
           subsidiary: this.subsidiary
         });
+
         this.processPicklistWire({ data: locations }, "locationOptions");
 
-        const locationExists = this.locationOptions.some(
-          (opt) => opt.value === preferredLocation
-        );
-        this.location = locationExists ? preferredLocation : "";
+        if (!this.locationOptions.some((opt) => opt.value === this.location)) {
+          this.location = "";
+        }
       }
     } catch (error) {
-      console.error("Error fetching dropdown data:", error);
+      console.error("Init failed:", error);
     }
   }
 

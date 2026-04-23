@@ -1,57 +1,17 @@
 public with sharing class DataService {
-  public class EmployeeInfo {
-    @AuraEnabled
-    public String id;
-    @AuraEnabled
-    public String name;
-
-    public EmployeeInfo(String id, String name) {
-      this.id = id;
-      this.name = name;
-    }
-  }
-
-  public class SubsidiaryInfo {
-    @AuraEnabled
-    public String id;
-    @AuraEnabled
-    public String name;
-
-    public SubsidiaryInfo(String id, String name) {
-      this.id = id;
-      this.name = name;
-    }
-  }
-
-  public class LocationInfo {
-    @AuraEnabled
-    public String id;
-    @AuraEnabled
-    public String name;
-
-    public LocationInfo(String id, String name) {
-      this.id = id;
-      this.name = name;
-    }
-  }
-
   public class EmployeeResult {
-    @AuraENabled
-    public EmployeeInfo employeeInfo;
     @AuraEnabled
-    public SubsidiaryInfo subsidiary;
+    public String employeeId;
     @AuraEnabled
-    public LocationInfo location;
-
-    public EmployeeResult(
-      SubsidiaryInfo subsidiary,
-      LocationInfo location,
-      EmployeeInfo employeeInfo
-    ) {
-      this.subsidiary = subsidiary;
-      this.location = location;
-      this.employeeInfo = employeeInfo;
-    }
+    public String employeeName;
+    @AuraEnabled
+    public String subsidiaryId;
+    @AuraEnabled
+    public String subsidiaryName;
+    @AuraEnabled
+    public String locationId;
+    @AuraEnabled
+    public String locationName;
   }
 
   @AuraEnabled(cacheable=true)
@@ -90,13 +50,13 @@ public with sharing class DataService {
   }
 
   @AuraEnabled(cacheable=true)
-  public static EmployeeResult getEmployeeData(Id id) {
-    if (id == null) {
+  public static EmployeeResult getEmployeeData(Id userId) {
+    if (userId == null) {
       throw new AuraHandledException('User Id is required.');
     }
 
     try {
-      List<breadwinner_ns__BW_Employee__c> employees = [
+      breadwinner_ns__BW_Employee__c emp = [
         SELECT
           Name,
           breadwinner_ns__InternalId__c,
@@ -104,55 +64,33 @@ public with sharing class DataService {
           breadwinner_ns__Subsidiary__r.Name,
           breadwinner_ns__LocationName__c
         FROM breadwinner_ns__BW_Employee__c
-        WHERE breadwinner_ns__Salesforce_User__c = :id
+        WHERE breadwinner_ns__Salesforce_User__c = :userId
         LIMIT 1
       ];
 
-      if (employees.isEmpty()) {
-        return new EmployeeResult(null, null, null);
-      }
+      EmployeeResult result = new EmployeeResult();
 
-      breadwinner_ns__BW_Employee__c emp = employees[0];
+      result.employeeId = emp.breadwinner_ns__InternalId__c;
+      result.employeeName = emp.Name;
+      result.subsidiaryId = emp.breadwinner_ns__Subsidiary__r
+        ?.breadwinner_ns__InternalId__c;
+      result.subsidiaryName = emp.breadwinner_ns__Subsidiary__r?.Name;
 
-      SubsidiaryInfo subsidiary = null;
-
-      if (emp.breadwinner_ns__Subsidiary__c != null) {
-        subsidiary = new SubsidiaryInfo(
-          emp.breadwinner_ns__Subsidiary__r?.breadwinner_ns__InternalId__c,
-          emp.breadwinner_ns__Subsidiary__r?.Name
-        );
-      }
-
-      EmployeeInfo employeeInfo = new EmployeeInfo(
-        emp.breadwinner_ns__InternalId__c,
-        emp.Name
-      );
-
-      LocationInfo location = null;
       if (String.isNotBlank(emp.breadwinner_ns__LocationName__c)) {
-        List<breadwinner_ns__BW_Location__c> locations = [
+        breadwinner_ns__BW_Location__c loc = [
           SELECT Name, breadwinner_ns__InternalId__c
           FROM breadwinner_ns__BW_Location__c
           WHERE Name = :emp.breadwinner_ns__LocationName__c
           LIMIT 1
         ];
 
-        if (
-          !locations.isEmpty() &&
-          String.isNotBlank(locations[0].breadwinner_ns__InternalId__c)
-        ) {
-          location = new LocationInfo(
-            locations[0].breadwinner_ns__InternalId__c,
-            locations[0].Name
-          );
-        }
+        result.locationId = loc.breadwinner_ns__InternalId__c;
+        result.locationName = loc.Name;
       }
 
-      System.debug(
-        'employee data: ' +
-        new EmployeeResult(subsidiary, location, employeeInfo)
-      );
-      return new EmployeeResult(subsidiary, location, employeeInfo);
+      return result;
+    } catch (QueryException e) {
+      return new EmployeeResult();
     } catch (Exception e) {
       System.debug(
         LoggingLevel.ERROR,
