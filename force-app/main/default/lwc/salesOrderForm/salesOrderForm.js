@@ -10,6 +10,7 @@ import saveSalesOrder from "@salesforce/apex/SoService.saveSalesOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
 import LightningAlert from "lightning/alert";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 export default class SalesOrderForm extends LightningElement {
   recordId;
@@ -135,7 +136,8 @@ export default class SalesOrderForm extends LightningElement {
     try {
       const type = e.target.dataset.type;
       const selectedName = e.detail.name;
-      const itemId = e.detail.id;
+      const selectedId = e.detail.id;
+      const selectedNsId = e.detail.nsId;
       const index = Number(e.target.dataset.index);
 
       if (type === "item") {
@@ -156,12 +158,18 @@ export default class SalesOrderForm extends LightningElement {
         const updatedRows = [...this.rows];
 
         if (updatedRows[index]) {
-          updatedRows[index].item = selectedName;
+          updatedRows[index].item = selectedNsId;
           this.rows = updatedRows;
         }
 
         this.selectedItemRowIndex = index;
-        this.selectedItemId = itemId;
+        this.selectedItemId = selectedId;
+
+        return;
+      }
+
+      if (type === "customer" || type === "salesRep1" || type === "salesRep2") {
+        this[type] = selectedNsId;
 
         return;
       }
@@ -277,13 +285,38 @@ export default class SalesOrderForm extends LightningElement {
   }
 
   async saveOrder() {
-    console.log("save btn clicked!");
-
+    console.log(this.customer);
+    console.log(this.date);
+    console.log(this.salesRep1);
+    console.log(this.subsidiary);
+    console.log(this.location);
+    console.log(JSON.stringify(this.rows));
     try {
-      await saveSalesOrder();
-      console.log("createSo completed");
-    } catch (error) {
-      console.error("createSo failed", error);
+      await saveSalesOrder({
+        customer: this.customer,
+        orderDate: this.date,
+        salesRep1: this.salesRep1,
+        salesRep2: this.salesRep2,
+        subsidiary: this.subsidiary,
+        location: this.location,
+        lineItemsJson: JSON.stringify(this.rows)
+      });
+
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Response",
+          message: "Order saved!",
+          variant: "success"
+        })
+      );
+    } catch (err) {
+      console.error("createSo failed", err);
+
+      LightningAlert.open({
+        label: "Error!",
+        message: `Order was not saved, cause: ${err?.body?.message}`,
+        theme: "error"
+      });
     }
   }
 

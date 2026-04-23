@@ -3,10 +3,19 @@ public with sharing class FilterDataController {
     @AuraEnabled
     public String Id;
     @AuraEnabled
+    public String NsId;
+    @AuraEnabled
     public String Name;
+
     public LookupResult(String id, String name) {
       this.Id = id;
       this.Name = name;
+    }
+
+    public LookupResult(String id, String name, String nsId) {
+      this.Id = id;
+      this.Name = name;
+      this.NsId = nsId;
     }
   }
 
@@ -15,13 +24,15 @@ public with sharing class FilterDataController {
     List<LookupResult> results = new List<LookupResult>();
     try {
       for (breadwinner_ns__BW_Company__c c : [
-        SELECT Id, Name
+        SELECT Id, Name, breadwinner_ns__InternalId__c
         FROM breadwinner_ns__BW_Company__c
         WHERE Name LIKE :'%' + input + '%'
         ORDER BY Name
         LIMIT 10
       ]) {
-        results.add(new LookupResult(c.Id, c.Name));
+        results.add(
+          new LookupResult(c.Id, c.Name, c.breadwinner_ns__InternalId__c)
+        );
       }
       return results;
     } catch (Exception e) {
@@ -53,38 +64,22 @@ public with sharing class FilterDataController {
 
   @AuraEnabled(cacheable=true)
   public static List<LookupResult> searchSalesRep(String input) {
-    Set<String> repNames = new Set<String>();
-    List<LookupResult> reps = new List<LookupResult>();
+    List<LookupResult> results = new List<LookupResult>();
     try {
-      for (AggregateResult ar : [
-        SELECT breadwinner_ns__SalesRepName__c rep
-        FROM breadwinner_ns__BW_Sales_Order__c
-        WHERE breadwinner_ns__SalesRepName__c LIKE :'%' + input + '%'
-        GROUP BY breadwinner_ns__SalesRepName__c
+      for (breadwinner_ns__BW_Employee__c c : [
+        SELECT Id, Name, breadwinner_ns__InternalId__c
+        FROM breadwinner_ns__BW_Employee__c
+        WHERE
+          Name LIKE :'%' + input + '%'
+          AND breadwinner_ns__IsSalesRep__c = TRUE
+        ORDER BY Name
+        LIMIT 10
       ]) {
-        String repName = (String) ar.get('rep');
-        if (repName != null && !repNames.contains(repName)) {
-          repNames.add(repName);
-        }
+        results.add(
+          new LookupResult(c.Id, c.Name, c.breadwinner_ns__InternalId__c)
+        );
       }
-
-      for (AggregateResult ar : [
-        SELECT ncf_body_salesrep2__c rep
-        FROM breadwinner_ns__BW_Sales_Order__c
-        WHERE ncf_body_salesrep2__c LIKE :'%' + input + '%'
-        GROUP BY ncf_body_salesrep2__c
-      ]) {
-        String repName = (String) ar.get('rep');
-        if (repName != null && !repNames.contains(repName)) {
-          repNames.add(repName);
-        }
-      }
-
-      for (String repName : repNames) {
-        reps.add(new LookupResult(repName, repName));
-      }
-
-      return reps;
+      return results;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
@@ -165,11 +160,17 @@ public with sharing class FilterDataController {
 
     try {
       for (breadwinner_ns__BW_Item__c item : [
-        SELECT Id, Name
+        SELECT Id, Name, breadwinner_ns__InternalId__c
         FROM breadwinner_ns__BW_Item__c
         WHERE Name LIKE :input + '%'
       ]) {
-        items.add(new LookupResult(item.Id, item.Name));
+        items.add(
+          new LookupResult(
+            item.Id,
+            item.Name,
+            item.breadwinner_ns__InternalId__c
+          )
+        );
       }
 
       return items;

@@ -69,11 +69,12 @@ export default class LookupInput extends LightningElement {
   handleSelect(event) {
     const id = event.target.dataset.id;
     const name = event.target.dataset.name;
+    const nsId = event.target.dataset.nsid;
     this.showResults = false;
     this.searchKey = name;
     this.dispatchEvent(
       new CustomEvent("select", {
-        detail: { id, name }
+        detail: { id, name, nsId }
       })
     );
   }
