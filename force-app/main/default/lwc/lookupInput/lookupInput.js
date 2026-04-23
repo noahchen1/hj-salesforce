@@ -21,6 +21,13 @@ export default class LookupInput extends LightningElement {
     this.isLoading = loadingState;
   }
 
+  @api
+  setSelected(value) {
+    this.searchKey = value || "";
+    this.showResults = false;
+    this.results = [];
+  }
+
   get showResultsOrLoading() {
     return this.showResults || this.isLoading;
   }

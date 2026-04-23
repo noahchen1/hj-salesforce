@@ -1,5 +1,5 @@
 public with sharing class SoService {
-  public class lineItem {
+  public class LineItem {
     @AuraEnabled
     public Integer id;
     @AuraEnabled
@@ -23,26 +23,18 @@ public with sharing class SoService {
     String lineItemsJson
   ) {
     try {
-      if (
-        !checkParams(
-          customer,
-          orderDate,
-          salesRep1,
-          subsidiary,
-          location,
-          lineItemsJson
-        )
-      ) {
-        throw new AuraHandledException('Missing Params');
-      }
-
-      List<lineItem> lineItems = (List<lineItem>) JSON.deserialize(
-        lineItemsJson,
-        List<lineItem>.class
+      validateParams(
+        customer,
+        orderDate,
+        salesRep1,
+        subsidiary,
+        location,
+        lineItemsJson
       );
 
-      List<Object> salesOrderList = new List<Object>();
-      Map<String, Object> requestMap = buildRequestMap(
+      List<LineItem> lineItems = deserializeLineItems(lineItemsJson);
+
+      Map<String, Object> salesOrderRequest = buildSalesOrderRequest(
         customer,
         orderDate,
         salesRep1,
@@ -52,135 +44,135 @@ public with sharing class SoService {
         lineItems
       );
 
-      System.debug('requestMap: ' + JSON.serialize(requestMap));
-      salesOrderList.add(requestMap);
+      Map<String, Object> requestPayload = buildApiPayload(salesOrderRequest);
 
-      Map<String, Object> reqJSONMap = new Map<String, Object>();
-      reqJSONMap.put('salesOrders', salesOrderList);
-      String reqJSON = JSON.serialize(reqJSONMap);
+      System.debug(
+        LoggingLevel.INFO,
+        'SoService.saveSalesOrder request: ' + JSON.serialize(requestPayload)
+      );
 
-      Map<String, Object> finalReqMap = new Map<String, Object>();
-      finalReqMap.put('version', '1.0');
-      finalReqMap.put('action', 'createSalesOrder');
-      finalReqMap.put('RequestJSON', reqJSON);
+      Map<String, Object> response = breadwinner_ns.BreadwinnerNetSuiteAPI.call(
+        requestPayload
+      );
 
-      System.debug(LoggingLevel.INFO, 'SoService.createSo request: ' + reqJSON);
+      System.debug(
+        LoggingLevel.INFO,
+        'SoService.saveSalesOrder response: ' + JSON.serialize(response)
+      );
 
-      // Map<String, Object> respMap = breadwinner_ns.BreadwinnerNetSuiteAPI.call(
-      //   finalReqMap
-      // );
-
-      // System.debug(
-      //   LoggingLevel.INFO,
-      //   'SoService.createSo response: ' + JSON.serialize(respMap)
-      // );
+      handleApiResponse(response);
     } catch (Exception e) {
       System.debug(
         LoggingLevel.ERROR,
-        'SoService.createSo failed: ' + e.getMessage()
+        'SoService.saveSalesOrder failed: ' + e.getMessage()
       );
       System.debug(LoggingLevel.ERROR, e.getStackTraceString());
       throw e;
     }
   }
 
-  public static Map<String, Object> buildRequestMap(
+  private static Map<String, Object> buildApiPayload(
+    Map<String, Object> salesOrderRequest
+  ) {
+    List<Object> salesOrders = new List<Object>{ salesOrderRequest };
+
+    Map<String, Object> requestJsonMap = new Map<String, Object>{
+      'salesOrders' => salesOrders
+    };
+
+    String requestJson = JSON.serialize(requestJsonMap);
+
+    return new Map<String, Object>{
+      'version' => '1.0',
+      'action' => 'createSalesOrder',
+      'RequestJSON' => requestJson
+    };
+  }
+
+  private static Map<String, Object> buildSalesOrderRequest(
     String customer,
     Date orderDate,
     String salesRep1,
     String salesRep2,
     String subsidiary,
     String location,
-    List<lineItem> lineItems
+    List<LineItem> lineItems
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
 
-    requestMap.put(
-      'customForm',
-      new Map<String, Object>{ 'internalId' => '115' }
-    );
-
-    requestMap.put(
-      'entity',
-      new Map<String, Object>{ 'internalId' => customer }
-    );
-
-    requestMap.put(
-      'salesRep',
-      new Map<String, Object>{ 'internalId' => salesRep1 }
-    );
-
-    requestMap.put(
-      'subsidiary',
-      new Map<String, Object>{ 'internalId' => subsidiary }
-    );
-
-    requestMap.put(
-      'location',
-      new Map<String, Object>{ 'internalId' => location }
-    );
-
-    List<Object> custCustomFieldList = new List<Object>();
-
-    Map<String, Object> channelStream = new Map<String, Object>();
-    channelStream.put('fieldType', 'select');
-    channelStream.put('scriptId', 'cseg1');
-    channelStream.put(
-      'valueLookup',
-      new Map<String, Object>{ 'internalId' => '1' }
-    );
-
-    custCustomFieldList.add(channelStream);
-
-    if (!String.isBlank(salesRep2)) {
-      Map<String, Object> salesRep2Map = new Map<String, Object>();
-      salesRep2Map.put('fieldType', 'select');
-      salesRep2Map.put('scriptId', 'custbody_salesrep2');
-      salesRep2Map.put(
-        'valueLookup',
-        new Map<String, Object>{ 'internalId' => salesRep2 }
-      );
-
-      custCustomFieldList.add(salesRep2Map);
-    }
+    requestMap.put('customForm', lookupByInternalId('115'));
+    requestMap.put('entity', lookupByInternalId(customer));
+    requestMap.put('salesRep', lookupByInternalId(salesRep1));
+    requestMap.put('subsidiary', lookupByInternalId(subsidiary));
+    requestMap.put('location', lookupByInternalId(location));
 
     requestMap.put(
       'customFieldList',
-      new Map<String, Object>{ 'customField' => custCustomFieldList }
+      new Map<String, Object>{ 'customField' => buildCustomFields(salesRep2) }
     );
 
-    List<Object> items = new List<Object>();
-
-    for (lineItem li : lineItems) {
-      Map<String, Object> lineItemMap = new Map<String, Object>();
-
-      String item = li.item;
-
-      lineItemMap.put('item', new Map<String, Object>{ 'internalId' => item });
-
-      lineItemMap.put(
-        'location',
-        new Map<String, Object>{ 'internalId' => location }
-      );
-
-      lineItemMap.put('quantity', li.quantity);
-
-      lineItemMap.put('price', new Map<String, Object>{ 'internalId' => '-1' });
-
-      lineItemMap.put('rate', li.rate);
-
-      items.add(lineItemMap);
-    }
-
-    Map<String, Object> lineItemList = new Map<String, Object>();
-    lineItemList.put('item', items);
-
-    requestMap.put('itemList', lineItemList);
+    requestMap.put(
+      'itemList',
+      new Map<String, Object>{ 'item' => buildItemList(lineItems, location) }
+    );
 
     return requestMap;
   }
 
-  private static Boolean checkParams(
+  private static List<Object> buildCustomFields(String salesRep2) {
+    List<Object> customFields = new List<Object>();
+
+    customFields.add(
+      new Map<String, Object>{
+        'fieldType' => 'select',
+        'scriptId' => 'cseg1',
+        'valueLookup' => lookupByInternalId('1')
+      }
+    );
+
+    if (!String.isBlank(salesRep2)) {
+      customFields.add(
+        new Map<String, Object>{
+          'fieldType' => 'select',
+          'scriptId' => 'custbody_salesrep2',
+          'valueLookup' => lookupByInternalId(salesRep2)
+        }
+      );
+    }
+
+    return customFields;
+  }
+
+  private static List<Object> buildItemList(
+    List<LineItem> lineItems,
+    String location
+  ) {
+    List<Object> items = new List<Object>();
+
+    for (LineItem lineItem : lineItems) {
+      if (lineItem == null || String.isBlank(lineItem.item)) {
+        continue;
+      }
+
+      items.add(
+        new Map<String, Object>{
+          'item' => lookupByInternalId(lineItem.item),
+          'location' => lookupByInternalId(location),
+          'quantity' => lineItem.quantity,
+          'price' => lookupByInternalId('-1'),
+          'rate' => lineItem.rate
+        }
+      );
+    }
+
+    return items;
+  }
+
+  private static Map<String, Object> lookupByInternalId(String internalId) {
+    return new Map<String, Object>{ 'internalId' => internalId };
+  }
+
+  private static void validateParams(
     String customer,
     Date orderDate,
     String salesRep1,
@@ -188,40 +180,104 @@ public with sharing class SoService {
     String location,
     String lineItemsJson
   ) {
-    System.debug('customer: ' + customer);
-
     if (
-      String.isEmpty(customer) ||
+      String.isBlank(customer) ||
       orderDate == null ||
-      String.isEmpty(salesRep1) ||
-      String.isEmpty(subsidiary) ||
-      String.isEmpty(location) ||
-      String.isEmpty(lineItemsJson)
+      String.isBlank(salesRep1) ||
+      String.isBlank(subsidiary) ||
+      String.isBlank(location) ||
+      String.isBlank(lineItemsJson)
     ) {
-      return false;
+      throw new AuraHandledException('Missing required parameters.');
     }
 
-    List<lineItem> items;
-
-    try {
-      items = (List<lineItem>) JSON.deserialize(
-        lineItemsJson,
-        List<lineItem>.class
-      );
-    } catch (Exception ex) {
-      return false;
-    }
+    List<LineItem> items = deserializeLineItems(lineItemsJson);
 
     if (items == null || items.isEmpty()) {
-      return false;
+      throw new AuraHandledException('At least one line item is required.');
     }
 
-    for (lineItem li : items) {
-      if (li != null && !String.isBlank(li.item)) {
-        return true;
+    Boolean hasValidItem = false;
+
+    for (LineItem item : items) {
+      if (item != null && !String.isBlank(item.item)) {
+        hasValidItem = true;
+        break;
       }
     }
 
-    return false;
+    if (!hasValidItem) {
+      throw new AuraHandledException(
+        'At least one valid line item is required.'
+      );
+    }
+  }
+
+  private static List<LineItem> deserializeLineItems(String lineItemsJson) {
+    try {
+      return (List<LineItem>) JSON.deserialize(
+        lineItemsJson,
+        List<LineItem>.class
+      );
+    } catch (Exception e) {
+      throw new AuraHandledException('Invalid line item payload.');
+    }
+  }
+
+  private static void handleApiResponse(Map<String, Object> response) {
+    if (response == null) {
+      throw new AuraHandledException('No response returned from NetSuite.');
+    }
+
+    Boolean validRequest = (Boolean) response.get('validRequest');
+    if (validRequest == null || !validRequest) {
+      throw new AuraHandledException(
+        'Invalid request: NetSuite rejected the payload.'
+      );
+    }
+
+    String responseJsonStr = (String) response.get('responseJSON');
+    if (String.isBlank(responseJsonStr)) {
+      throw new AuraHandledException(
+        'NetSuite returned an empty response body.'
+      );
+    }
+
+    Map<String, Object> responseBody;
+    try {
+      responseBody = (Map<String, Object>) JSON.deserializeUntyped(
+        responseJsonStr
+      );
+    } catch (Exception e) {
+      throw new AuraHandledException('Unable to parse NetSuite response.');
+    }
+
+    List<Object> errors = (List<Object>) responseBody.get('errors');
+    if (errors != null && !errors.isEmpty()) {
+      String errorMsg = JSON.serialize(errors);
+
+      System.debug(
+        LoggingLevel.ERROR,
+        'SoService.saveSalesOrder NetSuite errors: ' + errorMsg
+      );
+
+      throw new AuraHandledException('Order creation failed: ' + errorMsg);
+    }
+
+    String status = String.valueOf(responseBody.get('status'));
+    if (status != '200') {
+      throw new AuraHandledException('Unexpected response status: ' + status);
+    }
+
+    List<Object> salesOrders = (List<Object>) responseBody.get('salesOrders');
+    if (salesOrders != null && !salesOrders.isEmpty()) {
+      Map<String, Object> createdOrder = (Map<String, Object>) salesOrders[0];
+      String tranId = String.valueOf(createdOrder.get('tranId'));
+
+      System.debug(
+        LoggingLevel.INFO,
+        'SoService.saveSalesOrder created order: ' + tranId
+      );
+    }
   }
 }

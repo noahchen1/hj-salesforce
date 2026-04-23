@@ -5,16 +5,19 @@ import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer
 import getSubsidiaries from "@salesforce/apex/DropdownDataController.getSubsidiaries";
 import searchItem from "@salesforce/apex/FilterDataController.searchItem";
 import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
+import USER_ID from "@salesforce/user/Id";
 import { getFieldValue, getRecord } from "lightning/uiRecordApi";
 import saveSalesOrder from "@salesforce/apex/SoService.saveSalesOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
 import LightningAlert from "lightning/alert";
+import getEmployeeData from "@salesforce/apex/DataService.getEmployeeData";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 export default class SalesOrderForm extends LightningElement {
   recordId;
   customer = "";
+  selectedCustomerId;
   date = new Date().toISOString();
   salesRep1 = "";
   salesRep2 = "";
@@ -90,9 +93,41 @@ export default class SalesOrderForm extends LightningElement {
 
   async connectedCallback() {
     try {
-      const [subsidiaries] = await Promise.all([getSubsidiaries()]);
+      const [subsidiaries, employeeData] = await Promise.all([
+        getSubsidiaries(),
+        getEmployeeData({ id: USER_ID })
+      ]);
 
       this.processPicklistWire({ data: subsidiaries }, "subsidiaryOptions");
+
+      const preferredSalesRepId = employeeData?.employeeInfo?.id ?? "";
+      const preferredSalesRepName = employeeData?.employeeInfo?.name ?? "";
+      const preferredSubsidiary = employeeData?.subsidiary?.id ?? "";
+      const preferredLocation = employeeData?.location?.id ?? "";
+
+      // Prepopulate subsidiary combobox directly
+      this.subsidiary = preferredSubsidiary;
+
+      if (preferredSalesRepName && preferredSalesRepId) {
+        const salesRep1Lookup = this.template.querySelector(
+          'c-lookup-input[data-type="salesRep1"]'
+        );
+
+        this.salesRep1 = preferredSalesRepId;
+        salesRep1Lookup.setSelected(preferredSalesRepName);
+      }
+
+      if (this.subsidiary) {
+        const locations = await getSubsidiaryLocations({
+          subsidiary: this.subsidiary
+        });
+        this.processPicklistWire({ data: locations }, "locationOptions");
+
+        const locationExists = this.locationOptions.some(
+          (opt) => opt.value === preferredLocation
+        );
+        this.location = locationExists ? preferredLocation : "";
+      }
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
     }
