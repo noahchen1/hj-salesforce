@@ -28,6 +28,7 @@ import BILLING_CITY from "@salesforce/schema/breadwinner_ns__BW_Company__c.bread
 import BILLING_STATE from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingState__c";
 import BILLING_ZIP from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingZip__c";
 import BILLING_COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingCountry__c";
+import { formatAddress } from "c/utils";
 
 export default class SalesOrderForm extends LightningElement {
   recordId;
@@ -39,6 +40,7 @@ export default class SalesOrderForm extends LightningElement {
   salesRep1 = "";
   salesRep2 = "";
   location = "";
+  memo = "";
   locationOptions = [];
   subsidiary = "";
   subsidiaryOptions = [];
@@ -57,15 +59,47 @@ export default class SalesOrderForm extends LightningElement {
   selectedItemId;
   selectedItemRowIndex = null;
 
+  async connectedCallback() {
+    try {
+      const [subsidiaries, emp] = await Promise.all([
+        getSubsidiaries(),
+        getEmployeeData({ userId: USER_ID })
+      ]);
+
+      this.processPicklistWire({ data: subsidiaries }, "subsidiaryOptions");
+
+      this.subsidiary = emp.subsidiaryId || "";
+      this.location = emp.locationId || "";
+      this.salesRep1 = emp.employeeId || "";
+
+      if (emp.employeeId && emp.employeeName) {
+        const lookup = this.template.querySelector(
+          'c-lookup-input[data-type="salesRep1"]'
+        );
+        lookup?.setSelected(emp.employeeName);
+      }
+
+      if (this.subsidiary) {
+        const locations = await getSubsidiaryLocations({
+          subsidiary: this.subsidiary
+        });
+
+        this.processPicklistWire({ data: locations }, "locationOptions");
+
+        if (!this.locationOptions.some((opt) => opt.value === this.location)) {
+          this.location = "";
+        }
+      }
+    } catch (error) {
+      console.error("Init failed:", error);
+    }
+  }
+
   @wire(CurrentPageReference)
   getStateParameters(pageRef) {
     if (pageRef) {
       this.recordId = pageRef.state?.c__recordId;
     }
-  }
-
-  get isLocationDisabled() {
-    return !this.subsidiary;
   }
 
   @wire(getSubsidiaryLocations, { subsidiary: "$subsidiary" })
@@ -129,38 +163,29 @@ export default class SalesOrderForm extends LightningElement {
       const billingZip = getFieldValue(data, BILLING_ZIP);
       const billingCountry = getFieldValue(data, BILLING_COUNTRY);
 
-      const street = [shippingAddress1, shippingAddress2]
-        .filter(Boolean)
-        .join(" ");
-      const cityStateZip = [shippingCity, shippingState, shippingZip]
-        .filter(Boolean)
-        .join(", ");
-      const billingStreet = [billingAddress1, billingAddress2]
-        .filter(Boolean)
-        .join(" ");
-      const billingCityStateZip = [billingCity, billingState, billingZip]
-        .filter(Boolean)
-        .join(", ");
+      this.shippingAddress = formatAddress({
+        contact: shippingContact,
+        addr1: shippingAddress1,
+        addr2: shippingAddress2,
+        city: shippingCity,
+        state: shippingState,
+        zip: shippingZip,
+        country: shippingCountry
+      });
 
-      this.shippingAddress = [
-        shippingContact,
-        street,
-        cityStateZip,
-        shippingCountry
-      ]
-        .filter(Boolean)
-        .join("\n");
-      this.billingAddress = [
-        billingContact,
-        billingStreet,
-        billingCityStateZip,
-        billingCountry
-      ]
-        .filter(Boolean)
-        .join("\n");
+      this.billingAddress = formatAddress({
+        contact: billingContact,
+        addr1: billingAddress1,
+        addr2: billingAddress2,
+        city: billingCity,
+        state: billingState,
+        zip: billingZip,
+        country: billingCountry
+      });
     } else if (error) {
       this.shippingAddress = "";
       this.billingAddress = "";
+
       console.error("Error fetching customer shipping address", error);
     } else {
       this.shippingAddress = "";
@@ -178,40 +203,8 @@ export default class SalesOrderForm extends LightningElement {
     );
   }
 
-  async connectedCallback() {
-    try {
-      const [subsidiaries, emp] = await Promise.all([
-        getSubsidiaries(),
-        getEmployeeData({ userId: USER_ID })
-      ]);
-
-      this.processPicklistWire({ data: subsidiaries }, "subsidiaryOptions");
-
-      this.subsidiary = emp.subsidiaryId || "";
-      this.location = emp.locationId || "";
-      this.salesRep1 = emp.employeeId || "";
-
-      if (emp.employeeId && emp.employeeName) {
-        const lookup = this.template.querySelector(
-          'c-lookup-input[data-type="salesRep1"]'
-        );
-        lookup?.setSelected(emp.employeeName);
-      }
-
-      if (this.subsidiary) {
-        const locations = await getSubsidiaryLocations({
-          subsidiary: this.subsidiary
-        });
-
-        this.processPicklistWire({ data: locations }, "locationOptions");
-
-        if (!this.locationOptions.some((opt) => opt.value === this.location)) {
-          this.location = "";
-        }
-      }
-    } catch (error) {
-      console.error("Init failed:", error);
-    }
+  get isLocationDisabled() {
+    return !this.subsidiary;
   }
 
   async handleLookupSearch(e) {
@@ -244,59 +237,26 @@ export default class SalesOrderForm extends LightningElement {
       }
     } else {
       input.setResults([]);
+
+      if (type === "item") {
+        const index = Number(e.target.dataset.index);
+        this.clearItemRow(index);
+        return;
+      }
+
       this[type] = "";
     }
   }
 
-  async handleLookupSelect(e) {
+  handleLookupSelect(e) {
+    const type = e.target.dataset.type;
+
     try {
-      const type = e.target.dataset.type;
-      const selectedName = e.detail.name;
-      const selectedId = e.detail.id;
-      const selectedNsId = e.detail.nsId;
-      const index = Number(e.target.dataset.index);
-
-      if (type === "customer") {
-        this.selectedCustomerId = selectedId;
-
-        console.log(selectedId);
+      if (type === "item") return this.handleItemSelect(e);
+      if (type === "customer") return this.handleCustomerSelect(e);
+      if (type === "salesRep1" || type === "salesRep2") {
+        return this.handleSalesRepSelect(e);
       }
-
-      if (type === "item") {
-        const itemIsAvailable = await checkOnHand({
-          itemName: selectedName,
-          nsLocationId: this.location,
-          qtyRequested: 1
-        });
-
-        if (!itemIsAvailable) {
-          await LightningAlert.open({
-            label: "Warning!",
-            message: "This item is not available at the selected location",
-            theme: "warning"
-          });
-        }
-
-        const updatedRows = [...this.rows];
-
-        if (updatedRows[index]) {
-          updatedRows[index].item = selectedNsId;
-          this.rows = updatedRows;
-        }
-
-        this.selectedItemRowIndex = index;
-        this.selectedItemId = selectedId;
-
-        return;
-      }
-
-      if (type === "customer" || type === "salesRep1" || type === "salesRep2") {
-        this[type] = selectedNsId;
-
-        return;
-      }
-
-      this[type] = selectedName;
     } catch (err) {
       this.showErrors(err);
     }
@@ -352,10 +312,6 @@ export default class SalesOrderForm extends LightningElement {
     this.rows = updatedRows;
   }
 
-  // renderedCallback() {
-  //   console.log("component rerendered");
-  // }
-
   addRow(e) {
     const index = Number(e.target.dataset.index);
 
@@ -406,6 +362,57 @@ export default class SalesOrderForm extends LightningElement {
     this.rows = updatedRows;
   }
 
+  handleInputChange(e) {
+    const type = e.target.dataset.type;
+
+    this[type] = e.target.value;
+  }
+
+  async handleItemSelect(e) {
+    const selectedName = e.detail.name;
+    const selectedId = e.detail.id;
+    const selectedNsId = e.detail.nsId;
+    const index = Number(e.target.dataset.index);
+
+    const itemIsAvailable = await checkOnHand({
+      itemName: selectedName,
+      nsLocationId: this.location,
+      qtyRequested: 1
+    });
+
+    if (!itemIsAvailable) {
+      await LightningAlert.open({
+        label: "Warning!",
+        message: "This item is not available at the selected location",
+        theme: "warning"
+      });
+    }
+
+    const updatedRows = [...this.rows];
+    if (updatedRows[index]) {
+      updatedRows[index].item = selectedNsId;
+    }
+    this.rows = updatedRows;
+
+    this.selectedItemRowIndex = index;
+    this.selectedItemId = selectedId;
+  }
+
+  handleCustomerSelect(e) {
+    const selectedId = e.detail.id;
+    const selectedNsId = e.detail.nsId;
+
+    this.selectedCustomerId = selectedId;
+    this.customer = selectedNsId;
+  }
+
+  handleSalesRepSelect(e) {
+    const type = e.target.dataset.type;
+    const selectedNsId = e.detail.nsId;
+
+    this[type] = selectedNsId;
+  }
+
   async saveOrder() {
     console.log(this.customer);
     console.log(this.date);
@@ -442,13 +449,30 @@ export default class SalesOrderForm extends LightningElement {
     }
   }
 
-  handleDateChange(e) {
-    this.date = e.target.value;
-  }
-
   showErrors(err) {
     console.error(err.name);
     console.error(err.message);
     console.error(err.stack);
+  }
+
+  clearItemRow(index) {
+    const updatedRows = [...this.rows];
+
+    if (updatedRows[index]) {
+      updatedRows[index] = {
+        ...updatedRows[index],
+        item: "",
+        quantity: "",
+        rate: "",
+        amount: ""
+      };
+
+      this.rows = updatedRows;
+    }
+
+    if (this.selectedItemRowIndex === index) {
+      this.selectedItemRowIndex = null;
+      this.selectedItemId = null;
+    }
   }
 }

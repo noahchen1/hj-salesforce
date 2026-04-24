@@ -18,9 +18,10 @@
         ></c-lookup-input>
         <lightning-input
           label="Date"
+          data-type="date"
           type="date"
           value={date}
-          onchange={handleDateChange}
+          onchange={handleInputChange}
         ></lightning-input>
         <c-lookup-input
           data-type="salesRep1"
@@ -36,6 +37,13 @@
           onsearch={handleLookupSearch}
           onselect={handleLookupSelect}
         ></c-lookup-input>
+        <lightning-input
+          label="Memo"
+          data-type="memo"
+          type="text"
+          value={memo}
+          onchange={handleInputChange}
+        ></lightning-input>
         <lightning-combobox
           name="subsidiary"
           label="Subsidiary"
@@ -53,6 +61,9 @@
           onchange={handleComboboxChange}
           disabled={isLocationDisabled}
         ></lightning-combobox>
+      </div>
+
+      <div class="form-body">
         <lightning-textarea
           label="Shipping Address"
           value={shippingAddress}
