@@ -20,6 +20,7 @@ public with sharing class SoService {
     String salesRep2,
     String subsidiary,
     String location,
+    String memo,
     String lineItemsJson
   ) {
     try {
@@ -41,6 +42,7 @@ public with sharing class SoService {
         salesRep2,
         subsidiary,
         location,
+        memo,
         lineItems
       );
 
@@ -96,6 +98,7 @@ public with sharing class SoService {
     String salesRep2,
     String subsidiary,
     String location,
+    String memo,
     List<LineItem> lineItems
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
@@ -105,6 +108,10 @@ public with sharing class SoService {
     requestMap.put('salesRep', lookupByInternalId(salesRep1));
     requestMap.put('subsidiary', lookupByInternalId(subsidiary));
     requestMap.put('location', lookupByInternalId(location));
+
+    if (String.isNotBlank(memo)) {
+      requestMap.put('memo', memo);
+    }
 
     requestMap.put(
       'customFieldList',
@@ -154,15 +161,18 @@ public with sharing class SoService {
         continue;
       }
 
-      items.add(
-        new Map<String, Object>{
-          'item' => lookupByInternalId(lineItem.item),
-          'location' => lookupByInternalId(location),
-          'quantity' => lineItem.quantity,
-          'price' => lookupByInternalId('-1'),
-          'rate' => lineItem.rate
-        }
-      );
+      Map<String, Object> itemMap = new Map<String, Object>{
+        'item' => lookupByInternalId(lineItem.item),
+        'location' => lookupByInternalId(location),
+        'price' => lookupByInternalId('-1'),
+        'rate' => lineItem.rate
+      };
+
+      if (!String.isBlank(lineItem.quantity)) {
+        itemMap.put('quantity', lineItem.quantity);
+      }
+
+      items.add(itemMap);
     }
 
     return items;

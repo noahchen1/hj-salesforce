@@ -135,27 +135,16 @@
                 </td>
                 <td>
                   <template if:true={row.isDiscount}>
-                    <div class="discount-rate-container">
-                      <lightning-input
-                        data-index={index}
-                        data-field="rate"
-                        value={row.rate}
-                        variant="label-hidden"
-                        type="number"
-                        step="0.01"
-                        max="0"
-                        placeholder="Negative value"
-                        onchange={handleRowChange}
-                        onfocus={handleFocus}
-                      ></lightning-input>
-                      <lightning-input
-                        type="checkbox"
-                        label="%"
-                        data-index={index}
-                        checked={row.isPercentage}
-                        onchange={togglePercentage}
-                      ></lightning-input>
-                    </div>
+                    <lightning-input
+                      data-index={index}
+                      data-field="rate"
+                      value={row.rate}
+                      variant="label-hidden"
+                      type="text"
+                      placeholder="Enter a Number/Percent"
+                      onchange={handleRowChange}
+                      onfocus={handleFocus}
+                    ></lightning-input>
                   </template>
                   <template if:false={row.isDiscount}>
                     <lightning-input

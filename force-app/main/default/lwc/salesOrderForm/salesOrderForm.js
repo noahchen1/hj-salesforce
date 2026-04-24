@@ -53,7 +53,6 @@ export default class SalesOrderForm extends LightningElement {
       rate: "",
       amount: "",
       isDiscount: false,
-      isPercentage: false,
       showAction: true,
       disableRemove: true
     }
@@ -298,11 +297,12 @@ export default class SalesOrderForm extends LightningElement {
     const field = e.target.dataset.field;
     const value = e.target.value;
     const updatedRows = [...this.rows];
+    const row = updatedRows[index];
 
     if (field === "quantity") {
-      const itemName = updatedRows[index].itemName;
+      const itemName = row.itemName;
 
-      if (itemName !== "Store Discount") {
+      if (!row.isDiscount) {
         const itemIsAvailable = await checkOnHand({
           itemName: itemName,
           nsLocationId: this.location,
@@ -319,10 +319,14 @@ export default class SalesOrderForm extends LightningElement {
       }
     }
 
-    if (field === "rate" && updatedRows[index].isDiscount) {
-      const rateVal = parseFloat(value);
-      if (!isNaN(rateVal) && rateVal > 0) {
-        updatedRows[index].rate = -rateVal;
+    if (field === "rate" && row.isDiscount) {
+      const trimmed = `${value ?? ""}`.trim();
+      const isPercent = trimmed.endsWith("%");
+      const numericValue = parseFloat(trimmed.replace("%", ""));
+
+      if (!isNaN(numericValue) && numericValue > 0) {
+        const negated = isPercent ? `-${numericValue}%` : `${-numericValue}`;
+        row.rate = negated;
         this.dispatchEvent(
           new ShowToastEvent({
             title: "Warning",
@@ -331,18 +335,18 @@ export default class SalesOrderForm extends LightningElement {
           })
         );
       } else {
-        updatedRows[index].rate = value;
+        row.rate = value;
       }
     } else {
-      updatedRows[index][field] = value;
+      row[field] = value;
     }
 
-    if (updatedRows[index].isDiscount) {
-      updatedRows[index].amount = this.calcDiscountAmount(index, updatedRows);
+    if (row.isDiscount) {
+      row.amount = this.calcDiscountAmount(index, updatedRows);
     } else {
-      const qty = parseFloat(updatedRows[index].quantity) || 0;
-      const rate = parseFloat(updatedRows[index].rate) || 0;
-      updatedRows[index].amount = qty * rate || "";
+      const qty = parseFloat(row.quantity) || 0;
+      const rate = parseFloat(row.rate) || 0;
+      row.amount = qty * rate || "";
 
       if (updatedRows[index + 1]?.isDiscount) {
         updatedRows[index + 1].amount = this.calcDiscountAmount(
@@ -367,7 +371,6 @@ export default class SalesOrderForm extends LightningElement {
         rate: "",
         amount: "",
         isDiscount: false,
-        isPercentage: false,
         showAction: false,
         disableRemove: false
       };
@@ -468,6 +471,8 @@ export default class SalesOrderForm extends LightningElement {
 
       if (isDiscount) {
         updatedRows[index].quantity = "";
+        updatedRows[index].rate = "";
+        updatedRows[index].amount = "";
       }
     }
     this.rows = updatedRows;
@@ -494,12 +499,6 @@ export default class SalesOrderForm extends LightningElement {
   }
 
   async saveOrder() {
-    console.log(this.customer);
-    console.log(this.date);
-    console.log(this.salesRep1);
-    console.log(this.subsidiary);
-    console.log(this.location);
-    console.log(JSON.stringify(this.rows));
     try {
       await saveSalesOrder({
         customer: this.customer,
@@ -508,6 +507,7 @@ export default class SalesOrderForm extends LightningElement {
         salesRep2: this.salesRep2,
         subsidiary: this.subsidiary,
         location: this.location,
+        memo: this.memo,
         lineItemsJson: JSON.stringify(this.rows)
       });
 
@@ -540,8 +540,7 @@ export default class SalesOrderForm extends LightningElement {
         quantity: "",
         rate: "",
         amount: "",
-        isDiscount: false,
-        isPercentage: false
+        isDiscount: false
       };
 
       this.rows = updatedRows;
@@ -567,27 +566,20 @@ export default class SalesOrderForm extends LightningElement {
 
     if (!prevRow) return "";
 
-    const rate = parseFloat(discountRow.rate) || 0;
+    const input = `${discountRow.rate ?? ""}`.trim();
     const prevAmount = parseFloat(prevRow.amount) || 0;
 
-    if (discountRow.isPercentage) {
-      return prevAmount * (rate / 100) || "";
+    if (!input) return "";
+
+    const isPercent = input.endsWith("%");
+    const numericValue = parseFloat(input.replace("%", ""));
+
+    if (isNaN(numericValue)) return "";
+
+    if (isPercent) {
+      return prevAmount * (numericValue / 100) || "";
     }
 
-    return rate || "";
-  }
-
-  togglePercentage(e) {
-    const index = Number(e.target.dataset.index);
-    const updatedRows = [...this.rows];
-
-    updatedRows[index] = {
-      ...updatedRows[index],
-      isPercentage: e.target.checked
-    };
-
-    updatedRows[index].amount = this.calcDiscountAmount(index, updatedRows);
-
-    this.rows = updatedRows;
+    return numericValue || "";
   }
 }
