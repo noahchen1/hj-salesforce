@@ -48,9 +48,12 @@ export default class SalesOrderForm extends LightningElement {
     {
       id: 1,
       item: "",
+      itemName: "",
       quantity: "",
       rate: "",
       amount: "",
+      isDiscount: false,
+      isPercentage: false,
       showAction: true,
       disableRemove: true
     }
@@ -113,6 +116,10 @@ export default class SalesOrderForm extends LightningElement {
   })
   wiredItemRecord({ data, error }) {
     if (data && this.selectedItemRowIndex !== null) {
+      const row = this.rows[this.selectedItemRowIndex];
+
+      if (row?.isDiscount) return;
+
       const basePrice = getFieldValue(data, BASE_PRICE);
       const updatedRows = [...this.rows];
 
@@ -258,7 +265,9 @@ export default class SalesOrderForm extends LightningElement {
         return this.handleSalesRepSelect(e);
       }
     } catch (err) {
-      this.showErrors(err);
+      console.error(err.name);
+      console.error(err.message);
+      console.error(err.stack);
     }
   }
 
@@ -291,24 +300,58 @@ export default class SalesOrderForm extends LightningElement {
     const updatedRows = [...this.rows];
 
     if (field === "quantity") {
-      const itemName = updatedRows[index].item;
+      const itemName = updatedRows[index].itemName;
 
-      const itemIsAvailable = await checkOnHand({
-        itemName: itemName,
-        nsLocationId: this.location,
-        qtyRequested: value
-      });
-
-      if (!itemIsAvailable) {
-        await LightningAlert.open({
-          label: "Warning!",
-          message: "This item is not available at the selected location",
-          theme: "warning"
+      if (itemName !== "Store Discount") {
+        const itemIsAvailable = await checkOnHand({
+          itemName: itemName,
+          nsLocationId: this.location,
+          qtyRequested: value
         });
+
+        if (!itemIsAvailable) {
+          await LightningAlert.open({
+            label: "Warning!",
+            message: "This item is not available at the selected location",
+            theme: "warning"
+          });
+        }
       }
     }
 
-    updatedRows[index][field] = value;
+    if (field === "rate" && updatedRows[index].isDiscount) {
+      const rateVal = parseFloat(value);
+      if (!isNaN(rateVal) && rateVal > 0) {
+        updatedRows[index].rate = -rateVal;
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "Warning",
+            message: "Discount rate must be negative. Value has been negated.",
+            variant: "warning"
+          })
+        );
+      } else {
+        updatedRows[index].rate = value;
+      }
+    } else {
+      updatedRows[index][field] = value;
+    }
+
+    if (updatedRows[index].isDiscount) {
+      updatedRows[index].amount = this.calcDiscountAmount(index, updatedRows);
+    } else {
+      const qty = parseFloat(updatedRows[index].quantity) || 0;
+      const rate = parseFloat(updatedRows[index].rate) || 0;
+      updatedRows[index].amount = qty * rate || "";
+
+      if (updatedRows[index + 1]?.isDiscount) {
+        updatedRows[index + 1].amount = this.calcDiscountAmount(
+          index + 1,
+          updatedRows
+        );
+      }
+    }
+
     this.rows = updatedRows;
   }
 
@@ -319,9 +362,12 @@ export default class SalesOrderForm extends LightningElement {
       const newRow = {
         id: this.nextRowId++,
         item: "",
+        itemName: "",
         quantity: "",
         rate: "",
         amount: "",
+        isDiscount: false,
+        isPercentage: false,
         showAction: false,
         disableRemove: false
       };
@@ -373,29 +419,63 @@ export default class SalesOrderForm extends LightningElement {
     const selectedId = e.detail.id;
     const selectedNsId = e.detail.nsId;
     const index = Number(e.target.dataset.index);
+    const input = e.target;
+    const isDiscount = selectedName === "Store Discount";
 
-    const itemIsAvailable = await checkOnHand({
-      itemName: selectedName,
-      nsLocationId: this.location,
-      qtyRequested: 1
-    });
+    if (isDiscount) {
+      if (index === 0) {
+        this.resetItemRow(index, input);
+        await LightningAlert.open({
+          label: "Error!",
+          message: "Store Discount cannot be the first row.",
+          theme: "error"
+        });
+        return;
+      }
 
-    if (!itemIsAvailable) {
-      await LightningAlert.open({
-        label: "Warning!",
-        message: "This item is not available at the selected location",
-        theme: "warning"
+      if (this.rows[index - 1]?.isDiscount) {
+        this.resetItemRow(index, input);
+        await LightningAlert.open({
+          label: "Error!",
+          message: "Each item can only be followed by one Store Discount.",
+          theme: "error"
+        });
+        return;
+      }
+    }
+
+    if (!isDiscount) {
+      const itemIsAvailable = await checkOnHand({
+        itemName: selectedName,
+        nsLocationId: this.location,
+        qtyRequested: 1
       });
+
+      if (!itemIsAvailable) {
+        await LightningAlert.open({
+          label: "Warning!",
+          message: "This item is not available at the selected location",
+          theme: "warning"
+        });
+      }
     }
 
     const updatedRows = [...this.rows];
     if (updatedRows[index]) {
       updatedRows[index].item = selectedNsId;
+      updatedRows[index].itemName = selectedName;
+      updatedRows[index].isDiscount = isDiscount;
+
+      if (isDiscount) {
+        updatedRows[index].quantity = "";
+      }
     }
     this.rows = updatedRows;
 
-    this.selectedItemRowIndex = index;
-    this.selectedItemId = selectedId;
+    if (!isDiscount) {
+      this.selectedItemRowIndex = index;
+      this.selectedItemId = selectedId;
+    }
   }
 
   handleCustomerSelect(e) {
@@ -449,12 +529,6 @@ export default class SalesOrderForm extends LightningElement {
     }
   }
 
-  showErrors(err) {
-    console.error(err.name);
-    console.error(err.message);
-    console.error(err.stack);
-  }
-
   clearItemRow(index) {
     const updatedRows = [...this.rows];
 
@@ -462,9 +536,12 @@ export default class SalesOrderForm extends LightningElement {
       updatedRows[index] = {
         ...updatedRows[index],
         item: "",
+        itemName: "",
         quantity: "",
         rate: "",
-        amount: ""
+        amount: "",
+        isDiscount: false,
+        isPercentage: false
       };
 
       this.rows = updatedRows;
@@ -474,5 +551,43 @@ export default class SalesOrderForm extends LightningElement {
       this.selectedItemRowIndex = null;
       this.selectedItemId = null;
     }
+  }
+
+  resetItemRow(index, input) {
+    this.clearItemRow(index);
+
+    if (input?.setSelected) {
+      input.setSelected("");
+    }
+  }
+
+  calcDiscountAmount(index, rows) {
+    const discountRow = rows[index];
+    const prevRow = rows[index - 1];
+
+    if (!prevRow) return "";
+
+    const rate = parseFloat(discountRow.rate) || 0;
+    const prevAmount = parseFloat(prevRow.amount) || 0;
+
+    if (discountRow.isPercentage) {
+      return prevAmount * (rate / 100) || "";
+    }
+
+    return rate || "";
+  }
+
+  togglePercentage(e) {
+    const index = Number(e.target.dataset.index);
+    const updatedRows = [...this.rows];
+
+    updatedRows[index] = {
+      ...updatedRows[index],
+      isPercentage: e.target.checked
+    };
+
+    updatedRows[index].amount = this.calcDiscountAmount(index, updatedRows);
+
+    this.rows = updatedRows;
   }
 }
