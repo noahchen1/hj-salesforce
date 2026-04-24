@@ -178,4 +178,33 @@ public with sharing class FilterDataController {
       throw new AuraHandledException(e.getMessage());
     }
   }
+
+  @AuraEnabled(cacheable=true)
+  public static List<LookupResult> searchSellableItem(String input) {
+    List<LookupResult> items = new List<LookupResult>();
+
+    try {
+      for (breadwinner_ns__BW_Item__c item : [
+        SELECT Id, Name, breadwinner_ns__InternalId__c
+        FROM breadwinner_ns__BW_Item__c
+        WHERE
+          Name LIKE :input + '%'
+          AND (ncf_item_serialized_item_type__c = FALSE
+          OR (ncf_item_serialized_item_type__c = TRUE
+          AND breadwinner_ns__Parent__c != NULL))
+      ]) {
+        items.add(
+          new LookupResult(
+            item.Id,
+            item.Name,
+            item.breadwinner_ns__InternalId__c
+          )
+        );
+      }
+
+      return items;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
 }

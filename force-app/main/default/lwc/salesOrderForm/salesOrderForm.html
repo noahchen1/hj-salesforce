@@ -53,6 +53,16 @@
           onchange={handleComboboxChange}
           disabled={isLocationDisabled}
         ></lightning-combobox>
+        <lightning-textarea
+          label="Shipping Address"
+          value={shippingAddress}
+          readonly
+        ></lightning-textarea>
+        <lightning-textarea
+          label="Billing Address"
+          value={billingAddress}
+          readonly
+        ></lightning-textarea>
       </div>
 
       <div class="table-section">

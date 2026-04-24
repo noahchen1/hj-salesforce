@@ -3,7 +3,7 @@ import { CurrentPageReference } from "lightning/navigation";
 import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
 import getSubsidiaries from "@salesforce/apex/DropdownDataController.getSubsidiaries";
-import searchItem from "@salesforce/apex/FilterDataController.searchItem";
+import searchSellableItem from "@salesforce/apex/FilterDataController.searchSellableItem";
 import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
 import USER_ID from "@salesforce/user/Id";
 import { getFieldValue, getRecord } from "lightning/uiRecordApi";
@@ -14,10 +14,27 @@ import LightningAlert from "lightning/alert";
 import getEmployeeData from "@salesforce/apex/DataService.getEmployeeData";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
+import SHIPPING_CONTACT from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingAddressee__c";
+import SHIPPING_ADDR1 from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingAddr1__c";
+import SHIPPING_ADDR2 from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingAddr2__c";
+import SHIPPING_CITY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingCity__c";
+import SHIPPING_STATE from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingState__c";
+import SHIPPING_ZIP from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingZip__c";
+import SHIPPING_COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingCountry__c";
+import BILLING_CONTACT from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingAddressee__c";
+import BILLING_ADDR1 from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingAddr1__c";
+import BILLING_ADDR2 from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingAddr2__c";
+import BILLING_CITY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingCity__c";
+import BILLING_STATE from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingState__c";
+import BILLING_ZIP from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingZip__c";
+import BILLING_COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingCountry__c";
+
 export default class SalesOrderForm extends LightningElement {
   recordId;
   customer = "";
   selectedCustomerId;
+  shippingAddress = "";
+  billingAddress = "";
   date = new Date().toISOString();
   salesRep1 = "";
   salesRep2 = "";
@@ -35,11 +52,6 @@ export default class SalesOrderForm extends LightningElement {
       showAction: true,
       disableRemove: true
     }
-  ];
-  statusOptions = [
-    { label: "Pending", value: "Pending" },
-    { label: "Approved", value: "Approved" },
-    { label: "Backordered", value: "Backordered" }
   ];
   nextRowId = 2;
   selectedItemId;
@@ -78,6 +90,81 @@ export default class SalesOrderForm extends LightningElement {
       }
     } else if (error) {
       console.error("Error fetching item base price", error);
+    }
+  }
+
+  @wire(getRecord, {
+    recordId: "$selectedCustomerId",
+    fields: [
+      SHIPPING_CONTACT,
+      SHIPPING_ADDR1,
+      SHIPPING_ADDR2,
+      SHIPPING_CITY,
+      SHIPPING_COUNTRY,
+      SHIPPING_STATE,
+      SHIPPING_ZIP,
+      BILLING_CONTACT,
+      BILLING_ADDR1,
+      BILLING_ADDR2,
+      BILLING_CITY,
+      BILLING_COUNTRY,
+      BILLING_STATE,
+      BILLING_ZIP
+    ]
+  })
+  wiredCustomerData({ data, error }) {
+    if (data && this.selectedCustomerId != null) {
+      const shippingContact = getFieldValue(data, SHIPPING_CONTACT);
+      const shippingAddress1 = getFieldValue(data, SHIPPING_ADDR1);
+      const shippingAddress2 = getFieldValue(data, SHIPPING_ADDR2);
+      const shippingCity = getFieldValue(data, SHIPPING_CITY);
+      const shippingState = getFieldValue(data, SHIPPING_STATE);
+      const shippingZip = getFieldValue(data, SHIPPING_ZIP);
+      const shippingCountry = getFieldValue(data, SHIPPING_COUNTRY);
+      const billingContact = getFieldValue(data, BILLING_CONTACT);
+      const billingAddress1 = getFieldValue(data, BILLING_ADDR1);
+      const billingAddress2 = getFieldValue(data, BILLING_ADDR2);
+      const billingCity = getFieldValue(data, BILLING_CITY);
+      const billingState = getFieldValue(data, BILLING_STATE);
+      const billingZip = getFieldValue(data, BILLING_ZIP);
+      const billingCountry = getFieldValue(data, BILLING_COUNTRY);
+
+      const street = [shippingAddress1, shippingAddress2]
+        .filter(Boolean)
+        .join(" ");
+      const cityStateZip = [shippingCity, shippingState, shippingZip]
+        .filter(Boolean)
+        .join(", ");
+      const billingStreet = [billingAddress1, billingAddress2]
+        .filter(Boolean)
+        .join(" ");
+      const billingCityStateZip = [billingCity, billingState, billingZip]
+        .filter(Boolean)
+        .join(", ");
+
+      this.shippingAddress = [
+        shippingContact,
+        street,
+        cityStateZip,
+        shippingCountry
+      ]
+        .filter(Boolean)
+        .join("\n");
+      this.billingAddress = [
+        billingContact,
+        billingStreet,
+        billingCityStateZip,
+        billingCountry
+      ]
+        .filter(Boolean)
+        .join("\n");
+    } else if (error) {
+      this.shippingAddress = "";
+      this.billingAddress = "";
+      console.error("Error fetching customer shipping address", error);
+    } else {
+      this.shippingAddress = "";
+      this.billingAddress = "";
     }
   }
 
@@ -139,7 +226,7 @@ export default class SalesOrderForm extends LightningElement {
     } else if (type === "customer") {
       searchFn = searchCustomer;
     } else if (type === "item") {
-      searchFn = searchItem;
+      searchFn = searchSellableItem;
     }
 
     if (searchKey.length > 1 && searchFn) {
@@ -168,6 +255,12 @@ export default class SalesOrderForm extends LightningElement {
       const selectedId = e.detail.id;
       const selectedNsId = e.detail.nsId;
       const index = Number(e.target.dataset.index);
+
+      if (type === "customer") {
+        this.selectedCustomerId = selectedId;
+
+        console.log(selectedId);
+      }
 
       if (type === "item") {
         const itemIsAvailable = await checkOnHand({
