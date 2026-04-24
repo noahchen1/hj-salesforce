@@ -8,7 +8,7 @@ import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price
 import USER_ID from "@salesforce/user/Id";
 import { getFieldValue, getRecord } from "lightning/uiRecordApi";
 import saveSalesOrder from "@salesforce/apex/SoService.saveSalesOrder";
-import getSalesOrderIdByInternalId from "@salesforce/apex/SoService.getSalesOrderIdByInternalId";
+import getOrderData from "@salesforce/apex/SoService.getOrderData";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
 import LightningAlert from "lightning/alert";
@@ -62,6 +62,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   nextRowId = 2;
   selectedItemId;
   selectedItemRowIndex = null;
+  pendingLookupValues;
 
   async connectedCallback() {
     try {
@@ -99,10 +100,15 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     }
   }
 
+  renderedCallback() {
+    this.applyPendingLookupValues();
+  }
+
   @wire(CurrentPageReference)
   getStateParameters(pageRef) {
     if (pageRef) {
       this.recordId = pageRef.state?.c__recordId;
+      if (this.recordId) this.loadOrder();
     }
   }
 
@@ -527,7 +533,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         })
       );
 
-      const recordId = await getSalesOrderIdByInternalId({ internalId });
+      const recordId = await getOrder({ internalId });
       if (recordId) {
         this[NavigationMixin.Navigate]({
           type: "standard__recordPage",
@@ -602,5 +608,127 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     }
 
     return numericValue || "";
+  }
+
+  async loadOrder() {
+    this.isLoading = true;
+
+    try {
+      const data = await getOrderData({
+        salesOrderId: this.recordId
+      });
+
+      this.selectedCustomerId = data.customerId || null;
+      this.customer = data.customerNsId || "";
+      this.date = data.orderDate || this.date;
+      this.salesRep1 = data.salesRep1NsId || "";
+      this.salesRep2 = data.salesRep2NsId || "";
+      this.memo = data.memo || "";
+      this.subsidiary = data.subsidiaryNsId || "";
+      this.location = data.locationNsId || "";
+
+      const mappedRows = (data.lineItems || []).map((line, index) => {
+        const qty = line.quantity || "";
+        const rate = line.rate || "";
+        const amount = line.amount || "";
+        const itemName = line.itemName || "";
+        const isDiscount = itemName === "Store Discount";
+
+        return {
+          id: index + 1,
+          item: line.item || "",
+          itemName,
+          quantity: isDiscount ? "" : qty,
+          rate,
+          amount,
+          isDiscount,
+          showAction: index === 0,
+          disableRemove: index === 0
+        };
+      });
+
+      if (mappedRows.length > 0) {
+        this.rows = mappedRows;
+        this.nextRowId = mappedRows.length + 1;
+      }
+
+      this.pendingLookupValues = {
+        customer: data.customerName || "",
+        salesRep1: data.salesRep1Name || "",
+        salesRep2: data.salesRep2Name || "",
+        items: mappedRows.map((row) => row.itemName || "")
+      };
+
+      this.applyPendingLookupValues();
+    } catch (error) {
+      console.error("Failed to preload existing sales order", error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  applyPendingLookupValues() {
+    if (!this.pendingLookupValues) {
+      return;
+    }
+
+    const customerLookup = this.template.querySelector(
+      'c-lookup-input[data-type="customer"]'
+    );
+    customerLookup?.setSelected(this.pendingLookupValues.customer);
+
+    const rep1Lookup = this.template.querySelector(
+      'c-lookup-input[data-type="salesRep1"]'
+    );
+    rep1Lookup?.setSelected(this.pendingLookupValues.salesRep1);
+
+    const rep2Lookup = this.template.querySelector(
+      'c-lookup-input[data-type="salesRep2"]'
+    );
+    rep2Lookup?.setSelected(this.pendingLookupValues.salesRep2);
+
+    const itemLookups = this.template.querySelectorAll(
+      'c-lookup-input[data-type="item"]'
+    );
+
+    if (itemLookups.length < this.pendingLookupValues.items.length) {
+      return;
+    }
+
+    itemLookups.forEach((lookup, index) => {
+      lookup.setSelected(this.pendingLookupValues.items[index] || "");
+    });
+
+    this.pendingLookupValues = null;
+  }
+
+  resetForm() {
+    this.customer = "";
+    this.selectedCustomerId = null;
+    this.shippingAddress = "";
+    this.billingAddress = "";
+    this.date = new Date().toISOString();
+    this.salesRep1 = "";
+    this.salesRep2 = "";
+    this.memo = "";
+    this.subsidiary = "";
+    this.location = "";
+    this.rows = [
+      {
+        id: 1,
+        item: "",
+        itemName: "",
+        quantity: "",
+        rate: "",
+        amount: "",
+        isDiscount: false,
+        showAction: true,
+        disableRemove: true
+      }
+    ];
+    this.nextRowId = 2;
+    this.selectedItemRowIndex = null;
+    this.selectedItemId = null;
+    this.pendingLookupValues = null;
   }
 }

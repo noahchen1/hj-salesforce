@@ -1,6 +1,48 @@
 public with sharing class SoService {
+  public class LineItem {
+    @AuraEnabled
+    public Integer id;
+    @AuraEnabled
+    public String item;
+    @AuraEnabled
+    public String itemName;
+    @AuraEnabled
+    public String quantity;
+    @AuraEnabled
+    public String rate;
+    @AuraEnabled
+    public String amount;
+  }
+
+  public class SalesOrderEditData {
+    @AuraEnabled
+    public Id customerId;
+    @AuraEnabled
+    public String customerName;
+    @AuraEnabled
+    public String customerNsId;
+    @AuraEnabled
+    public String orderDate;
+    @AuraEnabled
+    public String salesRep1Name;
+    @AuraEnabled
+    public String salesRep1NsId;
+    @AuraEnabled
+    public String salesRep2Name;
+    @AuraEnabled
+    public String salesRep2NsId;
+    @AuraEnabled
+    public String subsidiaryNsId;
+    @AuraEnabled
+    public String locationNsId;
+    @AuraEnabled
+    public String memo;
+    @AuraEnabled
+    public List<LineItem> lineItems = new List<LineItem>();
+  }
+
   @AuraEnabled(cacheable=false)
-  public static Id getSalesOrderIdByInternalId(String internalId) {
+  public static Id getOrder(String internalId) {
     List<breadwinner_ns__BW_Sales_Order__c> orders = [
       SELECT Id
       FROM breadwinner_ns__BW_Sales_Order__c
@@ -15,17 +57,89 @@ public with sharing class SoService {
     return orders[0].Id;
   }
 
-  public class LineItem {
-    @AuraEnabled
-    public Integer id;
-    @AuraEnabled
-    public String item;
-    @AuraEnabled
-    public String quantity;
-    @AuraEnabled
-    public String rate;
-    @AuraEnabled
-    public String amount;
+  @AuraEnabled(cacheable=false)
+  public static SalesOrderEditData getOrderData(Id salesOrderId) {
+    if (salesOrderId == null) {
+      throw new AuraHandledException('Sales order Id is required.');
+    }
+
+    SalesOrderEditData result = new SalesOrderEditData();
+
+    List<breadwinner_ns__BW_Sales_Order__c> orders = [
+      SELECT
+        Id,
+        breadwinner_ns__Entity__c,
+        breadwinner_ns__Entity__r.Name,
+        breadwinner_ns__Entity__r.breadwinner_ns__InternalId__c,
+        breadwinner_ns__TranDate__c,
+        breadwinner_ns__Memo__c,
+        breadwinner_ns__SalesRepName__c,
+        ncf_body_salesrep2__c,
+        breadwinner_ns__LocationName__c
+      FROM breadwinner_ns__BW_Sales_Order__c
+      WHERE Id = :salesOrderId
+      LIMIT 1
+    ];
+
+    if (orders.isEmpty()) {
+      throw new AuraHandledException('Sales order not found.');
+    }
+
+    breadwinner_ns__BW_Sales_Order__c order = orders[0];
+
+    result.customerId = order.breadwinner_ns__Entity__c;
+    result.customerName = order.breadwinner_ns__Entity__r?.Name;
+    result.customerNsId = order.breadwinner_ns__Entity__r
+      ?.breadwinner_ns__InternalId__c;
+    result.orderDate = String.valueOf(order.breadwinner_ns__TranDate__c);
+    result.memo = order.breadwinner_ns__Memo__c;
+
+    Map<String, String> repNsIds = resolveSalesRepNsIds(
+      order.breadwinner_ns__SalesRepName__c,
+      order.ncf_body_salesrep2__c
+    );
+
+    result.salesRep1Name = order.breadwinner_ns__SalesRepName__c;
+    result.salesRep1NsId = repNsIds.get('rep1');
+    result.salesRep2Name = order.ncf_body_salesrep2__c;
+    result.salesRep2NsId = repNsIds.get('rep2');
+
+    Map<String, String> locationData = resolveLocationAndSubsidiary(
+      order.breadwinner_ns__LocationName__c
+    );
+    result.locationNsId = locationData.get('locationNsId');
+    result.subsidiaryNsId = locationData.get('subsidiaryNsId');
+
+    List<breadwinner_ns__BW_Line_Item__c> lines = [
+      SELECT
+        Id,
+        breadwinner_ns__Item__r.Name,
+        breadwinner_ns__Item__r.breadwinner_ns__InternalId__c,
+        breadwinner_ns__Quantity__c,
+        breadwinner_ns__Amount__c,
+        breadwinner_ns__Rate__c
+      FROM breadwinner_ns__BW_Line_Item__c
+      WHERE breadwinner_ns__Sales_Order__c = :salesOrderId
+      ORDER BY CreatedDate ASC
+    ];
+
+    Integer rowNum = 1;
+
+    for (breadwinner_ns__BW_Line_Item__c line : lines) {
+      LineItem dto = new LineItem();
+      dto.id = rowNum;
+      dto.item = line.breadwinner_ns__Item__r?.breadwinner_ns__InternalId__c;
+      dto.itemName = line.breadwinner_ns__Item__r?.Name;
+      dto.quantity = String.valueOf(line.breadwinner_ns__Quantity__c);
+      dto.amount = String.valueOf(line.breadwinner_ns__Amount__c);
+      dto.rate = String.valueOf(line.breadwinner_ns__Rate__c);
+
+      result.lineItems.add(dto);
+
+      rowNum++;
+    }
+
+    return result;
   }
 
   @AuraEnabled
@@ -250,6 +364,86 @@ public with sharing class SoService {
     }
   }
 
+  private static Map<String, String> resolveSalesRepNsIds(
+    String rep1Name,
+    String rep2Name
+  ) {
+    Map<String, String> output = new Map<String, String>{
+      'rep1' => null,
+      'rep2' => null
+    };
+
+    Set<String> namesToQuery = new Set<String>();
+
+    if (String.isNotBlank(rep1Name)) {
+      namesToQuery.add(rep1Name.trim());
+    }
+
+    if (String.isNotBlank(rep2Name)) {
+      namesToQuery.add(rep2Name.trim());
+    }
+
+    if (namesToQuery.isEmpty()) {
+      return output;
+    }
+
+    Map<String, String> byName = new Map<String, String>();
+    for (breadwinner_ns__BW_Employee__c emp : [
+      SELECT Name, breadwinner_ns__InternalId__c
+      FROM breadwinner_ns__BW_Employee__c
+      WHERE Name IN :namesToQuery
+      LIMIT 50
+    ]) {
+      if (!byName.containsKey(emp.Name)) {
+        byName.put(emp.Name, emp.breadwinner_ns__InternalId__c);
+      }
+    }
+
+    if (String.isNotBlank(rep1Name)) {
+      output.put('rep1', byName.get(rep1Name.trim()));
+    }
+
+    if (String.isNotBlank(rep2Name)) {
+      output.put('rep2', byName.get(rep2Name.trim()));
+    }
+
+    return output;
+  }
+
+  private static Map<String, String> resolveLocationAndSubsidiary(
+    String locationName
+  ) {
+    Map<String, String> output = new Map<String, String>{
+      'locationNsId' => null,
+      'subsidiaryNsId' => null
+    };
+
+    if (String.isBlank(locationName)) {
+      return output;
+    }
+
+    List<breadwinner_ns__BW_Location__c> locations = [
+      SELECT
+        breadwinner_ns__InternalId__c,
+        breadwinner_ns__Subsidiary__r.breadwinner_ns__InternalId__c
+      FROM breadwinner_ns__BW_Location__c
+      WHERE Name = :locationName
+      LIMIT 1
+    ];
+
+    if (locations.isEmpty()) {
+      return output;
+    }
+
+    output.put('locationNsId', locations[0].breadwinner_ns__InternalId__c);
+    output.put(
+      'subsidiaryNsId',
+      locations[0].breadwinner_ns__Subsidiary__r?.breadwinner_ns__InternalId__c
+    );
+
+    return output;
+  }
+
   private static String handleApiResponse(Map<String, Object> response) {
     if (response == null) {
       throw new AuraHandledException('No response returned from NetSuite.');
@@ -303,7 +497,10 @@ public with sharing class SoService {
 
       System.debug(
         LoggingLevel.INFO,
-        'SoService.saveSalesOrder created order: ' + tranId + ' internalId: ' + internalId
+        'SoService.saveSalesOrder created order: ' +
+          tranId +
+          ' internalId: ' +
+          internalId
       );
 
       return internalId;
