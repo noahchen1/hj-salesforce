@@ -1,4 +1,20 @@
 public with sharing class SoService {
+  @AuraEnabled(cacheable=false)
+  public static Id getSalesOrderIdByInternalId(String internalId) {
+    List<breadwinner_ns__BW_Sales_Order__c> orders = [
+      SELECT Id
+      FROM breadwinner_ns__BW_Sales_Order__c
+      WHERE breadwinner_ns__InternalId__c = :internalId
+      LIMIT 1
+    ];
+
+    if (orders.isEmpty()) {
+      return null;
+    }
+
+    return orders[0].Id;
+  }
+
   public class LineItem {
     @AuraEnabled
     public Integer id;
@@ -13,7 +29,7 @@ public with sharing class SoService {
   }
 
   @AuraEnabled
-  public static void saveSalesOrder(
+  public static String saveSalesOrder(
     String customer,
     Date orderDate,
     String salesRep1,
@@ -62,7 +78,7 @@ public with sharing class SoService {
         'SoService.saveSalesOrder response: ' + JSON.serialize(response)
       );
 
-      handleApiResponse(response);
+      return handleApiResponse(response);
     } catch (Exception e) {
       System.debug(
         LoggingLevel.ERROR,
@@ -234,7 +250,7 @@ public with sharing class SoService {
     }
   }
 
-  private static void handleApiResponse(Map<String, Object> response) {
+  private static String handleApiResponse(Map<String, Object> response) {
     if (response == null) {
       throw new AuraHandledException('No response returned from NetSuite.');
     }
@@ -283,11 +299,16 @@ public with sharing class SoService {
     if (salesOrders != null && !salesOrders.isEmpty()) {
       Map<String, Object> createdOrder = (Map<String, Object>) salesOrders[0];
       String tranId = String.valueOf(createdOrder.get('tranId'));
+      String internalId = String.valueOf(createdOrder.get('internalId'));
 
       System.debug(
         LoggingLevel.INFO,
-        'SoService.saveSalesOrder created order: ' + tranId
+        'SoService.saveSalesOrder created order: ' + tranId + ' internalId: ' + internalId
       );
+
+      return internalId;
     }
+
+    throw new AuraHandledException('No sales order returned in response.');
   }
 }

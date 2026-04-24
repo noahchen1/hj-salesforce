@@ -1,11 +1,20 @@
 <template>
-  <lightning-card title="Sales Order Form">
+  <lightning-card>
     <div class="main-container">
+      <div if:true={isLoading} class="spinner-container">
+        <lightning-spinner
+          alternative-text="Loading..."
+          size="medium"
+        ></lightning-spinner>
+      </div>
+      <div class="title">Sales Order Form</div>
+
       <div>
         <lightning-button
           label="Save"
           variant="brand"
           onclick={saveOrder}
+          disabled={isLoading}
         ></lightning-button>
       </div>
       <div class="form-body">

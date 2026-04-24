@@ -1,5 +1,5 @@
 import { LightningElement, wire } from "lwc";
-import { CurrentPageReference } from "lightning/navigation";
+import { CurrentPageReference, NavigationMixin } from "lightning/navigation";
 import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
 import getSubsidiaries from "@salesforce/apex/DropdownDataController.getSubsidiaries";
@@ -8,6 +8,7 @@ import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price
 import USER_ID from "@salesforce/user/Id";
 import { getFieldValue, getRecord } from "lightning/uiRecordApi";
 import saveSalesOrder from "@salesforce/apex/SoService.saveSalesOrder";
+import getSalesOrderIdByInternalId from "@salesforce/apex/SoService.getSalesOrderIdByInternalId";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
 import LightningAlert from "lightning/alert";
@@ -30,7 +31,7 @@ import BILLING_ZIP from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadw
 import BILLING_COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingCountry__c";
 import { formatAddress } from "c/utils";
 
-export default class SalesOrderForm extends LightningElement {
+export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   recordId;
   customer = "";
   selectedCustomerId;
@@ -41,6 +42,7 @@ export default class SalesOrderForm extends LightningElement {
   salesRep2 = "";
   location = "";
   memo = "";
+  isLoading = false;
   locationOptions = [];
   subsidiary = "";
   subsidiaryOptions = [];
@@ -499,8 +501,14 @@ export default class SalesOrderForm extends LightningElement {
   }
 
   async saveOrder() {
+    if (this.isLoading) {
+      return;
+    }
+
+    this.isLoading = true;
+
     try {
-      await saveSalesOrder({
+      const internalId = await saveSalesOrder({
         customer: this.customer,
         orderDate: this.date,
         salesRep1: this.salesRep1,
@@ -513,11 +521,22 @@ export default class SalesOrderForm extends LightningElement {
 
       this.dispatchEvent(
         new ShowToastEvent({
-          title: "Response",
-          message: "Order saved!",
+          title: "Order Saved",
+          message: `Order created successfully. Internal ID: ${internalId}`,
           variant: "success"
         })
       );
+
+      const recordId = await getSalesOrderIdByInternalId({ internalId });
+      if (recordId) {
+        this[NavigationMixin.Navigate]({
+          type: "standard__recordPage",
+          attributes: {
+            recordId,
+            actionName: "view"
+          }
+        });
+      }
     } catch (err) {
       console.error("createSo failed", err);
 
@@ -526,6 +545,8 @@ export default class SalesOrderForm extends LightningElement {
         message: `Order was not saved, cause: ${err?.body?.message}`,
         theme: "error"
       });
+    } finally {
+      this.isLoading = false;
     }
   }
 
