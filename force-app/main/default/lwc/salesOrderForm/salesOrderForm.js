@@ -9,6 +9,7 @@ import USER_ID from "@salesforce/user/Id";
 import { getFieldValue, getRecord } from "lightning/uiRecordApi";
 import saveSalesOrder from "@salesforce/apex/SoService.saveSalesOrder";
 import getOrderData from "@salesforce/apex/SoService.getOrderData";
+import getOrder from "@salesforce/apex/SoService.getOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
 import LightningAlert from "lightning/alert";
@@ -29,10 +30,12 @@ import BILLING_CITY from "@salesforce/schema/breadwinner_ns__BW_Company__c.bread
 import BILLING_STATE from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingState__c";
 import BILLING_ZIP from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingZip__c";
 import BILLING_COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingCountry__c";
+import SO_INTERNAL_ID from "@salesforce/schema/breadwinner_ns__BW_Sales_Order__c.breadwinner_ns__InternalId__c";
 import { formatAddress } from "c/utils";
 
 export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   recordId;
+  internalId;
   customer = "";
   selectedCustomerId;
   shippingAddress = "";
@@ -115,6 +118,20 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   @wire(getSubsidiaryLocations, { subsidiary: "$subsidiary" })
   handleLocations(results) {
     this.processPicklistWire(results, "locationOptions");
+  }
+
+  @wire(getRecord, {
+    recordId: "$recordId",
+    fields: [SO_INTERNAL_ID]
+  })
+  wiredSoRecord({ data, error }) {
+    if (data) {
+      const internalId = getFieldValue(data, SO_INTERNAL_ID);
+
+      if (internalId) this.internalId = internalId;
+    } else if (error) {
+      console.error("Error fetching SO internal id", error);
+    }
   }
 
   @wire(getRecord, {
@@ -438,7 +455,8 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         this.resetItemRow(index, input);
         await LightningAlert.open({
           label: "Error!",
-          message: "Store Discount cannot be the first row.",
+          message:
+            "Store Discount cannot appear as the first line; it must be applied to the item directly above it",
           theme: "error"
         });
         return;
@@ -512,9 +530,11 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     }
 
     this.isLoading = true;
+    const isUpdate = Boolean(this.internalId);
 
-    try {
+    try {      
       const internalId = await saveSalesOrder({
+        internalId: this.internalId,
         customer: this.customer,
         orderDate: this.date,
         salesRep1: this.salesRep1,
@@ -528,12 +548,15 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
       this.dispatchEvent(
         new ShowToastEvent({
           title: "Order Saved",
-          message: `Order created successfully. Internal ID: ${internalId}`,
+          message: `Order ${isUpdate ? "updated" : "created"} successfully. Internal ID: ${internalId}`,
           variant: "success"
         })
       );
 
+      this.internalId = internalId;
+
       const recordId = await getOrder({ internalId });
+
       if (recordId) {
         this[NavigationMixin.Navigate]({
           type: "standard__recordPage",
@@ -618,6 +641,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         salesOrderId: this.recordId
       });
 
+      this.internalId = data.internalId || this.internalId;
       this.selectedCustomerId = data.customerId || null;
       this.customer = data.customerNsId || "";
       this.date = data.orderDate || this.date;
@@ -703,6 +727,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   }
 
   resetForm() {
+    this.internalId = null;
     this.customer = "";
     this.selectedCustomerId = null;
     this.shippingAddress = "";

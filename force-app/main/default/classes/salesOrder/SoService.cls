@@ -16,6 +16,8 @@ public with sharing class SoService {
 
   public class SalesOrderEditData {
     @AuraEnabled
+    public String internalId;
+    @AuraEnabled
     public Id customerId;
     @AuraEnabled
     public String customerName;
@@ -68,6 +70,7 @@ public with sharing class SoService {
     List<breadwinner_ns__BW_Sales_Order__c> orders = [
       SELECT
         Id,
+        breadwinner_ns__InternalId__c,
         breadwinner_ns__Entity__c,
         breadwinner_ns__Entity__r.Name,
         breadwinner_ns__Entity__r.breadwinner_ns__InternalId__c,
@@ -87,6 +90,7 @@ public with sharing class SoService {
 
     breadwinner_ns__BW_Sales_Order__c order = orders[0];
 
+    result.internalId = order.breadwinner_ns__InternalId__c;
     result.customerId = order.breadwinner_ns__Entity__c;
     result.customerName = order.breadwinner_ns__Entity__r?.Name;
     result.customerNsId = order.breadwinner_ns__Entity__r
@@ -144,6 +148,7 @@ public with sharing class SoService {
 
   @AuraEnabled
   public static String saveSalesOrder(
+    String internalId,
     String customer,
     Date orderDate,
     String salesRep1,
@@ -161,11 +166,14 @@ public with sharing class SoService {
         subsidiary,
         location,
         lineItemsJson
+
       );
+      Boolean isUpdate = String.isNotBlank(internalId);
 
       List<LineItem> lineItems = deserializeLineItems(lineItemsJson);
 
       Map<String, Object> salesOrderRequest = buildSalesOrderRequest(
+        internalId,
         customer,
         orderDate,
         salesRep1,
@@ -173,10 +181,14 @@ public with sharing class SoService {
         subsidiary,
         location,
         memo,
-        lineItems
+        lineItems,
+        isUpdate
       );
 
-      Map<String, Object> requestPayload = buildApiPayload(salesOrderRequest);
+      Map<String, Object> requestPayload = buildApiPayload(
+        salesOrderRequest,
+        isUpdate
+      );
 
       System.debug(
         LoggingLevel.INFO,
@@ -204,7 +216,8 @@ public with sharing class SoService {
   }
 
   private static Map<String, Object> buildApiPayload(
-    Map<String, Object> salesOrderRequest
+    Map<String, Object> salesOrderRequest,
+    Boolean isUpdate
   ) {
     List<Object> salesOrders = new List<Object>{ salesOrderRequest };
 
@@ -214,14 +227,21 @@ public with sharing class SoService {
 
     String requestJson = JSON.serialize(requestJsonMap);
 
-    return new Map<String, Object>{
-      'version' => '1.0',
-      'action' => 'createSalesOrder',
-      'RequestJSON' => requestJson
-    };
+    return isUpdate
+      ? new Map<String, Object>{
+          'version' => '1.0',
+          'action' => 'updateSalesOrder',
+          'RequestJSON' => requestJson
+        }
+      : new Map<String, Object>{
+          'version' => '1.0',
+          'action' => 'createSalesOrder',
+          'RequestJSON' => requestJson
+        };
   }
 
   private static Map<String, Object> buildSalesOrderRequest(
+    String internalId,
     String customer,
     Date orderDate,
     String salesRep1,
@@ -229,7 +249,8 @@ public with sharing class SoService {
     String subsidiary,
     String location,
     String memo,
-    List<LineItem> lineItems
+    List<LineItem> lineItems,
+    Boolean isUpdate
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
 
@@ -238,6 +259,11 @@ public with sharing class SoService {
     requestMap.put('salesRep', lookupByInternalId(salesRep1));
     requestMap.put('subsidiary', lookupByInternalId(subsidiary));
     requestMap.put('location', lookupByInternalId(location));
+    requestMap.put('tranDate', toUnixSeconds(orderDate));
+
+    if (String.isNotBlank(internalId)) {
+      requestMap.put('internalId', internalId);
+    }
 
     if (String.isNotBlank(memo)) {
       requestMap.put('memo', memo);
@@ -248,10 +274,15 @@ public with sharing class SoService {
       new Map<String, Object>{ 'customField' => buildCustomFields(salesRep2) }
     );
 
-    requestMap.put(
-      'itemList',
-      new Map<String, Object>{ 'item' => buildItemList(lineItems, location) }
-    );
+    Map<String, Object> itemList = new Map<String, Object>{
+      'item' => buildItemList(lineItems, location)
+    };
+
+    if (isUpdate) {
+      itemList.put('replaceAll', true);
+    }
+
+    requestMap.put('itemList', itemList);
 
     return requestMap;
   }
@@ -310,6 +341,15 @@ public with sharing class SoService {
 
   private static Map<String, Object> lookupByInternalId(String internalId) {
     return new Map<String, Object>{ 'internalId' => internalId };
+  }
+
+  private static Long toUnixSeconds(Date sourceDate) {
+    DateTime asDateTime = DateTime.newInstance(
+      sourceDate,
+      Time.newInstance(0, 0, 0, 0)
+    );
+
+    return asDateTime.getTime() / 1000;
   }
 
   private static void validateParams(
