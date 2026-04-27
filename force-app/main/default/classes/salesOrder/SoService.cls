@@ -45,6 +45,11 @@ public with sharing class SoService {
     public List<LineItem> lineItems = new List<LineItem>();
   }
 
+  @AuraEnabled(cacheable=true)
+  public static String getObjectName(Id recordId) {
+    return recordId.getSObjectType().getDescribe().getName();
+  }
+
   @AuraEnabled(cacheable=false)
   public static Id getOrder(String internalId) {
     List<breadwinner_ns__BW_Sales_Order__c> orders = [
@@ -59,6 +64,17 @@ public with sharing class SoService {
     }
 
     return orders[0].Id;
+  }
+
+  @AuraEnabled(cacheable=false)
+  public static Id getNsCompanyFromAccount(Id accountId) {
+    breadwinner_ns__BW_Company__c nsCompany = [
+      SELECT Id
+      FROM breadwinner_ns__BW_Company__c
+      WHERE breadwinner_ns__Salesforce_Account__c = :accountId
+    ];
+
+    return nsCompany.Id;
   }
 
   @AuraEnabled(cacheable=false)

@@ -26,6 +26,10 @@
   margin: 30px;
 }
 
+.btn-container {
+  margin: 30px;
+}
+
 .form-body * {
   flex: 1 1 40%;
   box-sizing: border-box;

@@ -1,4 +1,4 @@
-import { LightningElement, wire } from "lwc";
+import { LightningElement, wire, api } from "lwc";
 import { CurrentPageReference, NavigationMixin } from "lightning/navigation";
 import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
@@ -30,11 +30,13 @@ import BILLING_CITY from "@salesforce/schema/breadwinner_ns__BW_Company__c.bread
 import BILLING_STATE from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingState__c";
 import BILLING_ZIP from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingZip__c";
 import BILLING_COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingCountry__c";
-import SO_INTERNAL_ID from "@salesforce/schema/breadwinner_ns__BW_Sales_Order__c.breadwinner_ns__InternalId__c";
+import COMPANY_NAME from "@salesforce/schema/breadwinner_ns__BW_Company__c.Name";
+import getObjectName from "@salesforce/apex/SoService.getObjectName";
+import getNsCompanyFromAccount from "@salesforce/apex/SoService.getNsCompanyFromAccount";
 import { formatAddress } from "c/utils";
 
 export default class SalesOrderForm extends NavigationMixin(LightningElement) {
-  recordId;
+  @api recordId;
   internalId;
   customer = "";
   selectedCustomerId;
@@ -108,32 +110,59 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     this.applyPendingLookupValues();
   }
 
-  @wire(CurrentPageReference)
-  getStateParameters(pageRef) {
-    if (pageRef) {
-      this.recordId = pageRef.state?.c__recordId;
-      if (this.recordId) this.loadOrder();
-    }
-  }
+  // @wire(CurrentPageReference)
+  // getStateParameters(pageRef) {
+  //   if (pageRef) {
+  //     this.recordId = pageRef.state?.c__recordId;
+  //     if (this.recordId) this.loadOrder();
+  //   }
+  // }
 
   @wire(getSubsidiaryLocations, { subsidiary: "$subsidiary" })
   handleLocations(results) {
     this.processPicklistWire(results, "locationOptions");
   }
 
-  @wire(getRecord, {
-    recordId: "$recordId",
-    fields: [SO_INTERNAL_ID]
-  })
-  wiredSoRecord({ data, error }) {
+  @wire(getObjectName, { recordId: "$recordId" })
+  handleObjName({ data, error }) {
     if (data) {
-      const internalId = getFieldValue(data, SO_INTERNAL_ID);
+      const isAccount = data === "Account";
 
-      if (internalId) this.internalId = internalId;
+      if (isAccount) {
+        this.fetchNsCompanyId(this.recordId);
+      } else {
+        this.loadOrder();
+      }
     } else if (error) {
-      console.error("Error fetching SO internal id", error);
+      console.error("Error fetching record type", error);
     }
   }
+
+  fetchNsCompanyId = async (accountId) => {
+    try {
+      const nsCompanyId = await getNsCompanyFromAccount({ accountId });
+
+      if (nsCompanyId) {
+        this.selectedCustomerId = nsCompanyId;
+      }
+    } catch (error) {
+      console.error("Error fetching NS company from account", error);
+    }
+  };
+
+  // @wire(getRecord, {
+  //   recordId: "$recordId",
+  //   fields: [SO_INTERNAL_ID]
+  // })
+  // wiredSoRecord({ data, error }) {
+  //   if (data) {
+  //     const internalId = getFieldValue(data, SO_INTERNAL_ID);
+
+  //     if (internalId) this.internalId = internalId;
+  //   } else if (error) {
+  //     console.error("Error fetching SO internal id", error);
+  //   }
+  // }
 
   @wire(getRecord, {
     recordId: "$selectedItemId",
@@ -175,11 +204,20 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
       BILLING_CITY,
       BILLING_COUNTRY,
       BILLING_STATE,
-      BILLING_ZIP
+      BILLING_ZIP,
+      COMPANY_NAME
     ]
   })
   wiredCustomerData({ data, error }) {
     if (data && this.selectedCustomerId != null) {
+      const companyName = getFieldValue(data, COMPANY_NAME);
+      if (companyName) {
+        const customerLookup = this.template.querySelector(
+          'c-lookup-input[data-type="customer"]'
+        );
+        customerLookup?.setSelected(companyName);
+      }
+
       const shippingContact = getFieldValue(data, SHIPPING_CONTACT);
       const shippingAddress1 = getFieldValue(data, SHIPPING_ADDR1);
       const shippingAddress2 = getFieldValue(data, SHIPPING_ADDR2);
