@@ -12,6 +12,8 @@ public with sharing class SoService {
     public String rate;
     @AuraEnabled
     public String amount;
+    @AuraEnabled
+    public String line;
   }
 
   public class SalesOrderEditData {
@@ -65,82 +67,156 @@ public with sharing class SoService {
       throw new AuraHandledException('Sales order Id is required.');
     }
 
-    SalesOrderEditData result = new SalesOrderEditData();
-
-    List<breadwinner_ns__BW_Sales_Order__c> orders = [
-      SELECT
-        Id,
-        breadwinner_ns__InternalId__c,
-        breadwinner_ns__Entity__c,
-        breadwinner_ns__Entity__r.Name,
-        breadwinner_ns__Entity__r.breadwinner_ns__InternalId__c,
-        breadwinner_ns__TranDate__c,
-        breadwinner_ns__Memo__c,
-        breadwinner_ns__SalesRepName__c,
-        ncf_body_salesrep2__c,
-        breadwinner_ns__LocationName__c
+    breadwinner_ns__BW_Sales_Order__c orderRow = [
+      SELECT breadwinner_ns__InternalId__c
       FROM breadwinner_ns__BW_Sales_Order__c
       WHERE Id = :salesOrderId
       LIMIT 1
     ];
 
-    if (orders.isEmpty()) {
-      throw new AuraHandledException('Sales order not found.');
+    if (
+      orderRow == null || String.isBlank(orderRow.breadwinner_ns__InternalId__c)
+    ) {
+      throw new AuraHandledException('Could not locate existing order.');
     }
 
-    breadwinner_ns__BW_Sales_Order__c order = orders[0];
+    Map<String, Object> filters = new Map<String, Object>{
+      'internalId' => orderRow.breadwinner_ns__InternalId__c
+    };
+    Map<String, Object> filterMap = new Map<String, Object>{
+      'where' => new Map<String, Object>{ 'keyValueMap' => filters }
+    };
+    Map<String, Object> requestJSONMap = new Map<String, Object>{
+      'customParameters' => filterMap
+    };
 
-    result.internalId = order.breadwinner_ns__InternalId__c;
-    result.customerId = order.breadwinner_ns__Entity__c;
-    result.customerName = order.breadwinner_ns__Entity__r?.Name;
-    result.customerNsId = order.breadwinner_ns__Entity__r
-      ?.breadwinner_ns__InternalId__c;
-    result.orderDate = String.valueOf(order.breadwinner_ns__TranDate__c);
-    result.memo = order.breadwinner_ns__Memo__c;
+    Map<String, Object> reqObj = new Map<String, Object>{
+      'version' => '1.0',
+      'action' => 'readSalesOrder',
+      'requestJSON' => JSON.serialize(requestJSONMap)
+    };
 
-    Map<String, String> repNsIds = resolveSalesRepNsIds(
-      order.breadwinner_ns__SalesRepName__c,
-      order.ncf_body_salesrep2__c
+    Map<String, Object> resp = breadwinner_ns.BreadwinnerNetSuiteAPI.call(
+      reqObj
     );
 
-    result.salesRep1Name = order.breadwinner_ns__SalesRepName__c;
-    result.salesRep1NsId = repNsIds.get('rep1');
-    result.salesRep2Name = order.ncf_body_salesrep2__c;
-    result.salesRep2NsId = repNsIds.get('rep2');
+    if (resp == null) {
+      throw new AuraHandledException('No response returned from NetSuite.');
+    }
 
-    Map<String, String> locationData = resolveLocationAndSubsidiary(
-      order.breadwinner_ns__LocationName__c
+    Object rawResponseJson = resp.get('responseJSON');
+    String responseJsonStr = rawResponseJson instanceof String
+      ? (String) rawResponseJson
+      : JSON.serialize(rawResponseJson);
+
+    SoResModel.ResponseJson response = (SoResModel.ResponseJson) JSON.deserialize(
+      responseJsonStr,
+      SoResModel.ResponseJson.class
     );
-    result.locationNsId = locationData.get('locationNsId');
-    result.subsidiaryNsId = locationData.get('subsidiaryNsId');
 
-    List<breadwinner_ns__BW_Line_Item__c> lines = [
-      SELECT
-        Id,
-        breadwinner_ns__Item__r.Name,
-        breadwinner_ns__Item__r.breadwinner_ns__InternalId__c,
-        breadwinner_ns__Quantity__c,
-        breadwinner_ns__Amount__c,
-        breadwinner_ns__Rate__c
-      FROM breadwinner_ns__BW_Line_Item__c
-      WHERE breadwinner_ns__Sales_Order__c = :salesOrderId
-      ORDER BY CreatedDate ASC
-    ];
+    if (response == null) {
+      throw new AuraHandledException('Unable to parse NetSuite response.');
+    }
+
+    if (response.errors != null && !response.errors.isEmpty()) {
+      throw new AuraHandledException(
+        'NetSuite returned errors: ' + JSON.serialize(response.errors)
+      );
+    }
+
+    if (response.status != '200') {
+      throw new AuraHandledException(
+        'Unexpected response status: ' + response.status
+      );
+    }
+
+    if (response.salesOrders == null || response.salesOrders.isEmpty()) {
+      throw new AuraHandledException('No sales order returned in response.');
+    }
+
+    SoResModel.SalesOrder so = response.salesOrders[0];
+    SalesOrderEditData result = new SalesOrderEditData();
+
+    result.internalId = so.internalId;
+    result.customerName = so.entity == null ? null : so.entity.name;
+    result.customerNsId = so.entity == null ? null : so.entity.internalId;
+    result.orderDate = toDateOnlyFromUnixSeconds(so.tranDate);
+    result.memo = so.memo;
+
+    result.salesRep1Name = so.salesRep == null ? null : so.salesRep.name;
+    result.salesRep1NsId = so.salesRep == null ? null : so.salesRep.internalId;
+
+    result.subsidiaryNsId = so.subsidiary == null
+      ? null
+      : so.subsidiary.internalId;
+    result.locationNsId = so.location == null ? null : so.location.internalId;
+
+    String salesRep2Name;
+    String salesRep2NsId;
+    if (so.customFieldList != null && so.customFieldList.customField != null) {
+      for (SoResModel.CustomField cf : so.customFieldList.customField) {
+        if (cf != null && cf.scriptId == 'custbody_salesrep2') {
+          salesRep2Name = cf.valueLookup == null
+            ? cf.value
+            : cf.valueLookup.name;
+          salesRep2NsId = cf.valueLookup == null
+            ? null
+            : cf.valueLookup.internalId;
+          break;
+        }
+      }
+    }
+    result.salesRep2Name = salesRep2Name;
+    result.salesRep2NsId = salesRep2NsId;
+
+    Map<String, String> itemNamesByInternalId = new Map<String, String>();
+    Set<String> itemInternalIds = new Set<String>();
+    if (so.itemList != null && so.itemList.item != null) {
+      for (SoResModel.SalesOrderItem it : so.itemList.item) {
+        if (
+          it != null &&
+          it.item != null &&
+          String.isNotBlank(it.item.internalId)
+        ) {
+          itemInternalIds.add(it.item.internalId);
+        }
+      }
+    }
+
+    if (!itemInternalIds.isEmpty()) {
+      for (breadwinner_ns__BW_Item__c itemRow : [
+        SELECT Name, breadwinner_ns__InternalId__c
+        FROM breadwinner_ns__BW_Item__c
+        WHERE breadwinner_ns__InternalId__c IN :itemInternalIds
+      ]) {
+        itemNamesByInternalId.put(
+          itemRow.breadwinner_ns__InternalId__c,
+          itemRow.Name
+        );
+      }
+    }
 
     Integer rowNum = 1;
+    if (so.itemList != null && so.itemList.item != null) {
+      for (SoResModel.SalesOrderItem it : so.itemList.item) {
+        if (it == null) {
+          continue;
+        }
 
-    for (breadwinner_ns__BW_Line_Item__c line : lines) {
-      LineItem dto = new LineItem();
-      dto.id = rowNum;
-      dto.item = line.breadwinner_ns__Item__r?.breadwinner_ns__InternalId__c;
-      dto.itemName = line.breadwinner_ns__Item__r?.Name;
-      dto.quantity = String.valueOf(line.breadwinner_ns__Quantity__c);
-      dto.amount = String.valueOf(line.breadwinner_ns__Amount__c);
-      dto.rate = String.valueOf(line.breadwinner_ns__Rate__c);
+        LineItem dto = new LineItem();
+        dto.id = rowNum;
+        dto.item = it.item == null ? null : it.item.internalId;
+        dto.itemName = dto.item == null
+          ? null
+          : itemNamesByInternalId.get(dto.item);
+        dto.quantity = it.quantity == null ? null : String.valueOf(it.quantity);
+        dto.rate = it.rate;
+        dto.amount = it.amount == null ? null : String.valueOf(it.amount);
+        dto.line = it.line == null ? null : it.line;
 
-      result.lineItems.add(dto);
-
-      rowNum++;
+        result.lineItems.add(dto);
+        rowNum++;
+      }
     }
 
     return result;
@@ -166,7 +242,6 @@ public with sharing class SoService {
         subsidiary,
         location,
         lineItemsJson
-
       );
       Boolean isUpdate = String.isNotBlank(internalId);
 
@@ -279,7 +354,7 @@ public with sharing class SoService {
     };
 
     if (isUpdate) {
-      itemList.put('replaceAll', true);
+      itemList.put('replaceAll', false);
     }
 
     requestMap.put('itemList', itemList);
@@ -333,6 +408,10 @@ public with sharing class SoService {
         itemMap.put('quantity', lineItem.quantity);
       }
 
+      if (!String.isBlank(lineItem.line)) {
+        itemMap.put('line', lineItem.line);
+      }
+
       items.add(itemMap);
     }
 
@@ -350,6 +429,20 @@ public with sharing class SoService {
     );
 
     return asDateTime.getTime() / 1000;
+  }
+
+  private static String toDateOnlyFromUnixSeconds(Long unixSeconds) {
+    if (unixSeconds == null) {
+      return null;
+    }
+
+    DateTime epoch = DateTime.newInstanceGmt(1970, 1, 1, 0, 0, 0);
+    DateTime asUtc = epoch.addSeconds(
+      Integer.valueOf(String.valueOf(unixSeconds))
+    );
+
+    // Matches lightning-input type="date" expected format
+    return asUtc.formatGmt('yyyy-MM-dd');
   }
 
   private static void validateParams(

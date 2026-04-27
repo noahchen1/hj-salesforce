@@ -57,6 +57,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
       quantity: "",
       rate: "",
       amount: "",
+      line: "",
       isDiscount: false,
       showAction: true,
       disableRemove: true
@@ -395,6 +396,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         quantity: "",
         rate: "",
         amount: "",
+        line: "",
         isDiscount: false,
         showAction: false,
         disableRemove: false
@@ -532,8 +534,8 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     this.isLoading = true;
     const isUpdate = Boolean(this.internalId);
 
-    try {      
-      const internalId = await saveSalesOrder({
+    try {
+      const payload = {
         internalId: this.internalId,
         customer: this.customer,
         orderDate: this.date,
@@ -543,7 +545,22 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         location: this.location,
         memo: this.memo,
         lineItemsJson: JSON.stringify(this.rows)
-      });
+      };
+
+      console.log("saveSalesOrder payload:", payload);
+      console.log(
+        "saveSalesOrder payload (pretty):",
+        JSON.stringify(
+          {
+            ...payload,
+            lineItemsJson: JSON.parse(payload.lineItemsJson)
+          },
+          null,
+          2
+        )
+      );
+
+      const internalId = await saveSalesOrder(payload);
 
       this.dispatchEvent(
         new ShowToastEvent({
@@ -641,6 +658,8 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         salesOrderId: this.recordId
       });
 
+      console.log(data);
+
       this.internalId = data.internalId || this.internalId;
       this.selectedCustomerId = data.customerId || null;
       this.customer = data.customerNsId || "";
@@ -657,6 +676,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         const amount = line.amount || "";
         const itemName = line.itemName || "";
         const isDiscount = itemName === "Store Discount";
+        const lineNum = line.line || "";
 
         return {
           id: index + 1,
@@ -665,6 +685,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
           quantity: isDiscount ? "" : qty,
           rate,
           amount,
+          line: lineNum,
           isDiscount,
           showAction: index === 0,
           disableRemove: index === 0
@@ -746,6 +767,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         quantity: "",
         rate: "",
         amount: "",
+        line: "",
         isDiscount: false,
         showAction: true,
         disableRemove: true
