@@ -1,50 +1,4 @@
 public with sharing class SoService {
-  public class LineItem {
-    @AuraEnabled
-    public Integer id;
-    @AuraEnabled
-    public String item;
-    @AuraEnabled
-    public String itemName;
-    @AuraEnabled
-    public String quantity;
-    @AuraEnabled
-    public String rate;
-    @AuraEnabled
-    public String amount;
-    @AuraEnabled
-    public String line;
-  }
-
-  public class SalesOrderEditData {
-    @AuraEnabled
-    public String internalId;
-    @AuraEnabled
-    public Id customerId;
-    @AuraEnabled
-    public String customerName;
-    @AuraEnabled
-    public String customerNsId;
-    @AuraEnabled
-    public String orderDate;
-    @AuraEnabled
-    public String salesRep1Name;
-    @AuraEnabled
-    public String salesRep1NsId;
-    @AuraEnabled
-    public String salesRep2Name;
-    @AuraEnabled
-    public String salesRep2NsId;
-    @AuraEnabled
-    public String subsidiaryNsId;
-    @AuraEnabled
-    public String locationNsId;
-    @AuraEnabled
-    public String memo;
-    @AuraEnabled
-    public List<LineItem> lineItems = new List<LineItem>();
-  }
-
   @AuraEnabled(cacheable=true)
   public static String getObjectName(Id recordId) {
     return recordId.getSObjectType().getDescribe().getName();
@@ -88,7 +42,7 @@ public with sharing class SoService {
   }
 
   @AuraEnabled(cacheable=false)
-  public static SalesOrderEditData getOrderData(Id salesOrderId) {
+  public static SoDataModel.SoData getOrderData(Id salesOrderId) {
     if (salesOrderId == null) {
       throw new AuraHandledException('Sales order Id is required.');
     }
@@ -135,12 +89,12 @@ public with sharing class SoService {
       ? (String) rawResponseJson
       : JSON.serialize(rawResponseJson);
 
-    System.debug('responseJsonStr: ' + responseJsonStr);
-
     SoResModel.ResponseJson response = (SoResModel.ResponseJson) JSON.deserialize(
       responseJsonStr,
       SoResModel.ResponseJson.class
     );
+
+    System.debug('Parsed Response: ' + response);
 
     if (response == null) {
       throw new AuraHandledException('Unable to parse NetSuite response.');
@@ -163,7 +117,7 @@ public with sharing class SoService {
     }
 
     SoResModel.SalesOrder so = response.salesOrders[0];
-    SalesOrderEditData result = new SalesOrderEditData();
+    SoDataModel.SoData result = new SoDataModel.SoData();
 
     result.internalId = so.internalId;
     result.customerName = so.entity == null ? null : so.entity.name;
@@ -231,7 +185,7 @@ public with sharing class SoService {
           continue;
         }
 
-        LineItem dto = new LineItem();
+        SoDataModel.LineItem dto = new SoDataModel.LineItem();
         dto.id = rowNum;
         dto.item = it.item == null ? null : it.item.internalId;
         dto.itemName = dto.item == null
@@ -245,6 +199,32 @@ public with sharing class SoService {
         result.lineItems.add(dto);
         rowNum++;
       }
+    }
+
+    if (so.shippingAddress != null) {
+      result.shippingAddress = new SoDataModel.Address();
+      result.shippingAddress.zip = so.shippingAddress.zip;
+      result.shippingAddress.state = so.shippingAddress.state;
+      result.shippingAddress.internalId = so.shippingAddress.internalId;
+      result.shippingAddress.country = so.shippingAddress.country;
+      result.shippingAddress.city = so.shippingAddress.city;
+      result.shippingAddress.addressee = so.shippingAddress.addressee;
+      result.shippingAddress.addr1 = so.shippingAddress.addr1;
+      result.shippingAddress.addr2 = so.shippingAddress.addr2;
+      result.shippingAddress.addr3 = so.shippingAddress.addr3;
+    }
+
+    if (so.billingAddress != null) {
+      result.billingAddress = new SoDataModel.Address();
+      result.billingAddress.zip = so.billingAddress.zip;
+      result.billingAddress.state = so.billingAddress.state;
+      result.billingAddress.internalId = so.billingAddress.internalId;
+      result.billingAddress.country = so.billingAddress.country;
+      result.billingAddress.city = so.billingAddress.city;
+      result.billingAddress.addressee = so.billingAddress.addressee;
+      result.billingAddress.addr1 = so.billingAddress.addr1;
+      result.billingAddress.addr2 = so.billingAddress.addr2;
+      result.billingAddress.addr3 = so.billingAddress.addr3;
     }
 
     return result;
@@ -273,7 +253,9 @@ public with sharing class SoService {
       );
       Boolean isUpdate = String.isNotBlank(internalId);
 
-      List<LineItem> lineItems = deserializeLineItems(lineItemsJson);
+      List<SoDataModel.LineItem> lineItems = deserializeLineItems(
+        lineItemsJson
+      );
 
       Map<String, Object> salesOrderRequest = buildSalesOrderRequest(
         internalId,
@@ -352,7 +334,7 @@ public with sharing class SoService {
     String subsidiary,
     String location,
     String memo,
-    List<LineItem> lineItems,
+    List<SoDataModel.LineItem> lineItems,
     Boolean isUpdate
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
@@ -415,12 +397,12 @@ public with sharing class SoService {
   }
 
   private static List<Object> buildItemList(
-    List<LineItem> lineItems,
+    List<SoDataModel.LineItem> lineItems,
     String location
   ) {
     List<Object> items = new List<Object>();
 
-    for (LineItem lineItem : lineItems) {
+    for (SoDataModel.LineItem lineItem : lineItems) {
       if (lineItem == null || String.isBlank(lineItem.item)) {
         continue;
       }
@@ -492,7 +474,7 @@ public with sharing class SoService {
       throw new AuraHandledException('Missing required parameters.');
     }
 
-    List<LineItem> items = deserializeLineItems(lineItemsJson);
+    List<SoDataModel.LineItem> items = deserializeLineItems(lineItemsJson);
 
     if (items == null || items.isEmpty()) {
       throw new AuraHandledException('At least one line item is required.');
@@ -500,7 +482,7 @@ public with sharing class SoService {
 
     Boolean hasValidItem = false;
 
-    for (LineItem item : items) {
+    for (SoDataModel.LineItem item : items) {
       if (item != null && !String.isBlank(item.item)) {
         hasValidItem = true;
         break;
@@ -514,11 +496,13 @@ public with sharing class SoService {
     }
   }
 
-  private static List<LineItem> deserializeLineItems(String lineItemsJson) {
+  private static List<SoDataModel.LineItem> deserializeLineItems(
+    String lineItemsJson
+  ) {
     try {
-      return (List<LineItem>) JSON.deserialize(
+      return (List<SoDataModel.LineItem>) JSON.deserialize(
         lineItemsJson,
-        List<LineItem>.class
+        List<SoDataModel.LineItem>.class
       );
     } catch (Exception e) {
       throw new AuraHandledException('Invalid line item payload.');

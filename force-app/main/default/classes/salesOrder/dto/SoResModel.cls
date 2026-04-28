@@ -15,6 +15,8 @@ public class SoResModel {
     public RecordRef location;
     public ItemList itemList;
     public CustomFieldList customFieldList;
+    public Address shippingAddress;
+    public Address billingAddress;
   }
 
   public class ItemList {
@@ -42,5 +44,17 @@ public class SoResModel {
   public class RecordRef {
     public String name;
     public String internalId;
+  }
+
+  public class Address {
+    public String zip;
+    public String state;
+    public String internalId;
+    public String country;
+    public String city;
+    public String addressee;
+    public String addr1;
+    public String addr2;
+    public String addr3;
   }
 }

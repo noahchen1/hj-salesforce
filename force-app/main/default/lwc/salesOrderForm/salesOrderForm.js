@@ -696,8 +696,6 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         salesOrderId: this.recordId
       });
 
-      console.log(data);
-
       this.internalId = data.internalId || this.internalId;
       this.selectedCustomerId = data.customerId || null;
       this.customer = data.customerNsId || "";
@@ -707,6 +705,26 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
       this.memo = data.memo || "";
       this.subsidiary = data.subsidiaryNsId || "";
       this.location = data.locationNsId || "";
+
+      this.billingAddress = formatAddress({
+        contact: data.billingAddress?.addressee,
+        addr1: data.billingAddress?.addr1,
+        addr2: data.billingAddress?.addr2,
+        city: data.billingAddress?.city,
+        state: data.billingAddress?.state,
+        zip: data.billingAddress?.zip,
+        country: data.billingAddress?.country
+      });
+
+      this.shippingAddress = formatAddress({
+        contact: data.shippingAddress?.addressee,
+        addr1: data.shippingAddress?.addr1,
+        addr2: data.shippingAddress?.addr2,
+        city: data.shippingAddress?.city,
+        state: data.shippingAddress?.state,
+        zip: data.shippingAddress?.zip,
+        country: data.shippingAddress?.country
+      });
 
       const mappedRows = (data.lineItems || []).map((line, index) => {
         const qty = line.quantity || "";
