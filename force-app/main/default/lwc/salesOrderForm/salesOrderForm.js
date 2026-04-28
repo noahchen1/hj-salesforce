@@ -1,5 +1,5 @@
 import { LightningElement, wire, api } from "lwc";
-import { CurrentPageReference, NavigationMixin } from "lightning/navigation";
+import { NavigationMixin } from "lightning/navigation";
 import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
 import getSubsidiaries from "@salesforce/apex/DropdownDataController.getSubsidiaries";
@@ -7,9 +7,10 @@ import searchSellableItem from "@salesforce/apex/FilterDataController.searchSell
 import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
 import USER_ID from "@salesforce/user/Id";
 import { getFieldValue, getRecord } from "lightning/uiRecordApi";
-import saveSalesOrder from "@salesforce/apex/SoService.saveSalesOrder";
-import getOrderData from "@salesforce/apex/SoService.getOrderData";
-import getOrder from "@salesforce/apex/SoService.getOrder";
+import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder";
+import getOrderData from "@salesforce/apex/SalesOrderController.getOrderData";
+import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
+
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
 import LightningAlert from "lightning/alert";
@@ -31,8 +32,8 @@ import BILLING_STATE from "@salesforce/schema/breadwinner_ns__BW_Company__c.brea
 import BILLING_ZIP from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingZip__c";
 import BILLING_COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingCountry__c";
 import COMPANY_NAME from "@salesforce/schema/breadwinner_ns__BW_Company__c.Name";
-import getObjectName from "@salesforce/apex/SoService.getObjectName";
-import getNsCompanyFromAccount from "@salesforce/apex/SoService.getNsCompanyFromAccount";
+import getObjectName from "@salesforce/apex/SalesOrderController.getObjectName";
+import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNsCompanyFromAccount";
 import { formatAddress } from "c/utils";
 
 export default class SalesOrderForm extends NavigationMixin(LightningElement) {
