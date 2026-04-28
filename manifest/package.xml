@@ -2,6 +2,14 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
         <members>Helpers</members>
+        <members>SalesOrderDataModel</members>
+        <members>SalesOrderMapper</members>
+        <members>SalesOrderPayloadBuilder</members>
+        <members>SalesOrderResHandler</members>
+        <members>SalesOrderResModel</members>
+        <members>SalesOrderService</members>
+        <members>SalesOrderValidator</members>
+        <members>NetSuiteClient</members>
         <name>ApexClass</name>
     </types>
     <version>66.0</version>
