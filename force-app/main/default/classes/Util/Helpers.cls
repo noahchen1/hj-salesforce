@@ -64,4 +64,27 @@ public with sharing class Helpers {
 
     return picklistMap;
   }
+
+  public static String toDateOnlyFromUnixSeconds(Long unixSeconds) {
+    if (unixSeconds == null) {
+      return null;
+    }
+
+    DateTime epoch = DateTime.newInstanceGmt(1970, 1, 1, 0, 0, 0);
+    DateTime asUtc = epoch.addSeconds(
+      Integer.valueOf(String.valueOf(unixSeconds))
+    );
+
+    // Matches lightning-input type="date" expected format
+    return asUtc.formatGmt('yyyy-MM-dd');
+  }
+
+  public static Long toUnixSeconds(Date sourceDate) {
+    DateTime asDateTime = DateTime.newInstance(
+      sourceDate,
+      Time.newInstance(0, 0, 0, 0)
+    );
+
+    return asDateTime.getTime() / 1000;
+  }
 }
