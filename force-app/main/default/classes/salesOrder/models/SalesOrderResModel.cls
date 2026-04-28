@@ -1,4 +1,4 @@
-public class SoResModel {
+public with sharing class SalesOrderResModel {
   public class ResponseJson {
     public String status;
     public List<Object> errors;

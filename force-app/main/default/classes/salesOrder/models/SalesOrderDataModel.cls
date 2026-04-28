@@ -1,5 +1,5 @@
-public class SoDataModel {
-  public class SoData {
+public with sharing class SalesOrderDataModel {
+  public class SalesOrderData {
     @AuraEnabled
     public String internalId;
     @AuraEnabled
