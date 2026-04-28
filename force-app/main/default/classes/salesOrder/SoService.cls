@@ -67,14 +67,24 @@ public with sharing class SoService {
   }
 
   @AuraEnabled(cacheable=false)
-  public static Id getNsCompanyFromAccount(Id accountId) {
-    breadwinner_ns__BW_Company__c nsCompany = [
-      SELECT Id
+  public static Map<String, Object> getNsCompanyFromAccount(Id accountId) {
+    List<breadwinner_ns__BW_Company__c> companies = [
+      SELECT Id, breadwinner_ns__InternalId__c
       FROM breadwinner_ns__BW_Company__c
       WHERE breadwinner_ns__Salesforce_Account__c = :accountId
+      LIMIT 1
     ];
 
-    return nsCompany.Id;
+    if (companies.isEmpty()) {
+      return null;
+    }
+
+    breadwinner_ns__BW_Company__c nsCompany = companies[0];
+
+    return new Map<String, Object>{
+      'companyId' => nsCompany.Id,
+      'internalId' => nsCompany.breadwinner_ns__InternalId__c
+    };
   }
 
   @AuraEnabled(cacheable=false)
@@ -124,6 +134,8 @@ public with sharing class SoService {
     String responseJsonStr = rawResponseJson instanceof String
       ? (String) rawResponseJson
       : JSON.serialize(rawResponseJson);
+
+    System.debug('responseJsonStr: ' + responseJsonStr);
 
     SoResModel.ResponseJson response = (SoResModel.ResponseJson) JSON.deserialize(
       responseJsonStr,

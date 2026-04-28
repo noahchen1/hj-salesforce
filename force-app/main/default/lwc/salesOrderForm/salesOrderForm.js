@@ -71,6 +71,16 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   pendingLookupValues;
 
   async connectedCallback() {
+    // const btn = window.document.querySelector(
+    //   'button[title="Cancel and close"]'
+    // );
+
+    // if (btn) {
+    //   console.log(btn);
+
+    //   console.log((btn.style.display = "none"));
+    // }
+
     try {
       const [subsidiaries, emp] = await Promise.all([
         getSubsidiaries(),
@@ -129,6 +139,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
       const isAccount = data === "Account";
 
       if (isAccount) {
+        this.isLoading = true;
         this.fetchNsCompanyId(this.recordId);
       } else {
         this.loadOrder();
@@ -140,29 +151,18 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
 
   fetchNsCompanyId = async (accountId) => {
     try {
-      const nsCompanyId = await getNsCompanyFromAccount({ accountId });
+      const nsCompanyData = await getNsCompanyFromAccount({ accountId });
 
-      if (nsCompanyId) {
-        this.selectedCustomerId = nsCompanyId;
+      if (nsCompanyData) {
+        this.selectedCustomerId = nsCompanyData.companyId;
+        this.customer = nsCompanyData.internalId;
       }
     } catch (error) {
       console.error("Error fetching NS company from account", error);
+    } finally {
+      this.isLoading = false;
     }
   };
-
-  // @wire(getRecord, {
-  //   recordId: "$recordId",
-  //   fields: [SO_INTERNAL_ID]
-  // })
-  // wiredSoRecord({ data, error }) {
-  //   if (data) {
-  //     const internalId = getFieldValue(data, SO_INTERNAL_ID);
-
-  //     if (internalId) this.internalId = internalId;
-  //   } else if (error) {
-  //     console.error("Error fetching SO internal id", error);
-  //   }
-  // }
 
   @wire(getRecord, {
     recordId: "$selectedItemId",
