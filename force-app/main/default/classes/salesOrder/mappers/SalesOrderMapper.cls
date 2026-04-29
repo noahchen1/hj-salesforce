@@ -12,28 +12,70 @@ public with sharing class SalesOrderMapper {
     }
   }
 
+  public static SalesOrderDataModel.Address deserializeAddress(
+    String addressJson
+  ) {
+    if (String.isBlank(addressJson)) {
+      return null;
+    }
+
+    return (SalesOrderDataModel.Address) JSON.deserialize(
+      addressJson,
+      SalesOrderDataModel.Address.class
+    );
+  }
+
   public static SalesOrderDataModel.SalesOrderData mapSalesOrder(
     SalesOrderResModel.SalesOrder so
   ) {
     SalesOrderDataModel.SalesOrderData result = new SalesOrderDataModel.SalesOrderData();
 
     result.internalId = so.internalId;
-    result.customerName = so.entity?.name;
-    result.customerNsId = so.entity?.internalId;
     result.orderDate = Helpers.toDateOnlyFromUnixSeconds(so.tranDate);
     result.memo = so.memo;
 
     result.salesRep1Name = so.salesRep?.name;
     result.salesRep1NsId = so.salesRep?.internalId;
-
     result.subsidiaryNsId = so.subsidiary?.internalId;
     result.locationNsId = so.location?.internalId;
 
+    mapCustomer(so, result);
     mapSalesRep2(so, result);
     mapLineItems(so, result);
     mapAddresses(so, result);
 
     return result;
+  }
+
+  private static void mapCustomer(
+    SalesOrderResModel.SalesOrder so,
+    SalesOrderDataModel.SalesOrderData result
+  ) {
+    SalesOrderResModel.RecordRef customer = so.entity;
+
+    if (customer == null) {
+      return;
+    }
+
+    result.customerName = customer.name;
+    result.customerNsId = customer.internalId;
+
+    if (String.isBlank(customer.internalId)) {
+      return;
+    }
+
+    List<breadwinner_ns__BW_Company__c> companies = [
+      SELECT Id
+      FROM breadwinner_ns__BW_Company__c
+      WHERE
+        breadwinner_ns__InternalId__c = :customer.internalId
+        AND breadwinner_ns__Entity_Type__c = 'Customer'
+      LIMIT 1
+    ];
+
+    if (!companies.isEmpty()) {
+      result.nsCompanyId = companies[0].Id;
+    }
   }
 
   private static void mapSalesRep2(

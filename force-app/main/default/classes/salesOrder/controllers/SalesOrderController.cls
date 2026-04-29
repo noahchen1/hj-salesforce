@@ -9,6 +9,8 @@ public with sharing class SalesOrderController {
     String subsidiary,
     String location,
     String memo,
+    String shippingAddressJson,
+    String billingAddressJson,
     String lineItemsJson
   ) {
     return SalesOrderService.saveSalesOrder(
@@ -20,6 +22,8 @@ public with sharing class SalesOrderController {
       subsidiary,
       location,
       memo,
+      shippingAddressJson,
+      billingAddressJson,
       lineItemsJson
     );
   }

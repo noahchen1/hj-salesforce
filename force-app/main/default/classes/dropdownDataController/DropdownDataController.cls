@@ -12,6 +12,37 @@ public with sharing class DropdownDataController {
     }
   }
 
+  public class AddressOption {
+    @AuraEnabled
+    public String label;
+
+    @AuraEnabled
+    public String value;
+
+    @AuraEnabled
+    public Boolean isDefaultShipping;
+
+    @AuraEnabled
+    public Boolean isDefaultBilling;
+
+    @AuraEnabled
+    public String nsInternalId;
+
+    public AddressOption(
+      String label,
+      String value,
+      Boolean isDefaultBilling,
+      Boolean isDefaultShipping,
+      String nsInternalId
+    ) {
+      this.label = label;
+      this.value = value;
+      this.isDefaultBilling = isDefaultBilling;
+      this.isDefaultShipping = isDefaultShipping;
+      this.nsInternalId = nsInternalId;
+    }
+  }
+
   @AuraEnabled(cacheable=true)
   public static List<Option> getSpecialOrderItemTypes() {
     List<Option> options = new List<Option>();
@@ -79,16 +110,29 @@ public with sharing class DropdownDataController {
   }
 
   @AuraEnabled(cacheable=true)
-  public static List<Option> getCustomerAddresses(Id nsCompanyId) {
-    List<Option> options = new List<Option>();
+  public static List<AddressOption> getCustomerAddresses(Id nsCompanyId) {
+    List<AddressOption> options = new List<AddressOption>();
 
     try {
       for (breadwinner_ns__BW_Address__c addr : [
-        SELECT Id, breadwinner_ns__AddrText__c
+        SELECT
+          Id,
+          breadwinner_ns__AddrText__c,
+          breadwinner_ns__DefaultShipping__c,
+          breadwinner_ns__DefaultBilling__c,
+          breadwinner_ns__InternalId__c
         FROM breadwinner_ns__BW_Address__c
         WHERE breadwinner_ns__Company__c = :nsCompanyId
       ]) {
-        options.add(new Option(addr.breadwinner_ns__AddrText__c, addr.Id));
+        options.add(
+          new AddressOption(
+            addr.breadwinner_ns__AddrText__c,
+            addr.Id,
+            addr.breadwinner_ns__DefaultBilling__c,
+            addr.breadwinner_ns__DefaultShipping__c,
+            addr.breadwinner_ns__InternalId__c
+          )
+        );
       }
 
       return options;

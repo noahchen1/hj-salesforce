@@ -8,6 +8,8 @@ public with sharing class SalesOrderPayloadBuilder {
     String subsidiary,
     String location,
     String memo,
+    SalesOrderDataModel.Address shippingAddress,
+    SalesOrderDataModel.Address billingAddress,
     List<SalesOrderDataModel.LineItem> lineItems,
     Boolean isUpdate
   ) {
@@ -27,6 +29,14 @@ public with sharing class SalesOrderPayloadBuilder {
     if (String.isNotBlank(memo)) {
       requestMap.put('memo', memo);
     }
+
+    // if (shippingAddress != null) {
+    //   requestMap.put('shippingAddress', buildAddress(shippingAddress));
+    // }
+
+    // if (billingAddress != null) {
+    //   requestMap.put('billingAddress', buildAddress(billingAddress));
+    // }
 
     requestMap.put(
       'customFieldList',

@@ -3,7 +3,7 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String internalId;
     @AuraEnabled
-    public Id customerId;
+    public Id nsCompanyId;
     @AuraEnabled
     public String customerName;
     @AuraEnabled
@@ -60,6 +60,8 @@ public with sharing class SalesOrderDataModel {
     public String country;
     @AuraEnabled
     public String city;
+    @AuraEnabled
+    public String attention;
     @AuraEnabled
     public String addressee;
     @AuraEnabled

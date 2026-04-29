@@ -8,6 +8,8 @@ public with sharing class SalesOrderService {
     String subsidiary,
     String location,
     String memo,
+    String shippingAddressJson,
+    String billingAddressJson,
     String lineItemsJson
   ) {
     try {
@@ -26,6 +28,14 @@ public with sharing class SalesOrderService {
         lineItemsJson
       );
 
+      SalesOrderDataModel.Address shippingAddress = SalesOrderMapper.deserializeAddress(
+        shippingAddressJson
+      );
+
+      SalesOrderDataModel.Address billingAddress = SalesOrderMapper.deserializeAddress(
+        billingAddressJson
+      );
+
       Map<String, Object> salesOrderRequest = SalesOrderPayloadBuilder.buildSaveRequest(
         internalId,
         customer,
@@ -35,6 +45,8 @@ public with sharing class SalesOrderService {
         subsidiary,
         location,
         memo,
+        shippingAddress,
+        billingAddress,
         lineItems,
         isUpdate
       );

@@ -15,25 +15,23 @@ import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
 import LightningAlert from "lightning/alert";
 import getEmployeeData from "@salesforce/apex/DataService.getEmployeeData";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
-import SHIPPING_CONTACT from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingAddressee__c";
-import SHIPPING_ADDR1 from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingAddr1__c";
-import SHIPPING_ADDR2 from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingAddr2__c";
-import SHIPPING_CITY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingCity__c";
-import SHIPPING_STATE from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingState__c";
-import SHIPPING_ZIP from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingZip__c";
-import SHIPPING_COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingCountry__c";
-import BILLING_CONTACT from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingAddressee__c";
-import BILLING_ADDR1 from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingAddr1__c";
-import BILLING_ADDR2 from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingAddr2__c";
-import BILLING_CITY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingCity__c";
-import BILLING_STATE from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingState__c";
-import BILLING_ZIP from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingZip__c";
-import BILLING_COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__BillingCountry__c";
 import COMPANY_NAME from "@salesforce/schema/breadwinner_ns__BW_Company__c.Name";
 import getObjectName from "@salesforce/apex/SalesOrderController.getObjectName";
 import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNsCompanyFromAccount";
 import getCustomerAddresses from "@salesforce/apex/DropdownDataController.getCustomerAddresses";
 import { formatAddress } from "c/utils";
+
+import ADDRESS_INTERNAL_ID from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__InternalId__c";
+import ADDRESS_TEXT from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__AddrText__c";
+import ADDRESS_1 from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__Addr1__c";
+import ADDRESS_2 from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__Addr2__c";
+import ADDRESS_3 from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__Addr3__c";
+import ADDRESSEE from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__Addressee__c";
+import ATTENTION from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__Attention__c";
+import CITY from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__City__c";
+import STATE from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__State__c";
+import ZIP from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__Zip__c";
+import COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__Country__c";
 
 export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   @api recordId;
@@ -42,6 +40,30 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   selectedCustomerId;
   shippingAddress = "";
   billingAddress = "";
+  shippingAddressState = {
+    internalId: "",
+    addressee: "",
+    attention: "",
+    addr1: "",
+    addr2: "",
+    addr3: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: ""
+  };
+  billingAddressState = {
+    internalId: "",
+    addressee: "",
+    attention: "",
+    addr1: "",
+    addr2: "",
+    addr3: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: ""
+  };
   selectedShippingAddress = "";
   selectedBillingAddress = "";
   date = new Date().toISOString();
@@ -193,23 +215,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
 
   @wire(getRecord, {
     recordId: "$selectedCustomerId",
-    fields: [
-      SHIPPING_CONTACT,
-      SHIPPING_ADDR1,
-      SHIPPING_ADDR2,
-      SHIPPING_CITY,
-      SHIPPING_COUNTRY,
-      SHIPPING_STATE,
-      SHIPPING_ZIP,
-      BILLING_CONTACT,
-      BILLING_ADDR1,
-      BILLING_ADDR2,
-      BILLING_CITY,
-      BILLING_COUNTRY,
-      BILLING_STATE,
-      BILLING_ZIP,
-      COMPANY_NAME
-    ]
+    fields: [COMPANY_NAME]
   })
   wiredCustomerData({ data, error }) {
     if (data && this.selectedCustomerId != null) {
@@ -225,49 +231,112 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
       this.fetchCustomerAddresses({
         nsCompanyId: this.selectedCustomerId
       });
-
-      const shippingContact = getFieldValue(data, SHIPPING_CONTACT);
-      const shippingAddress1 = getFieldValue(data, SHIPPING_ADDR1);
-      const shippingAddress2 = getFieldValue(data, SHIPPING_ADDR2);
-      const shippingCity = getFieldValue(data, SHIPPING_CITY);
-      const shippingState = getFieldValue(data, SHIPPING_STATE);
-      const shippingZip = getFieldValue(data, SHIPPING_ZIP);
-      const shippingCountry = getFieldValue(data, SHIPPING_COUNTRY);
-      const billingContact = getFieldValue(data, BILLING_CONTACT);
-      const billingAddress1 = getFieldValue(data, BILLING_ADDR1);
-      const billingAddress2 = getFieldValue(data, BILLING_ADDR2);
-      const billingCity = getFieldValue(data, BILLING_CITY);
-      const billingState = getFieldValue(data, BILLING_STATE);
-      const billingZip = getFieldValue(data, BILLING_ZIP);
-      const billingCountry = getFieldValue(data, BILLING_COUNTRY);
-
-      this.shippingAddress = formatAddress({
-        contact: shippingContact,
-        addr1: shippingAddress1,
-        addr2: shippingAddress2,
-        city: shippingCity,
-        state: shippingState,
-        zip: shippingZip,
-        country: shippingCountry
-      });
-
-      this.billingAddress = formatAddress({
-        contact: billingContact,
-        addr1: billingAddress1,
-        addr2: billingAddress2,
-        city: billingCity,
-        state: billingState,
-        zip: billingZip,
-        country: billingCountry
-      });
     } else if (error) {
-      this.shippingAddress = "";
-      this.billingAddress = "";
+      this.resetAddressState("shipping");
+      this.resetAddressState("billing");
 
       console.error("Error fetching customer shipping address", error);
     } else {
-      this.shippingAddress = "";
-      this.billingAddress = "";
+      this.resetAddressState("shipping");
+      this.resetAddressState("billing");
+    }
+  }
+
+  @wire(getRecord, {
+    recordId: "$selectedShippingAddress",
+    fields: [
+      ADDRESS_INTERNAL_ID,
+      ADDRESS_TEXT,
+      ADDRESSEE,
+      ADDRESS_1,
+      ADDRESS_2,
+      ADDRESS_3,
+      ATTENTION,
+      CITY,
+      STATE,
+      ZIP,
+      COUNTRY
+    ]
+  })
+  wiredShippingAddressData({ data, error }) {
+    if (data) {
+      this.shippingAddressState = {
+        internalId: getFieldValue(data, ADDRESS_INTERNAL_ID),
+        addressee: getFieldValue(data, ADDRESSEE),
+        attention: getFieldValue(data, ATTENTION),
+        addr1: getFieldValue(data, ADDRESS_1),
+        addr2: getFieldValue(data, ADDRESS_2),
+        addr3: getFieldValue(data, ADDRESS_3),
+        city: getFieldValue(data, CITY),
+        state: getFieldValue(data, STATE),
+        zip: getFieldValue(data, ZIP),
+        country: getFieldValue(data, COUNTRY)
+      };
+
+      this.shippingAddress = formatAddress({
+        contact: getFieldValue(data, ADDRESSEE),
+        addr1: getFieldValue(data, ADDRESS_1),
+        addr2: getFieldValue(data, ADDRESS_2),
+        addr3: getFieldValue(data, ADDRESS_3),
+        city: getFieldValue(data, CITY),
+        state: getFieldValue(data, STATE),
+        zip: getFieldValue(data, ZIP),
+        country: getFieldValue(data, COUNTRY)
+      });
+    } else if (error) {
+      this.resetAddressState("shipping");
+      console.error("Error fetching shipping address", error);
+    } else {
+      this.resetAddressState("shipping");
+    }
+  }
+
+  @wire(getRecord, {
+    recordId: "$selectedBillingAddress",
+    fields: [
+      ADDRESS_INTERNAL_ID,
+      ADDRESS_TEXT,
+      ADDRESSEE,
+      ADDRESS_1,
+      ADDRESS_2,
+      ADDRESS_3,
+      ATTENTION,
+      CITY,
+      STATE,
+      ZIP,
+      COUNTRY
+    ]
+  })
+  wiredBillingAddressData({ data, error }) {
+    if (data) {
+      this.billingAddressState = {
+        internalId: getFieldValue(data, ADDRESS_INTERNAL_ID),
+        addressee: getFieldValue(data, ADDRESSEE),
+        attention: getFieldValue(data, ATTENTION),
+        addr1: getFieldValue(data, ADDRESS_1),
+        addr2: getFieldValue(data, ADDRESS_2),
+        addr3: getFieldValue(data, ADDRESS_3),
+        city: getFieldValue(data, CITY),
+        state: getFieldValue(data, STATE),
+        zip: getFieldValue(data, ZIP),
+        country: getFieldValue(data, COUNTRY)
+      };
+
+      this.billingAddress = formatAddress({
+        contact: getFieldValue(data, ADDRESSEE),
+        addr1: getFieldValue(data, ADDRESS_1),
+        addr2: getFieldValue(data, ADDRESS_2),
+        addr3: getFieldValue(data, ADDRESS_3),
+        city: getFieldValue(data, CITY),
+        state: getFieldValue(data, STATE),
+        zip: getFieldValue(data, ZIP),
+        country: getFieldValue(data, COUNTRY)
+      });
+    } else if (error) {
+      this.resetAddressState("billing");
+      console.error("Error fetching billing address", error);
+    } else {
+      this.resetAddressState("billing");
     }
   }
 
@@ -285,7 +354,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     return !this.subsidiary;
   }
 
-  async fetchCustomerAddresses({ nsCompanyId }) {
+  async fetchCustomerAddresses({ nsCompanyId, skipSelection = false }) {
     if (!nsCompanyId) {
       this.addressOptions = [{ label: "Select", value: "" }];
       return;
@@ -293,7 +362,18 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
 
     try {
       const addresses = await getCustomerAddresses({ nsCompanyId });
-      this.processPicklistWire({ data: addresses || [] }, "addressOptions");
+
+      console.log("addresses", addresses);
+
+      if (skipSelection) {
+        const options = [{ label: "Select", value: "" }];
+        (addresses || []).forEach(({ label, value }) =>
+          options.push({ label, value })
+        );
+        this.addressOptions = options;
+      } else {
+        this.processPicklistWire({ data: addresses || [] }, "addressOptions");
+      }
     } catch (error) {
       this.addressOptions = [{ label: "Select", value: "" }];
       console.error("Error fetching addressOptions:", error);
@@ -369,13 +449,46 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   }
 
   processPicklistWire({ data, error }, target) {
-    if (data) {
-      this[target] = [
-        { label: "Select", value: "" },
-        ...data.map(({ label, value }) => ({ label, value }))
-      ];
-    } else if (error) {
+    if (error) {
       console.error(`Error fetching ${target}: `, error);
+
+      return;
+    }
+
+    if (!Array.isArray(data)) {
+      this[target] = [{ label: "Select", value: "" }];
+
+      return;
+    }
+
+    const options = [{ label: "Select", value: "" }];
+    const isAddressOptions = target === "addressOptions";
+    let defaultShippingAddress = "";
+    let defaultBillingAddress = "";
+
+    data.forEach((entry) => {
+      const { label, value, isDefaultShipping, isDefaultBilling } = entry;
+
+      options.push({ label, value });
+
+      if (!isAddressOptions) {
+        return;
+      }
+
+      if (!defaultShippingAddress && isDefaultShipping) {
+        defaultShippingAddress = value;
+      }
+
+      if (!defaultBillingAddress && isDefaultBilling) {
+        defaultBillingAddress = value;
+      }
+    });
+
+    this[target] = options;
+
+    if (isAddressOptions) {
+      this.selectedShippingAddress = defaultShippingAddress;
+      this.selectedBillingAddress = defaultBillingAddress;
     }
   }
 
@@ -605,6 +718,8 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         subsidiary: this.subsidiary,
         location: this.location,
         memo: this.memo,
+        shippingAddressJson: JSON.stringify(this.shippingAddressState),
+        billingAddressJson: JSON.stringify(this.billingAddressState),
         lineItemsJson: JSON.stringify(this.rows)
       };
 
@@ -719,8 +834,10 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         salesOrderId: this.recordId
       });
 
+      console.log(data);
+
       this.internalId = data.internalId || this.internalId;
-      this.selectedCustomerId = data.customerId || null;
+      // this.selectedCustomerId = data.nsCompanyId || null;
       this.customer = data.customerNsId || "";
       this.date = data.orderDate || this.date;
       this.salesRep1 = data.salesRep1NsId || "";
@@ -733,6 +850,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         contact: data.billingAddress?.addressee,
         addr1: data.billingAddress?.addr1,
         addr2: data.billingAddress?.addr2,
+        addr3: data.billingAddress?.addr3,
         city: data.billingAddress?.city,
         state: data.billingAddress?.state,
         zip: data.billingAddress?.zip,
@@ -743,11 +861,36 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         contact: data.shippingAddress?.addressee,
         addr1: data.shippingAddress?.addr1,
         addr2: data.shippingAddress?.addr2,
+        addr3: data.shippingAddress?.addr3,
         city: data.shippingAddress?.city,
         state: data.shippingAddress?.state,
         zip: data.shippingAddress?.zip,
         country: data.shippingAddress?.country
       });
+
+      this.billingAddressState = {
+        internalId: data.billingAddress?.internalId || "",
+        addressee: data.billingAddress?.addressee || "",
+        addr1: data.billingAddress?.addr1 || "",
+        addr2: data.billingAddress?.addr2 || "",
+        addr3: data.billingAddress?.addr3 || "",
+        city: data.billingAddress?.city || "",
+        state: data.billingAddress?.state || "",
+        zip: data.billingAddress?.zip || "",
+        country: data.billingAddress?.country || ""
+      };
+
+      this.shippingAddressState = {
+        internalId: data.shippingAddress?.internalId || "",
+        addressee: data.shippingAddress?.addressee || "",
+        addr1: data.shippingAddress?.addr1 || "",
+        addr2: data.shippingAddress?.addr2 || "",
+        addr3: data.shippingAddress?.addr3 || "",
+        city: data.shippingAddress?.city || "",
+        state: data.shippingAddress?.state || "",
+        zip: data.shippingAddress?.zip || "",
+        country: data.shippingAddress?.country || ""
+      };
 
       const mappedRows = (data.lineItems || []).map((line, index) => {
         const qty = line.quantity || "";
@@ -775,6 +918,11 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         this.rows = mappedRows;
         this.nextRowId = mappedRows.length + 1;
       }
+
+      await this.fetchCustomerAddresses({
+        nsCompanyId: data.nsCompanyId,
+        skipSelection: true
+      });
 
       this.pendingLookupValues = {
         customer: data.customerName || "",
@@ -832,6 +980,28 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     this.selectedCustomerId = null;
     this.shippingAddress = "";
     this.billingAddress = "";
+    this.shippingAddressState = {
+      internalId: "",
+      addressee: "",
+      addr1: "",
+      addr2: "",
+      addr3: "",
+      city: "",
+      state: "",
+      zip: "",
+      country: ""
+    };
+    this.billingAddressState = {
+      internalId: "",
+      addressee: "",
+      addr1: "",
+      addr2: "",
+      addr3: "",
+      city: "",
+      state: "",
+      zip: "",
+      country: ""
+    };
     this.selectedShippingAddress = null;
     this.selectedBillingAddress = null;
     this.date = new Date().toISOString();
@@ -858,5 +1028,29 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     this.selectedItemRowIndex = null;
     this.selectedItemId = null;
     this.pendingLookupValues = null;
+  }
+
+  resetAddressState(type) {
+    const emptyAddress = {
+      internalId: "",
+      addressee: "",
+      attention: "",
+      addr1: "",
+      addr2: "",
+      addr3: "",
+      city: "",
+      state: "",
+      zip: "",
+      country: ""
+    };
+
+    if (type === "shipping") {
+      this.shippingAddressState = { ...emptyAddress };
+      this.shippingAddress = "";
+      return;
+    }
+
+    this.billingAddressState = { ...emptyAddress };
+    this.billingAddress = "";
   }
 }
