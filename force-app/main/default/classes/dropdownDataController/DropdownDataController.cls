@@ -79,6 +79,25 @@ public with sharing class DropdownDataController {
   }
 
   @AuraEnabled(cacheable=true)
+  public static List<Option> getCustomerAddresses(Id nsCompanyId) {
+    List<Option> options = new List<Option>();
+
+    try {
+      for (breadwinner_ns__BW_Address__c addr : [
+        SELECT Id, breadwinner_ns__AddrText__c
+        FROM breadwinner_ns__BW_Address__c
+        WHERE breadwinner_ns__Company__c = :nsCompanyId
+      ]) {
+        options.add(new Option(addr.breadwinner_ns__AddrText__c, addr.Id));
+      }
+
+      return options;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
   public static List<Option> getSubsidiaries() {
     List<Option> options = new List<Option>();
 

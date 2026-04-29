@@ -72,17 +72,37 @@
         ></lightning-combobox>
       </div>
 
-      <div class="form-body">
-        <lightning-textarea
-          label="Shipping Address"
-          value={shippingAddress}
-          readonly
-        ></lightning-textarea>
-        <lightning-textarea
-          label="Billing Address"
-          value={billingAddress}
-          readonly
-        ></lightning-textarea>
+      <div>
+        <div>
+          <lightning-combobox
+            name="selectedShippingAddress"
+            label="Shipping Address"
+            value={selectedShippingAddress}
+            placeholder="Select an address"
+            options={addressOptions}
+            onchange={handleComboboxChange}
+          ></lightning-combobox>
+          <lightning-combobox
+            name="selectedBillingAddress"
+            label="Billing Address"
+            value={selectedBillingAddress}
+            placeholder="Select an address"
+            options={addressOptions}
+            onchange={handleComboboxChange}
+          ></lightning-combobox>
+        </div>
+        <div>
+          <lightning-textarea
+            label="Shipping Address"
+            value={shippingAddress}
+            readonly
+          ></lightning-textarea>
+          <lightning-textarea
+            label="Billing Address"
+            value={billingAddress}
+            readonly
+          ></lightning-textarea>
+        </div>
       </div>
 
       <div class="table-section">

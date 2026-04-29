@@ -10,13 +10,11 @@ import { getFieldValue, getRecord } from "lightning/uiRecordApi";
 import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder";
 import getOrderData from "@salesforce/apex/SalesOrderController.getOrderData";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
-
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
 import LightningAlert from "lightning/alert";
 import getEmployeeData from "@salesforce/apex/DataService.getEmployeeData";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
-
 import SHIPPING_CONTACT from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingAddressee__c";
 import SHIPPING_ADDR1 from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingAddr1__c";
 import SHIPPING_ADDR2 from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__ShippingAddr2__c";
@@ -34,6 +32,7 @@ import BILLING_COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Company__c.br
 import COMPANY_NAME from "@salesforce/schema/breadwinner_ns__BW_Company__c.Name";
 import getObjectName from "@salesforce/apex/SalesOrderController.getObjectName";
 import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNsCompanyFromAccount";
+import getCustomerAddresses from "@salesforce/apex/DropdownDataController.getCustomerAddresses";
 import { formatAddress } from "c/utils";
 
 export default class SalesOrderForm extends NavigationMixin(LightningElement) {
@@ -43,6 +42,8 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   selectedCustomerId;
   shippingAddress = "";
   billingAddress = "";
+  selectedShippingAddress = "";
+  selectedBillingAddress = "";
   date = new Date().toISOString();
   salesRep1 = "";
   salesRep2 = "";
@@ -50,6 +51,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   memo = "";
   isLoading = false;
   locationOptions = [];
+  addressOptions = [];
   subsidiary = "";
   subsidiaryOptions = [];
   rows = [
@@ -212,12 +214,17 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   wiredCustomerData({ data, error }) {
     if (data && this.selectedCustomerId != null) {
       const companyName = getFieldValue(data, COMPANY_NAME);
+
       if (companyName) {
         const customerLookup = this.template.querySelector(
           'c-lookup-input[data-type="customer"]'
         );
         customerLookup?.setSelected(companyName);
       }
+
+      this.fetchCustomerAddresses({
+        nsCompanyId: this.selectedCustomerId
+      });
 
       const shippingContact = getFieldValue(data, SHIPPING_CONTACT);
       const shippingAddress1 = getFieldValue(data, SHIPPING_ADDR1);
@@ -278,6 +285,21 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     return !this.subsidiary;
   }
 
+  async fetchCustomerAddresses({ nsCompanyId }) {
+    if (!nsCompanyId) {
+      this.addressOptions = [{ label: "Select", value: "" }];
+      return;
+    }
+
+    try {
+      const addresses = await getCustomerAddresses({ nsCompanyId });
+      this.processPicklistWire({ data: addresses || [] }, "addressOptions");
+    } catch (error) {
+      this.addressOptions = [{ label: "Select", value: "" }];
+      console.error("Error fetching addressOptions:", error);
+    }
+  }
+
   async handleLookupSearch(e) {
     const type = e.target.dataset.type;
     const searchKey = e.detail.searchKey;
@@ -323,10 +345,10 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     const type = e.target.dataset.type;
 
     try {
-      if (type === "item") return this.handleItemSelect(e);
-      if (type === "customer") return this.handleCustomerSelect(e);
+      if (type === "item") this.handleItemSelect(e);
+      if (type === "customer") this.handleCustomerSelect(e);
       if (type === "salesRep1" || type === "salesRep2") {
-        return this.handleSalesRepSelect(e);
+        this.handleSalesRepSelect(e);
       }
     } catch (err) {
       console.error(err.name);
@@ -810,6 +832,8 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     this.selectedCustomerId = null;
     this.shippingAddress = "";
     this.billingAddress = "";
+    this.selectedShippingAddress = null;
+    this.selectedBillingAddress = null;
     this.date = new Date().toISOString();
     this.salesRep1 = "";
     this.salesRep2 = "";
