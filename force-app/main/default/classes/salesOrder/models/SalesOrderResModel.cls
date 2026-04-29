@@ -44,6 +44,14 @@ public with sharing class SalesOrderResModel {
   public class RecordRef {
     public String name;
     public String internalId;
+
+    public String getName() {
+      return this.name;
+    }
+
+    public String getInternalId() {
+      return this.internalId;
+    }
   }
 
   public class Address {

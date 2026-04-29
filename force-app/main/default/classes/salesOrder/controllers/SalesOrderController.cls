@@ -33,23 +33,12 @@ public with sharing class SalesOrderController {
 
   @AuraEnabled(cacheable=false)
   public static Id getOrder(String internalId) {
-    List<breadwinner_ns__BW_Sales_Order__c> orders = [
-      SELECT Id
-      FROM breadwinner_ns__BW_Sales_Order__c
-      WHERE breadwinner_ns__InternalId__c = :internalId
-      LIMIT 1
-    ];
-
-    if (orders.isEmpty()) {
-      return null;
-    }
-
-    return orders[0].Id;
+    return SalesOrderService.getOrder(internalId);
   }
 
   @AuraEnabled(cacheable=true)
   public static String getObjectName(Id recordId) {
-    return recordId.getSObjectType().getDescribe().getName();
+    return SalesOrderService.getObjectName(recordId);
   }
 
   @AuraEnabled(cacheable=false)

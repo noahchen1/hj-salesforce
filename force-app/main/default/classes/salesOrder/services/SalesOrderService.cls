@@ -56,7 +56,11 @@ public with sharing class SalesOrderService {
         'SoService.saveSalesOrder response: ' + JSON.serialize(response)
       );
 
-      return SalesOrderResHandler.handleApiResponse(response);
+      SalesOrderDataModel.SalesOrderData so = SalesOrderResHandler.handleResponse(
+        response
+      );
+
+      return so.internalId;
     } catch (Exception e) {
       System.debug(
         LoggingLevel.ERROR,
@@ -76,7 +80,7 @@ public with sharing class SalesOrderService {
       throw new AuraHandledException('Sales order Id is required.');
     }
 
-    breadwinner_ns__BW_Sales_Order__c orderRow = [
+    List<breadwinner_ns__BW_Sales_Order__c> orderRows = [
       SELECT breadwinner_ns__InternalId__c
       FROM breadwinner_ns__BW_Sales_Order__c
       WHERE Id = :salesOrderId
@@ -84,10 +88,13 @@ public with sharing class SalesOrderService {
     ];
 
     if (
-      orderRow == null || String.isBlank(orderRow.breadwinner_ns__InternalId__c)
+      orderRows.isEmpty() ||
+      String.isBlank(orderRows[0].breadwinner_ns__InternalId__c)
     ) {
       throw new AuraHandledException('Could not locate existing order.');
     }
+
+    breadwinner_ns__BW_Sales_Order__c orderRow = orderRows[0];
 
     String internalId = orderRow.breadwinner_ns__InternalId__c;
 
@@ -101,7 +108,7 @@ public with sharing class SalesOrderService {
 
     Map<String, Object> resp = NetSuiteClient.call(reqObj);
 
-    return SalesOrderResHandler.handleReadResponse(resp);
+    return SalesOrderResHandler.handleResponse(resp);
   }
 
   public static Map<String, Object> getNsCompanyFromAccount(Id accountId) {
@@ -122,5 +129,24 @@ public with sharing class SalesOrderService {
       'companyId' => nsCompany.Id,
       'internalId' => nsCompany.breadwinner_ns__InternalId__c
     };
+  }
+
+  public static String getObjectName(Id recordId) {
+    return recordId.getSObjectType().getDescribe().getName();
+  }
+
+  public static Id getOrder(String internalId) {
+    List<breadwinner_ns__BW_Sales_Order__c> orders = [
+      SELECT Id
+      FROM breadwinner_ns__BW_Sales_Order__c
+      WHERE breadwinner_ns__InternalId__c = :internalId
+      LIMIT 1
+    ];
+
+    if (orders.isEmpty()) {
+      return null;
+    }
+
+    return orders[0].Id;
   }
 }

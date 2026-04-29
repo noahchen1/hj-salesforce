@@ -41,4 +41,48 @@ public with sharing class SalesOrderValidator {
       );
     }
   }
+
+  public static void validateRawResponse(Map<String, Object> response) {
+    if (response == null) {
+      throw new AuraHandledException('No response returned from NetSuite.');
+    }
+
+    Boolean validRequest = (Boolean) response.get('validRequest');
+    if (validRequest == null || !validRequest) {
+      throw new AuraHandledException(
+        'Invalid request: NetSuite rejected the payload.'
+      );
+    }
+
+    String responseJsonStr = (String) response.get('responseJSON');
+    if (String.isBlank(responseJsonStr)) {
+      throw new AuraHandledException(
+        'NetSuite returned an empty response body.'
+      );
+    }
+  }
+
+  public static void validateTypedBody(
+    SalesOrderResModel.ResponseJson response
+  ) {
+    if (response == null) {
+      throw new AuraHandledException('Unable to parse NetSuite response.');
+    }
+
+    if (response.errors != null && !response.errors.isEmpty()) {
+      throw new AuraHandledException(
+        'NetSuite returned errors: ' + JSON.serialize(response.errors)
+      );
+    }
+
+    if (response.status != '200') {
+      throw new AuraHandledException(
+        'Unexpected response status: ' + response.status
+      );
+    }
+
+    if (response.salesOrders == null || response.salesOrders.isEmpty()) {
+      throw new AuraHandledException('No sales order returned in response.');
+    }
+  }
 }
