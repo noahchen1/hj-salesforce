@@ -50,6 +50,49 @@ export default class SalesOrderLineItems extends LightningElement {
     this.pendingItemNames = null;
   }
 
+  @api
+  getMappedRows(rows) {
+    const mappedRows = (rows || []).map((line, index) => {
+      const qty = line.quantity || "";
+      const rate = line.rate || "";
+      const amount = line.amount || "";
+      const itemName = line.itemName || "";
+      const isDiscount = itemName === "Store Discount";
+      const lineNum = line.line || "";
+
+      return {
+        id: index + 1,
+        item: line.item || "",
+        itemName,
+        quantity: isDiscount ? "" : qty,
+        rate,
+        amount,
+        line: lineNum,
+        isDiscount,
+        showAction: index === 0,
+        disableRemove: index === 0
+      };
+    });
+
+    return mappedRows;
+  }
+
+  renderedCallback() {
+    if (!this.pendingItemNames) return;
+
+    const itemLookups = this.template.querySelectorAll(
+      'c-lookup-input[data-type="item"]'
+    );
+
+    if (itemLookups.length < this.pendingItemNames.length) return;
+
+    itemLookups.forEach((lookup, index) => {
+      lookup.setSelected(this.pendingItemNames[index] || "");
+    });
+
+    this.pendingItemNames = null;
+  }
+
   @wire(getRecord, { recordId: "$selectedItemId", fields: [BASE_PRICE] })
   wiredItemRecord({ data, error }) {
     if (data && this.selectedItemRowIndex !== null) {

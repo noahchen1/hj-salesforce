@@ -79,6 +79,64 @@ export default class SalesOrderAddress extends LightningElement {
   shippingAddressState = { ...EMPTY_ADDRESS };
   billingAddressState = { ...EMPTY_ADDRESS };
 
+  @api
+  applyDefaults(defaultShipping, defaultBilling) {
+    this.selectedShippingAddress = defaultShipping || "";
+    this.selectedBillingAddress = defaultBilling || "";
+  }
+
+  @api
+  loadFromOrderData(data) {
+    this.shippingAddressState = {
+      ...EMPTY_ADDRESS,
+      ...(data.shippingAddress || {})
+    };
+    this.billingAddressState = {
+      ...EMPTY_ADDRESS,
+      ...(data.billingAddress || {})
+    };
+
+    this.shippingAddress = formatAddress({
+      contact: data.shippingAddress?.addressee,
+      addr1: data.shippingAddress?.addr1,
+      addr2: data.shippingAddress?.addr2,
+      addr3: data.shippingAddress?.addr3,
+      city: data.shippingAddress?.city,
+      state: data.shippingAddress?.state,
+      zip: data.shippingAddress?.zip,
+      country: data.shippingAddress?.country
+    });
+
+    this.billingAddress = formatAddress({
+      contact: data.billingAddress?.addressee,
+      addr1: data.billingAddress?.addr1,
+      addr2: data.billingAddress?.addr2,
+      addr3: data.billingAddress?.addr3,
+      city: data.billingAddress?.city,
+      state: data.billingAddress?.state,
+      zip: data.billingAddress?.zip,
+      country: data.billingAddress?.country
+    });
+  }
+
+  @api
+  getAddressState() {
+    return {
+      shippingAddressState: { ...this.shippingAddressState },
+      billingAddressState: { ...this.billingAddressState }
+    };
+  }
+
+  @api
+  reset() {
+    this.selectedShippingAddress = "";
+    this.selectedBillingAddress = "";
+    this.shippingAddress = "";
+    this.billingAddress = "";
+    this.shippingAddressState = { ...EMPTY_ADDRESS };
+    this.billingAddressState = { ...EMPTY_ADDRESS };
+  }
+
   @wire(getRecord, {
     recordId: "$selectedShippingAddress",
     fields: ADDRESS_FIELDS

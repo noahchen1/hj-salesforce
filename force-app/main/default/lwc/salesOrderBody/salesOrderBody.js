@@ -10,8 +10,6 @@ export default class SalesOrderBody extends LightningElement {
   @api location;
   @api memo;
 
-  pendingLookups = {};
-
   get isLocationDisabled() {
     return !this.subsidiary;
   }
@@ -22,29 +20,7 @@ export default class SalesOrderBody extends LightningElement {
       `c-lookup-input[data-type="${type}"]`
     );
 
-    if (lookup) {
-      lookup.setSelected(name);
-    } else {
-      this.pendingLookups[type] = name;
-    }
-  }
-
-  renderedCallback() {
-    const pending = Object.entries(this.pendingLookups);
-
-    if (!pending.length) return;
-
-    pending.forEach(([type, name]) => {
-      const lookup = this.template.querySelector(
-        `c-lookup-input[data-type="${type}"]`
-      );
-
-      if (lookup) {
-        lookup.setSelected(name);
-
-        delete this.pendingLookups[type];
-      }
-    });
+    if (lookup) lookup.setSelected(name);
   }
 
   async handleLookupSearch(e) {

@@ -14,6 +14,7 @@ import COMPANY_NAME from "@salesforce/schema/breadwinner_ns__BW_Company__c.Name"
 import getObjectName from "@salesforce/apex/SalesOrderController.getObjectName";
 import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNsCompanyFromAccount";
 import getCustomerAddresses from "@salesforce/apex/DropdownDataController.getCustomerAddresses";
+import { processPicklistData } from "c/salesOrderUtils";
 
 export default class SalesOrder extends LightningElement {
   @api recordId;
@@ -54,6 +55,17 @@ export default class SalesOrder extends LightningElement {
     );
   }
 
+  @wire(getSubsidiaryLocations, { subsidiary: "$subsidiary" })
+  handleLocations({ data, error }) {
+    if (error) {
+      console.error("Error fetching locationOptions:", error);
+      this.locationOptions = [{ label: "Select", value: "" }];
+      return;
+    }
+    const { options } = processPicklistData(data);
+    this.locationOptions = options;
+  }
+
   @wire(getObjectName, { recordId: "$recordId" })
   handleObjName({ data, error }) {
     if (data) {
@@ -92,8 +104,8 @@ export default class SalesOrder extends LightningElement {
         getEmployeeData({ userId: USER_ID })
       ]);
 
-      this.processPicklistWire({ data: subsidiaries }, "locationOptions");
-      this.subsidiaryOptions = subsidiaries;
+      const { options: subOptions } = processPicklistData(subsidiaries);
+      this.subsidiaryOptions = subOptions;
 
       this.subsidiary = emp.subsidiaryId || "";
       this.location = emp.locationId || "";
@@ -108,7 +120,8 @@ export default class SalesOrder extends LightningElement {
           subsidiary: this.subsidiary
         });
 
-        this.processPicklistWire({ data: locations }, "locationOptions");
+        const { options: locOptions } = processPicklistData(locations);
+        this.locationOptions = locOptions;
 
         if (!this.locationOptions.some((opt) => opt.value === this.location)) {
           this.location = "";
@@ -152,25 +165,6 @@ export default class SalesOrder extends LightningElement {
   async saveOrder() {
     if (this.isLoading) return;
 
-    console.log(
-      "SalesOrder state",
-      JSON.stringify({
-        internalId: this.internalId,
-        customer: this.customer,
-        selectedCustomerId: this.selectedCustomerId,
-        date: this.date,
-        salesRep1: this.salesRep1,
-        salesRep2: this.salesRep2,
-        location: this.location,
-        memo: this.memo,
-        subsidiary: this.subsidiary,
-        isLoading: this.isLoading,
-        locationOptions: this.locationOptions,
-        addressOptions: this.addressOptions,
-        subsidiaryOptions: this.subsidiaryOptions
-      })
-    );
-
     this.isLoading = true;
     const isUpdate = Boolean(this.internalId);
 
@@ -197,29 +191,32 @@ export default class SalesOrder extends LightningElement {
         lineItemsJson: JSON.stringify(rows)
       };
 
-      console.log("saveSalesOrder payload:", payload);
+      console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
-      const internalId = await saveSalesOrder(payload);
+      // const internalId = await saveSalesOrder(payload);
 
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: "Order Saved",
-          message: `Order ${isUpdate ? "updated" : "created"} successfully. Internal ID: ${internalId}`,
-          variant: "success"
-        })
-      );
+      // this.dispatchEvent(
+      //   new ShowToastEvent({
+      //     title: "Order Saved",
+      //     message: `Order ${isUpdate ? "updated" : "created"} successfully. Internal ID: ${internalId}`,
+      //     variant: "success"
+      //   })
+      // );
 
-      this.internalId = internalId;
+      // this.internalId = internalId;
 
-      const recordId = await getOrder({ internalId });
-      if (recordId) {
-        this[NavigationMixin.Navigate]({
-          type: "standard__recordPage",
-          attributes: { recordId, actionName: "view" }
-        });
-      }
+      // const recordId = await getOrder({ internalId });
+      // if (recordId) {
+      //   this[NavigationMixin.Navigate]({
+      //     type: "standard__recordPage",
+      //     attributes: { recordId, actionName: "view" }
+      //   });
+      // }
     } catch (err) {
-      console.error("saveOrder failed", err);
+      console.error("saveOrder failed");
+      console.error(err.name);
+      console.error(err.message);
+      console.error(err.stack);
       LightningAlert.open({
         label: "Error!",
         message: `Order was not saved, cause: ${err?.body?.message}`,
@@ -247,32 +244,8 @@ export default class SalesOrder extends LightningElement {
       this.subsidiary = data.subsidiaryNsId || "";
       this.location = data.locationNsId || "";
 
-      // Populate address section from saved order data
       this.addressSection?.loadFromOrderData(data);
-
-      // Map and load line items
-      const mappedRows = (data.lineItems || []).map((line, index) => {
-        const qty = line.quantity || "";
-        const rate = line.rate || "";
-        const amount = line.amount || "";
-        const itemName = line.itemName || "";
-        const isDiscount = itemName === "Store Discount";
-        const lineNum = line.line || "";
-
-        return {
-          id: index + 1,
-          item: line.item || "",
-          itemName,
-          quantity: isDiscount ? "" : qty,
-          rate,
-          amount,
-          line: lineNum,
-          isDiscount,
-          showAction: index === 0,
-          disableRemove: index === 0
-        };
-      });
-
+      const mappedRows = this.lineItems?.getMappedRows(data.lineItems);
       const itemNames = mappedRows.map((row) => row.itemName || "");
       this.lineItems?.loadRows(mappedRows, itemNames);
 
@@ -287,7 +260,10 @@ export default class SalesOrder extends LightningElement {
       this.header?.setLookupValue("salesRep1", data.salesRep1Name || "");
       this.header?.setLookupValue("salesRep2", data.salesRep2Name || "");
     } catch (error) {
-      console.error("Failed to load existing sales order", error);
+      console.error("Failed to load existing sales order");
+      console.error(error.name);
+      console.error(error.message);
+      console.error(error.stack);
     } finally {
       this.isLoading = false;
     }
@@ -318,22 +294,25 @@ export default class SalesOrder extends LightningElement {
     }
   };
 
-  async fetchCustomerAddresses({ nsCompanyId }) {
+  async fetchCustomerAddresses({ nsCompanyId, skipSelection }) {
     if (!nsCompanyId) {
       this.addressOptions = [{ label: "Select", value: "" }];
+
       return;
     }
 
     try {
       const addresses = await getCustomerAddresses({ nsCompanyId });
+      const { options, defaultShipping, defaultBilling } = processPicklistData(
+        addresses || [],
+        true
+      );
 
-      this.processPicklistWire({ data: addresses || [] }, "addressOptions");
+      this.addressOptions = options;
 
-      // this.addressOptions = options;
-
-      // if (!skipSelection) {
-      //   this._addressSection?.applyDefaults(defaultShipping, defaultBilling);
-      // }
+      if (!skipSelection) {
+        this.addressSection?.applyDefaults(defaultShipping, defaultBilling);
+      }
     } catch (error) {
       this.addressOptions = [{ label: "Select", value: "" }];
       console.error("Error fetching addressOptions:", error);
