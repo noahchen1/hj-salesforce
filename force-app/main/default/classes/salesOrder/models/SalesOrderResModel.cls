@@ -1,8 +1,16 @@
 public with sharing class SalesOrderResModel {
   public class ResponseJson {
     public String status;
-    public List<Object> errors;
+    public List<ErrorDetail> errors;
     public List<SalesOrder> salesOrders;
+  }
+
+  public class ErrorDetail {
+    public String code;
+    public String message;
+    public String detail;
+    public String field;
+    public String type;
   }
 
   public class SalesOrder {

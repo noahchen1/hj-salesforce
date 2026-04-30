@@ -1,7 +1,7 @@
 public with sharing class SalesOrderService {
   public static String saveSalesOrder(
-    String internalId,
-    String customer,
+    String soNsInternalId,
+    String custNsInternalId,
     Date orderDate,
     String salesRep1,
     String salesRep2,
@@ -14,7 +14,7 @@ public with sharing class SalesOrderService {
   ) {
     try {
       SalesOrderValidator.validateParams(
-        customer,
+        custNsInternalId,
         orderDate,
         salesRep1,
         subsidiary,
@@ -22,7 +22,7 @@ public with sharing class SalesOrderService {
         lineItemsJson
       );
 
-      Boolean isUpdate = String.isNotBlank(internalId);
+      Boolean isUpdate = String.isNotBlank(soNsInternalId);
 
       List<SalesOrderDataModel.LineItem> lineItems = SalesOrderMapper.deserializeLineItems(
         lineItemsJson
@@ -37,8 +37,8 @@ public with sharing class SalesOrderService {
       );
 
       Map<String, Object> salesOrderRequest = SalesOrderPayloadBuilder.buildSaveRequest(
-        internalId,
-        customer,
+        soNsInternalId,
+        custNsInternalId,
         orderDate,
         salesRep1,
         salesRep2,
@@ -72,7 +72,7 @@ public with sharing class SalesOrderService {
         response
       );
 
-      return so.internalId;
+      return so.soNsInternalId;
     } catch (Exception e) {
       System.debug(
         LoggingLevel.ERROR,
@@ -108,10 +108,10 @@ public with sharing class SalesOrderService {
 
     breadwinner_ns__BW_Sales_Order__c orderRow = orderRows[0];
 
-    String internalId = orderRow.breadwinner_ns__InternalId__c;
+    String soNsInternalId = orderRow.breadwinner_ns__InternalId__c;
 
     Map<String, Object> requestJSONMap = SalesOrderPayloadBuilder.buildReadRequest(
-      internalId
+      soNsInternalId
     );
 
     Map<String, Object> reqObj = SalesOrderPayloadBuilder.buildReadPayload(
@@ -147,11 +147,11 @@ public with sharing class SalesOrderService {
     return recordId.getSObjectType().getDescribe().getName();
   }
 
-  public static Id getOrder(String internalId) {
+  public static Id getOrder(String soNsInternalId) {
     List<breadwinner_ns__BW_Sales_Order__c> orders = [
       SELECT Id
       FROM breadwinner_ns__BW_Sales_Order__c
-      WHERE breadwinner_ns__InternalId__c = :internalId
+      WHERE breadwinner_ns__InternalId__c = :soNsInternalId
       LIMIT 1
     ];
 

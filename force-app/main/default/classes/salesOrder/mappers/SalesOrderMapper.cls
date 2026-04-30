@@ -30,7 +30,7 @@ public with sharing class SalesOrderMapper {
   ) {
     SalesOrderDataModel.SalesOrderData result = new SalesOrderDataModel.SalesOrderData();
 
-    result.internalId = so.internalId;
+    result.soNsInternalId = so.internalId;
     result.orderDate = Helpers.toDateOnlyFromUnixSeconds(so.tranDate);
     result.memo = so.memo;
 

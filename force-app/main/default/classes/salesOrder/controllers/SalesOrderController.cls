@@ -1,8 +1,8 @@
 public with sharing class SalesOrderController {
   @AuraEnabled
   public static String saveSalesOrder(
-    String internalId,
-    String customer,
+    String soNsInternalId,
+    String custNsInternalId,
     Date orderDate,
     String salesRep1,
     String salesRep2,
@@ -14,8 +14,8 @@ public with sharing class SalesOrderController {
     String lineItemsJson
   ) {
     return SalesOrderService.saveSalesOrder(
-      internalId,
-      customer,
+      soNsInternalId,
+      custNsInternalId,
       orderDate,
       salesRep1,
       salesRep2,
@@ -36,8 +36,8 @@ public with sharing class SalesOrderController {
   }
 
   @AuraEnabled(cacheable=false)
-  public static Id getOrder(String internalId) {
-    return SalesOrderService.getOrder(internalId);
+  public static Id getOrder(String soNsInternalId) {
+    return SalesOrderService.getOrder(soNsInternalId);
   }
 
   @AuraEnabled(cacheable=true)

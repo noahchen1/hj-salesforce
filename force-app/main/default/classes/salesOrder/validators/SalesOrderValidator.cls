@@ -1,6 +1,6 @@
 public with sharing class SalesOrderValidator {
   public static void validateParams(
-    String customer,
+    String custNsInternalId,
     Date orderDate,
     String salesRep1,
     String subsidiary,
@@ -8,7 +8,7 @@ public with sharing class SalesOrderValidator {
     String lineItemsJson
   ) {
     if (
-      String.isBlank(customer) ||
+      String.isBlank(custNsInternalId) ||
       orderDate == null ||
       String.isBlank(salesRep1) ||
       String.isBlank(subsidiary) ||

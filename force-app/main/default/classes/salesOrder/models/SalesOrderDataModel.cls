@@ -1,7 +1,7 @@
 public with sharing class SalesOrderDataModel {
   public class SalesOrderData {
     @AuraEnabled
-    public String internalId;
+    public String soNsInternalId;
     @AuraEnabled
     public Id nsCompanyId;
     @AuraEnabled

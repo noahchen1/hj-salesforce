@@ -16,12 +16,12 @@ import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNs
 import getCustomerAddresses from "@salesforce/apex/DropdownDataController.getCustomerAddresses";
 import { processPicklistData } from "c/salesOrderUtils";
 
-export default class SalesOrder extends LightningElement {
+export default class SalesOrder extends NavigationMixin(LightningElement) {
   @api recordId;
 
-  internalId;
-  customer = "";
-  selectedCustomerId;
+  soNsInternalId;
+  custNsInternalId = "";
+  selectedNsCompanyId;
   date = new Date().toISOString();
   salesRep1 = "";
   salesRep2 = "";
@@ -47,7 +47,7 @@ export default class SalesOrder extends LightningElement {
 
   get showTableOverlay() {
     return !(
-      this.customer &&
+      this.custNsInternalId &&
       this.salesRep1 &&
       this.subsidiary &&
       this.location &&
@@ -80,16 +80,16 @@ export default class SalesOrder extends LightningElement {
     }
   }
 
-  @wire(getRecord, { recordId: "$selectedCustomerId", fields: [COMPANY_NAME] })
+  @wire(getRecord, { recordId: "$selectedNsCompanyId", fields: [COMPANY_NAME] })
   wiredCustomerData({ data, error }) {
-    if (data && this.selectedCustomerId != null) {
+    if (data && this.selectedNsCompanyId != null) {
       const companyName = getFieldValue(data, COMPANY_NAME);
 
       if (companyName) {
         this.header?.setLookupValue("customer", companyName);
       }
 
-      this.fetchCustomerAddresses({ nsCompanyId: this.selectedCustomerId });
+      this.fetchCustomerAddresses({ nsCompanyId: this.selectedNsCompanyId });
     } else {
       // this._addressSection?.reset();
 
@@ -99,6 +99,8 @@ export default class SalesOrder extends LightningElement {
 
   async connectedCallback() {
     try {
+      this.isLoading = true;
+
       const [subsidiaries, emp] = await Promise.all([
         getSubsidiaries(),
         getEmployeeData({ userId: USER_ID })
@@ -129,12 +131,14 @@ export default class SalesOrder extends LightningElement {
       }
     } catch (error) {
       console.error("Init failed:", error);
+    } finally {
+      this.isLoading = false;
     }
   }
 
   handleCustomerSelect(e) {
-    this.selectedCustomerId = e.detail.id;
-    this.customer = e.detail.nsId;
+    this.selectedNsCompanyId = e.detail.id;
+    this.custNsInternalId = e.detail.nsId;
   }
 
   handleSalesRepSelect(e) {
@@ -148,7 +152,7 @@ export default class SalesOrder extends LightningElement {
   handleHeaderFieldClear(e) {
     const field = e.detail.field;
     if (field === "customer") {
-      this.customer = "";
+      this.custNsInternalId = "";
     } else {
       this[field] = "";
     }
@@ -166,7 +170,7 @@ export default class SalesOrder extends LightningElement {
     if (this.isLoading) return;
 
     this.isLoading = true;
-    const isUpdate = Boolean(this.internalId);
+    const isUpdate = Boolean(this.soNsInternalId);
 
     try {
       const { shippingAddressState, billingAddressState } =
@@ -178,8 +182,8 @@ export default class SalesOrder extends LightningElement {
       const rows = this.lineItems?.getRows() ?? [];
 
       const payload = {
-        internalId: this.internalId,
-        customer: this.customer,
+        soNsInternalId: this.soNsInternalId,
+        custNsInternalId: this.custNsInternalId,
         orderDate: this.date,
         salesRep1: this.salesRep1,
         salesRep2: this.salesRep2,
@@ -193,25 +197,26 @@ export default class SalesOrder extends LightningElement {
 
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
-      // const internalId = await saveSalesOrder(payload);
+      const soNsInternalId = await saveSalesOrder(payload);
 
-      // this.dispatchEvent(
-      //   new ShowToastEvent({
-      //     title: "Order Saved",
-      //     message: `Order ${isUpdate ? "updated" : "created"} successfully. Internal ID: ${internalId}`,
-      //     variant: "success"
-      //   })
-      // );
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Order Saved",
+          message: `Order ${isUpdate ? "updated" : "created"} successfully. Internal ID: ${soNsInternalId}`,
+          variant: "success"
+        })
+      );
 
-      // this.internalId = internalId;
+      this.soNsInternalId = soNsInternalId;
 
-      // const recordId = await getOrder({ internalId });
-      // if (recordId) {
-      //   this[NavigationMixin.Navigate]({
-      //     type: "standard__recordPage",
-      //     attributes: { recordId, actionName: "view" }
-      //   });
-      // }
+      const recordId = await getOrder({ soNsInternalId });
+
+      if (recordId) {
+        this[NavigationMixin.Navigate]({
+          type: "standard__recordPage",
+          attributes: { recordId, actionName: "view" }
+        });
+      }
     } catch (err) {
       console.error("saveOrder failed");
       console.error(err.name);
@@ -235,8 +240,8 @@ export default class SalesOrder extends LightningElement {
 
       console.log(data);
 
-      this.internalId = data.internalId || this.internalId;
-      this.customer = data.customerNsId || "";
+      this.soNsInternalId = data.soNsInternalId || this.soNsInternalId;
+      this.custNsInternalId = data.customerNsId || "";
       this.date = data.orderDate || this.date;
       this.salesRep1 = data.salesRep1NsId || "";
       this.salesRep2 = data.salesRep2NsId || "";
@@ -249,13 +254,11 @@ export default class SalesOrder extends LightningElement {
       const itemNames = mappedRows.map((row) => row.itemName || "");
       this.lineItems?.loadRows(mappedRows, itemNames);
 
-      // Fetch address dropdown options without auto-selecting defaults
       await this.fetchCustomerAddresses({
         nsCompanyId: data.nsCompanyId,
         skipSelection: true
       });
 
-      // Restore lookup display labels
       this.header?.setLookupValue("customer", data.customerName || "");
       this.header?.setLookupValue("salesRep1", data.salesRep1Name || "");
       this.header?.setLookupValue("salesRep2", data.salesRep2Name || "");
@@ -284,8 +287,8 @@ export default class SalesOrder extends LightningElement {
     try {
       const nsCompanyData = await getNsCompanyFromAccount({ accountId });
       if (nsCompanyData) {
-        this.selectedCustomerId = nsCompanyData.companyId;
-        this.customer = nsCompanyData.internalId;
+        this.selectedNsCompanyId = nsCompanyData.companyId;
+        this.custNsInternalId = nsCompanyData.internalId;
       }
     } catch (error) {
       console.error("Error fetching NS company from account", error);

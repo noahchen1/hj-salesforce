@@ -35,7 +35,7 @@ import COUNTRY from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinne
 
 export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   @api recordId;
-  internalId;
+  soNsInternalId;
   customer = "";
   selectedCustomerId;
   shippingAddress = "";
@@ -706,11 +706,11 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
     }
 
     this.isLoading = true;
-    const isUpdate = Boolean(this.internalId);
+    const isUpdate = Boolean(this.soNsInternalId);
 
     try {
       const payload = {
-        internalId: this.internalId,
+        soNsInternalId: this.soNsInternalId,
         customer: this.customer,
         orderDate: this.date,
         salesRep1: this.salesRep1,
@@ -736,19 +736,19 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
         )
       );
 
-      const internalId = await saveSalesOrder(payload);
+      const soNsInternalId = await saveSalesOrder(payload);
 
       this.dispatchEvent(
         new ShowToastEvent({
           title: "Order Saved",
-          message: `Order ${isUpdate ? "updated" : "created"} successfully. Internal ID: ${internalId}`,
+          message: `Order ${isUpdate ? "updated" : "created"} successfully. Internal ID: ${soNsInternalId}`,
           variant: "success"
         })
       );
 
-      this.internalId = internalId;
+      this.soNsInternalId = soNsInternalId;
 
-      const recordId = await getOrder({ internalId });
+      const recordId = await getOrder({ soNsInternalId });
 
       if (recordId) {
         this[NavigationMixin.Navigate]({
@@ -836,7 +836,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
 
       console.log(data);
 
-      this.internalId = data.internalId || this.internalId;
+      this.soNsInternalId = data.soNsInternalId || this.soNsInternalId;
       // this.selectedCustomerId = data.nsCompanyId || null;
       this.customer = data.customerNsId || "";
       this.date = data.orderDate || this.date;
@@ -975,7 +975,7 @@ export default class SalesOrderForm extends NavigationMixin(LightningElement) {
   }
 
   resetForm() {
-    this.internalId = null;
+    this.soNsInternalId = null;
     this.customer = "";
     this.selectedCustomerId = null;
     this.shippingAddress = "";

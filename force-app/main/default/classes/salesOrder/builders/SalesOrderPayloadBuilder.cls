@@ -1,7 +1,7 @@
 public with sharing class SalesOrderPayloadBuilder {
   public static Map<String, Object> buildSaveRequest(
-    String internalId,
-    String customer,
+    String soNsInternalId,
+    String custNsInternalId,
     Date orderDate,
     String salesRep1,
     String salesRep2,
@@ -16,27 +16,35 @@ public with sharing class SalesOrderPayloadBuilder {
     Map<String, Object> requestMap = new Map<String, Object>();
 
     requestMap.put('customForm', lookupByInternalId('115'));
-    requestMap.put('entity', lookupByInternalId(customer));
+    requestMap.put('entity', lookupByInternalId(custNsInternalId));
     requestMap.put('salesRep', lookupByInternalId(salesRep1));
     requestMap.put('subsidiary', lookupByInternalId(subsidiary));
     requestMap.put('location', lookupByInternalId(location));
     requestMap.put('tranDate', Helpers.toUnixSeconds(orderDate));
 
-    if (String.isNotBlank(internalId)) {
-      requestMap.put('internalId', internalId);
+    if (String.isNotBlank(soNsInternalId)) {
+      requestMap.put('internalId', soNsInternalId);
     }
 
     if (String.isNotBlank(memo)) {
       requestMap.put('memo', memo);
     }
 
-    // if (shippingAddress != null) {
-    //   requestMap.put('shippingAddress', buildAddress(shippingAddress));
-    // }
+    Map<String, Object> shippingAddressDetails = buildAddressDetails(
+      shippingAddress
+    );
 
-    // if (billingAddress != null) {
-    //   requestMap.put('billingAddress', buildAddress(billingAddress));
-    // }
+    if (!shippingAddressDetails.isEmpty()) {
+      requestMap.put('shippingAddress', shippingAddressDetails);
+    }
+
+    Map<String, Object> billingAddressDetails = buildAddressDetails(
+      billingAddress
+    );
+
+    if (!billingAddressDetails.isEmpty()) {
+      requestMap.put('billingAddress', billingAddressDetails);
+    }
 
     requestMap.put(
       'customFieldList',
@@ -81,9 +89,9 @@ public with sharing class SalesOrderPayloadBuilder {
         };
   }
 
-  public static Map<String, Object> buildReadRequest(String internalId) {
+  public static Map<String, Object> buildReadRequest(String soNsInternalId) {
     Map<String, Object> filters = new Map<String, Object>{
-      'internalId' => internalId
+      'internalId' => soNsInternalId
     };
 
     Map<String, Object> filterMap = new Map<String, Object>{
@@ -165,5 +173,37 @@ public with sharing class SalesOrderPayloadBuilder {
     }
 
     return items;
+  }
+
+  private static Map<String, Object> buildAddressDetails(
+    SalesOrderDataModel.Address address
+  ) {
+    Map<String, Object> addressDetails = new Map<String, Object>();
+
+    if (address == null) {
+      return addressDetails;
+    }
+
+    putIfNotBlank(addressDetails, 'attention', address.attention);
+    putIfNotBlank(addressDetails, 'addressee', address.addressee);
+    putIfNotBlank(addressDetails, 'addr1', address.addr1);
+    putIfNotBlank(addressDetails, 'addr2', address.addr2);
+    putIfNotBlank(addressDetails, 'addr3', address.addr3);
+    putIfNotBlank(addressDetails, 'city', address.city);
+    putIfNotBlank(addressDetails, 'state', address.state);
+    putIfNotBlank(addressDetails, 'country', address.country);
+    putIfNotBlank(addressDetails, 'zip', address.zip);
+
+    return addressDetails;
+  }
+
+  private static void putIfNotBlank(
+    Map<String, Object> target,
+    String key,
+    String value
+  ) {
+    if (String.isNotBlank(value)) {
+      target.put(key, value);
+    }
   }
 }
