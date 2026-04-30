@@ -1,0 +1,45 @@
+<template>
+  <lightning-card>
+    <div class="main-container">
+      <div if:true={isLoading} class="spinner-container">
+        <lightning-spinner
+          alternative-text="Loading..."
+          size="medium"
+        ></lightning-spinner>
+      </div>
+      <div class="title">Sales Order Form</div>
+
+      <div class="btn-container">
+        <lightning-button
+          label="Save"
+          variant="brand"
+          onclick={saveOrder}
+          disabled={isLoading}
+        ></lightning-button>
+      </div>
+
+      <c-sales-order-body
+        subsidiary-options={subsidiaryOptions}
+        location-options={locationOptions}
+        date={date}
+        subsidiary={subsidiary}
+        location={location}
+        memo={memo}
+        oncustomerselect={handleCustomerSelect}
+        onsalesrepselect={handleSalesRepSelect}
+        onfieldchange={handleHeaderFieldChange}
+        onfieldclear={handleHeaderFieldClear}
+        oncomboboxchange={handleHeaderComboboxChange}
+      ></c-sales-order-body>
+
+      <c-sales-order-address
+        address-options={addressOptions}
+      ></c-sales-order-address>
+
+      <c-sales-order-line-items
+        location={location}
+        disabled={showTableOverlay}
+      ></c-sales-order-line-items>
+    </div>
+  </lightning-card>
+</template>
