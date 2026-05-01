@@ -161,4 +161,38 @@ public with sharing class SalesOrderService {
 
     return orders[0].Id;
   }
+
+  public static void notifyOrderStatus(
+    Boolean isSuccess,
+    String soNsInternalId,
+    Id orderRecordId,
+    String errorMessage
+  ) {
+    List<CustomNotificationType> notificationTypes = [
+      SELECT Id
+      FROM CustomNotificationType
+      WHERE DeveloperName = 'Sales_Order_Save_Status'
+      LIMIT 1
+    ];
+
+    if (notificationTypes.isEmpty()) {
+      return;
+    }
+
+    String status = isSuccess ? 'Saved' : 'Failed';
+    String body = isSuccess
+      ? 'Sales order ' + status + '. Internal ID: ' + soNsInternalId
+      : 'Sales order ' + status + '. ' + errorMessage;
+
+    Messaging.CustomNotification notification = new Messaging.CustomNotification();
+    notification.setTitle('Sales Order Save ' + status);
+    notification.setBody(body);
+    notification.setNotificationTypeId(notificationTypes[0].Id);
+
+    if (orderRecordId != null) {
+      notification.setTargetId(orderRecordId);
+    }
+
+    notification.send(new Set<String>{ UserInfo.getUserId() });
+  }
 }

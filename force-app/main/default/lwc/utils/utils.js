@@ -209,7 +209,8 @@ const COUNTRY_ENUM_MAP = {
   _solomonIslands: "Solomon Islands",
   _somalia: "Somalia",
   _southAfrica: "South Africa",
-  _southGeorgiaAndTheSouthSandwichIslands: "South Georgia and the South Sandwich Islands",
+  _southGeorgiaAndTheSouthSandwichIslands:
+    "South Georgia and the South Sandwich Islands",
   _southSudan: "South Sudan",
   _spain: "Spain",
   _sriLanka: "Sri Lanka",
@@ -253,8 +254,31 @@ const COUNTRY_ENUM_MAP = {
   _zimbabwe: "Zimbabwe"
 };
 
+const COUNTRY_LABEL_TO_ENUM_MAP = Object.entries(COUNTRY_ENUM_MAP).reduce(
+  (acc, [countryEnum, countryLabel]) => {
+    acc[countryLabel.toLowerCase()] = countryEnum;
+    return acc;
+  },
+  {}
+);
+
 function formatCountry(countryEnum) {
   return COUNTRY_ENUM_MAP[countryEnum] ?? countryEnum;
+}
+
+export function toCountryEnum(countryValue) {
+  if (!countryValue) {
+    return "";
+  }
+
+  if (COUNTRY_ENUM_MAP[countryValue]) {
+    return countryValue;
+  }
+
+  return (
+    COUNTRY_LABEL_TO_ENUM_MAP[String(countryValue).toLowerCase()] ||
+    countryValue
+  );
 }
 
 export function formatAddress({
@@ -270,5 +294,7 @@ export function formatAddress({
   const cityStateZip = [city, state, zip].filter(Boolean).join(", ");
   const countryDisplay = country ? formatCountry(country) : null;
 
-  return [contact, street, cityStateZip, countryDisplay].filter(Boolean).join("\n");
+  return [contact, street, cityStateZip, countryDisplay]
+    .filter(Boolean)
+    .join("\n");
 }

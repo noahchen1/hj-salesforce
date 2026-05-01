@@ -40,6 +40,21 @@ public with sharing class SalesOrderController {
     return SalesOrderService.getOrder(soNsInternalId);
   }
 
+  @AuraEnabled
+  public static void notifyOrderSaveStatus(
+    Boolean isSuccess,
+    String soNsInternalId,
+    Id orderRecordId,
+    String errorMessage
+  ) {
+    SalesOrderService.notifyOrderStatus(
+      isSuccess,
+      soNsInternalId,
+      orderRecordId,
+      errorMessage
+    );
+  }
+
   @AuraEnabled(cacheable=true)
   public static String getObjectName(Id recordId) {
     return SalesOrderService.getObjectName(recordId);

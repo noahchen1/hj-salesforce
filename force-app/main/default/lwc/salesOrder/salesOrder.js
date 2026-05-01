@@ -8,12 +8,14 @@ import getOrderData from "@salesforce/apex/SalesOrderController.getOrderData";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 import LightningAlert from "lightning/alert";
+import LightningConfirm from "lightning/confirm";
 import getEmployeeData from "@salesforce/apex/DataService.getEmployeeData";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import COMPANY_NAME from "@salesforce/schema/breadwinner_ns__BW_Company__c.Name";
 import getObjectName from "@salesforce/apex/SalesOrderController.getObjectName";
 import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNsCompanyFromAccount";
 import getCustomerAddresses from "@salesforce/apex/DropdownDataController.getCustomerAddresses";
+import notifyOrderSaveStatus from "@salesforce/apex/SalesOrderController.notifyOrderSaveStatus";
 import { processPicklistData } from "c/salesOrderUtils";
 
 export default class SalesOrder extends NavigationMixin(LightningElement) {
@@ -170,6 +172,82 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     if (this.isLoading) return;
 
     this.isLoading = true;
+    const savePromise = this.executeSave();
+
+    const navigateAway = await LightningConfirm.open({
+      label: "Save Order",
+      message:
+        "Would you like to go back to the account while the order saves in the background?",
+      theme: "default"
+    });
+
+    if (navigateAway) {
+      this.isLoading = false;
+
+      this[NavigationMixin.Navigate]({
+        type: "standard__recordPage",
+        attributes: { recordId: this.recordId, actionName: "view" }
+      });
+
+      try {
+        const { soNsInternalId, orderRecordId } = await savePromise;
+
+        await notifyOrderSaveStatus({
+          isSuccess: true,
+          soNsInternalId,
+          orderRecordId,
+          errorMessage: null
+        });
+      } catch (error) {
+        console.error("saveOrder failed");
+        console.error(err.name);
+        console.error(err.message);
+        console.error(err.stack);
+
+        await notifyOrderSaveStatus({
+          isSuccess: false,
+          soNsInternalId: null,
+          orderRecordId: null,
+          errorMessage: err?.body?.message || err?.message || "Unknown error"
+        });
+      }
+
+      return;
+    }
+
+    try {
+      const { soNsInternalId, orderRecordId, isUpdate } = await savePromise;
+
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Order Saved",
+          message: `Order ${isUpdate ? "updated" : "created"} successfully. Internal ID: ${soNsInternalId}`,
+          variant: "success"
+        })
+      );
+
+      if (orderRecordId) {
+        this[NavigationMixin.Navigate]({
+          type: "standard__recordPage",
+          attributes: { recordId: orderRecordId, actionName: "view" }
+        });
+      }
+    } catch (err) {
+      console.error("saveOrder failed");
+      console.error(err.name);
+      console.error(err.message);
+      console.error(err.stack);
+      LightningAlert.open({
+        label: "Error!",
+        message: `Order was not saved, cause: ${err?.body?.message || err?.message}`,
+        theme: "error"
+      });
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async executeSave() {
     const isUpdate = Boolean(this.soNsInternalId);
 
     try {
@@ -180,7 +258,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         };
 
       const rows = this.lineItems?.getRows() ?? [];
-
       const payload = {
         soNsInternalId: this.soNsInternalId,
         custNsInternalId: this.custNsInternalId,
@@ -198,37 +275,13 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
       const soNsInternalId = await saveSalesOrder(payload);
-
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: "Order Saved",
-          message: `Order ${isUpdate ? "updated" : "created"} successfully. Internal ID: ${soNsInternalId}`,
-          variant: "success"
-        })
-      );
-
       this.soNsInternalId = soNsInternalId;
 
-      const recordId = await getOrder({ soNsInternalId });
+      const orderRecordId = await getOrder({ soNsInternalId });
 
-      if (recordId) {
-        this[NavigationMixin.Navigate]({
-          type: "standard__recordPage",
-          attributes: { recordId, actionName: "view" }
-        });
-      }
+      return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
-      console.error("saveOrder failed");
-      console.error(err.name);
-      console.error(err.message);
-      console.error(err.stack);
-      LightningAlert.open({
-        label: "Error!",
-        message: `Order was not saved, cause: ${err?.body?.message}`,
-        theme: "error"
-      });
-    } finally {
-      this.isLoading = false;
+      throw err;
     }
   }
 

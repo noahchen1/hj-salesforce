@@ -1,6 +1,6 @@
 import { LightningElement, api, wire } from "lwc";
 import { getRecord, getFieldValue } from "lightning/uiRecordApi";
-import { formatAddress } from "c/utils";
+import { formatAddress, toCountryEnum } from "c/utils";
 
 import ADDRESS_INTERNAL_ID from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__InternalId__c";
 import ADDRESS_TEXT from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__AddrText__c";
@@ -52,7 +52,7 @@ function buildStateFromRecord(data) {
     city: getFieldValue(data, CITY),
     state: getFieldValue(data, STATE),
     zip: getFieldValue(data, ZIP),
-    country: getFieldValue(data, COUNTRY)
+    country: toCountryEnum(getFieldValue(data, COUNTRY))
   };
 }
 
@@ -89,11 +89,13 @@ export default class SalesOrderAddress extends LightningElement {
   loadFromOrderData(data) {
     this.shippingAddressState = {
       ...EMPTY_ADDRESS,
-      ...(data.shippingAddress || {})
+      ...(data.shippingAddress || {}),
+      country: toCountryEnum(data.shippingAddress?.country)
     };
     this.billingAddressState = {
       ...EMPTY_ADDRESS,
-      ...(data.billingAddress || {})
+      ...(data.billingAddress || {}),
+      country: toCountryEnum(data.billingAddress?.country)
     };
 
     this.shippingAddress = formatAddress({
