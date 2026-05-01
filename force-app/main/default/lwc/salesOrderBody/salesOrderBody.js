@@ -9,9 +9,32 @@ export default class SalesOrderBody extends LightningElement {
   @api subsidiary;
   @api location;
   @api memo;
+  @api orderType;
+  @api specialDate;
+  @api needByDate;
 
   get isLocationDisabled() {
     return !this.subsidiary;
+  }
+
+  get orderTypeOptions() {
+    return [
+      { label: "Sales Order", value: "sales" },
+      { label: "Special Order", value: "special" },
+      { label: "Repair Order", value: "repair" }
+    ];
+  }
+
+  get isSalesOrder() {
+    return this.orderType === "sales";
+  }
+
+  get isSpecialOrder() {
+    return this.orderType === "special";
+  }
+
+  get isRepairOrder() {
+    return this.orderType === "repair";
   }
 
   @api

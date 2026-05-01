@@ -1,56 +1,140 @@
 <template>
   <div class="form-body">
-    <c-lookup-input
-      data-type="customer"
-      label="Customer"
-      placeholder="Enter Name"
-      onsearch={handleLookupSearch}
-      onselect={handleLookupSelect}
-    ></c-lookup-input>
-    <lightning-input
-      label="Date"
-      data-type="date"
-      type="date"
-      value={date}
-      onchange={handleInputChange}
-    ></lightning-input>
-    <c-lookup-input
-      data-type="salesRep1"
-      label="Sales Rep"
-      placeholder="Enter Name"
-      onsearch={handleLookupSearch}
-      onselect={handleLookupSelect}
-    ></c-lookup-input>
-    <c-lookup-input
-      data-type="salesRep2"
-      label="Sales Rep 2"
-      placeholder="Enter Name"
-      onsearch={handleLookupSearch}
-      onselect={handleLookupSelect}
-    ></c-lookup-input>
-    <lightning-input
-      label="Memo"
-      data-type="memo"
-      type="text"
-      value={memo}
-      onchange={handleInputChange}
-    ></lightning-input>
     <lightning-combobox
-      name="subsidiary"
-      label="Subsidiary"
-      value={subsidiary}
-      placeholder="Select a subsidiary"
-      options={subsidiaryOptions}
+      name="orderType"
+      label="Order Type"
+      value={orderType}
+      placeholder="Select a Order Tyep"
+      options={orderTypeOptions}
       onchange={handleComboboxChange}
-    ></lightning-combobox>
-    <lightning-combobox
-      name="location"
-      label="Location"
-      value={location}
-      placeholder="Select a location"
-      options={locationOptions}
-      onchange={handleComboboxChange}
-      disabled={isLocationDisabled}
     ></lightning-combobox>
   </div>
+
+  <template if:true={isSalesOrder}>
+    <div class="form-body">
+      <c-lookup-input
+        data-type="customer"
+        label="Customer"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-input
+        label="Date"
+        data-type="date"
+        type="date"
+        value={date}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <c-lookup-input
+        data-type="salesRep1"
+        label="Sales Rep"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <c-lookup-input
+        data-type="salesRep2"
+        label="Sales Rep 2"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-input
+        label="Memo"
+        data-type="memo"
+        type="text"
+        value={memo}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-combobox
+        name="subsidiary"
+        label="Subsidiary"
+        value={subsidiary}
+        placeholder="Select a subsidiary"
+        options={subsidiaryOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
+      <lightning-combobox
+        name="location"
+        label="Location"
+        value={location}
+        placeholder="Select a location"
+        options={locationOptions}
+        onchange={handleComboboxChange}
+        disabled={isLocationDisabled}
+      ></lightning-combobox>
+    </div>
+  </template>
+
+  <template if:true={isSpecialOrder}>
+    <div class="form-body">
+      <c-lookup-input
+        data-type="customer"
+        label="Customer"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-input
+        label="Date"
+        data-type="date"
+        type="date"
+        value={date}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-input
+        label="Special Order Date"
+        data-type="date"
+        type="speicialDate"
+        value={specialDate}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-input
+        label="Need By Date"
+        data-type="date"
+        type="needByDate"
+        value={needByDate}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <c-lookup-input
+        data-type="salesRep1"
+        label="Sales Rep"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <c-lookup-input
+        data-type="salesRep2"
+        label="Sales Rep 2"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-input
+        label="Memo"
+        data-type="memo"
+        type="text"
+        value={memo}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-combobox
+        name="subsidiary"
+        label="Subsidiary"
+        value={subsidiary}
+        placeholder="Select a subsidiary"
+        options={subsidiaryOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
+      <lightning-combobox
+        name="location"
+        label="Location"
+        value={location}
+        placeholder="Select a location"
+        options={locationOptions}
+        onchange={handleComboboxChange}
+        disabled={isLocationDisabled}
+      ></lightning-combobox>
+    </div>
+  </template>
 </template>

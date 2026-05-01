@@ -30,6 +30,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   salesRep2 = "";
   location = "";
   memo = "";
+  orderType = "sales";
+  specialDate = "";
+  needByDate = ""
   subsidiary = "";
   isLoading = true;
   locationOptions = [];
@@ -340,17 +343,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     } finally {
       this.isOrderLoaded = true;
       this.checkLoadingState();
-    }
-  }
-
-  processPicklistWire({ data, error }, target) {
-    if (data) {
-      this[target] = [
-        { label: "All", value: "" },
-        ...data.map(({ label, value }) => ({ label, value }))
-      ];
-    } else if (error) {
-      console.error(`Error fetching ${target}: `, error);
     }
   }
 
