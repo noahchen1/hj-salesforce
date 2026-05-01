@@ -165,7 +165,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     const { name, value } = e.detail;
     if (name === "subsidiary" && this.subsidiary !== value) {
       this.location = "";
+      this.lineItems?.reset();
     }
+
     this[name] = value;
   }
 
