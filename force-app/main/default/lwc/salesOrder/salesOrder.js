@@ -22,6 +22,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   @api recordId;
 
   soNsInternalId;
+  accountId;
   custNsInternalId = "";
   selectedNsCompanyId;
   date = new Date().toISOString();
@@ -186,7 +187,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       this[NavigationMixin.Navigate]({
         type: "standard__recordPage",
-        attributes: { recordId: this.recordId, actionName: "view" }
+        attributes: {
+          recordId: this.accountId || this.recordId,
+          actionName: "view"
+        }
       });
 
       try {
@@ -200,15 +204,16 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         });
       } catch (error) {
         console.error("saveOrder failed");
-        console.error(err.name);
-        console.error(err.message);
-        console.error(err.stack);
+        console.error(error.name);
+        console.error(error.message);
+        console.error(error.stack);
 
         await notifyOrderSaveStatus({
           isSuccess: false,
           soNsInternalId: null,
           orderRecordId: null,
-          errorMessage: err?.body?.message || err?.message || "Unknown error"
+          errorMessage:
+            error?.body?.message || error?.message || "Unknown error"
         });
       }
 
@@ -294,6 +299,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       console.log(data);
 
       this.soNsInternalId = data.soNsInternalId || this.soNsInternalId;
+      this.accountId = data.accountId || this.accountId;
       this.custNsInternalId = data.customerNsId || "";
       this.date = data.orderDate || this.date;
       this.salesRep1 = data.salesRep1NsId || "";

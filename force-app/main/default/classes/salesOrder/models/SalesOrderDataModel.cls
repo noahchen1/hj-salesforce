@@ -7,6 +7,8 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String customerName;
     @AuraEnabled
+    public Id accountId;
+    @AuraEnabled
     public String customerNsId;
     @AuraEnabled
     public String orderDate;

@@ -65,7 +65,7 @@ public with sharing class SalesOrderMapper {
     }
 
     List<breadwinner_ns__BW_Company__c> companies = [
-      SELECT Id
+      SELECT Id, breadwinner_ns__Salesforce_Account__c
       FROM breadwinner_ns__BW_Company__c
       WHERE
         breadwinner_ns__InternalId__c = :customer.internalId
@@ -74,7 +74,9 @@ public with sharing class SalesOrderMapper {
     ];
 
     if (!companies.isEmpty()) {
-      result.nsCompanyId = companies[0].Id;
+      breadwinner_ns__BW_Company__c company = companies[0];
+      result.nsCompanyId = company.Id;
+      result.accountId = company.breadwinner_ns__Salesforce_Account__c;
     }
   }
 
