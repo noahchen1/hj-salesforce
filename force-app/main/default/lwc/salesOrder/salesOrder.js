@@ -31,10 +31,16 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   location = "";
   memo = "";
   subsidiary = "";
-  isLoading = false;
+  isLoading = true;
   locationOptions = [];
   addressOptions = [];
   subsidiaryOptions = [];
+
+  isFormInit = false;
+  isAddressLoaded = false;
+  isLocationLoaded = false;
+  isOrderLoaded = false;
+  isNsCompanyIdLoaded = false;
 
   get header() {
     return this.template.querySelector("c-sales-order-body");
@@ -63,21 +69,28 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     if (error) {
       console.error("Error fetching locationOptions:", error);
       this.locationOptions = [{ label: "Select", value: "" }];
+      this.isLocationLoaded = true;
+      this.checkLoadingState();
       return;
     }
     const { options } = processPicklistData(data);
     this.locationOptions = options;
+    this.isLocationLoaded = true;
+    this.checkLoadingState();
   }
 
   @wire(getObjectName, { recordId: "$recordId" })
   handleObjName({ data, error }) {
     if (data) {
       if (data === "Account") {
-        this.isLoading = true;
+        this.isOrderLoaded = true;
         this.fetchNsCompanyId(this.recordId);
       } else {
+        this.isNsCompanyIdLoaded = true;
         this.loadOrder();
       }
+
+      this.checkLoadingState();
     } else if (error) {
       console.error("Error fetching record type", error);
     }
@@ -102,8 +115,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   async connectedCallback() {
     try {
-      this.isLoading = true;
-
       const [subsidiaries, emp] = await Promise.all([
         getSubsidiaries(),
         getEmployeeData({ userId: USER_ID })
@@ -135,7 +146,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     } catch (error) {
       console.error("Init failed:", error);
     } finally {
-      this.isLoading = false;
+      this.isFormInit = true;
+      this.checkLoadingState();
     }
   }
 
@@ -163,6 +175,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   handleHeaderComboboxChange(e) {
     const { name, value } = e.detail;
+
     if (name === "subsidiary" && this.subsidiary !== value) {
       this.location = "";
       this.lineItems?.reset();
@@ -293,12 +306,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   }
 
   async loadOrder() {
-    this.isLoading = true;
-
     try {
       const data = await getOrderData({ salesOrderId: this.recordId });
-
-      console.log(data);
 
       this.soNsInternalId = data.soNsInternalId || this.soNsInternalId;
       this.accountId = data.accountId || this.accountId;
@@ -329,7 +338,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       console.error(error.message);
       console.error(error.stack);
     } finally {
-      this.isLoading = false;
+      this.isOrderLoaded = true;
+      this.checkLoadingState();
     }
   }
 
@@ -350,17 +360,37 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       if (nsCompanyData) {
         this.selectedNsCompanyId = nsCompanyData.companyId;
         this.custNsInternalId = nsCompanyData.internalId;
+      } else {
+        this.addressOptions = [{ label: "Select", value: "" }];
+        this.isAddressLoaded = true;
       }
     } catch (error) {
       console.error("Error fetching NS company from account", error);
+      this.addressOptions = [{ label: "Select", value: "" }];
+      this.isAddressLoaded = true;
     } finally {
-      this.isLoading = false;
+      this.isNsCompanyIdLoaded = true;
+      this.checkLoadingState();
     }
   };
+
+  checkLoadingState() {
+    if (
+      this.isFormInit &&
+      this.isAddressLoaded &&
+      this.isLocationLoaded &&
+      this.isOrderLoaded &&
+      this.isNsCompanyIdLoaded
+    ) {
+      this.isLoading = false;
+    }
+  }
 
   async fetchCustomerAddresses({ nsCompanyId, skipSelection }) {
     if (!nsCompanyId) {
       this.addressOptions = [{ label: "Select", value: "" }];
+      this.isAddressLoaded = true;
+      this.checkLoadingState();
 
       return;
     }
@@ -380,6 +410,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     } catch (error) {
       this.addressOptions = [{ label: "Select", value: "" }];
       console.error("Error fetching addressOptions:", error);
+    } finally {
+      this.isAddressLoaded = true;
+      this.checkLoadingState();
     }
   }
 }
