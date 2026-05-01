@@ -32,12 +32,14 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   memo = "";
   orderType = "sales";
   specialDate = "";
-  needByDate = ""
+  needByDate = "";
   subsidiary = "";
   isLoading = true;
   locationOptions = [];
   addressOptions = [];
   subsidiaryOptions = [];
+
+  isOrderTypeDisabled = false;
 
   isFormInit = false;
   isAddressLoaded = false;
@@ -90,6 +92,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         this.fetchNsCompanyId(this.recordId);
       } else {
         this.isNsCompanyIdLoaded = true;
+        this.isOrderTypeDisabled = true;
         this.loadOrder();
       }
 
@@ -117,6 +120,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   }
 
   async connectedCallback() {
+    await this.initForm();
+  }
+
+  async initForm() {
     try {
       const [subsidiaries, emp] = await Promise.all([
         getSubsidiaries(),
@@ -179,12 +186,49 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   handleHeaderComboboxChange(e) {
     const { name, value } = e.detail;
 
+    if (name === "orderType") {
+      this[name] = value;
+      this.reset();
+      return;
+    }
+
     if (name === "subsidiary" && this.subsidiary !== value) {
       this.location = "";
       this.lineItems?.reset();
     }
 
     this[name] = value;
+  }
+
+  async reset() {
+    this.isLoading = true;
+    this.isFormInit = false;
+    this.isAddressLoaded = false;
+    this.isNsCompanyIdLoaded = false;
+
+    this.date = new Date().toISOString();
+    this.salesRep1 = "";
+    this.salesRep2 = "";
+    this.location = "";
+    this.memo = "";
+    this.subsidiary = "";
+    this.specialDate = "";
+    this.needByDate = "";
+    this.custNsInternalId = "";
+    this.selectedNsCompanyId = undefined;
+    this.locationOptions = [];
+    this.addressOptions = [{ label: "Select", value: "" }];
+
+    this.lineItems?.reset();
+    this.addressSection?.reset();
+    this.header?.setLookupValue("customer", "");
+    this.header?.setLookupValue("salesRep1", "");
+    this.header?.setLookupValue("salesRep2", "");
+
+    await Promise.all([
+      this.initForm(),
+      this.fetchNsCompanyId(this.accountId || this.recordId)
+    ]);
   }
 
   async saveOrder() {
