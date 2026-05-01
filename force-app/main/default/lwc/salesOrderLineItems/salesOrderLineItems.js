@@ -47,7 +47,9 @@ export default class SalesOrderLineItems extends LightningElement {
     this.nextRowId = 2;
     this.selectedItemId = null;
     this.selectedItemRowIndex = null;
-    this.pendingItemNames = null;
+
+    this.clearItemLookups();
+    this.pendingItemNames = [""];
   }
 
   @api
@@ -316,6 +318,17 @@ export default class SalesOrderLineItems extends LightningElement {
       ...row,
       showAction: idx === index
     }));
+  }
+
+  clearItemLookups() {
+    const itemLookups = this.template.querySelectorAll(
+      'c-lookup-input[data-type="item"]'
+    );
+
+    itemLookups.forEach((lookup) => {
+      lookup.setSelected("");
+      lookup.setResults([]);
+    });
   }
 
   clearItemRow(index) {
