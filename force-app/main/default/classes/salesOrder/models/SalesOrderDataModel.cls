@@ -42,6 +42,8 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String itemName;
     @AuraEnabled
+    public String imageUrl;
+    @AuraEnabled
     public String quantity;
     @AuraEnabled
     public String rate;

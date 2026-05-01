@@ -9,6 +9,7 @@
       <thead>
         <tr>
           <th scope="col">Item</th>
+          <th scope="col">Image</th>
           <th scope="col">Quantity</th>
           <th scope="col">Rate</th>
           <th scope="col">Amount</th>
@@ -42,6 +43,9 @@
                   ></lightning-button>
                 </div>
               </template>
+            </td>
+            <td>
+              <img src={row.imageUrl} alt="" class="item-image" />
             </td>
             <td>
               <lightning-input

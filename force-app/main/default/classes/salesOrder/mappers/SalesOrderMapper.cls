@@ -110,7 +110,9 @@ public with sharing class SalesOrderMapper {
     if (so.itemList == null || so.itemList.item == null)
       return;
 
-    Map<String, String> itemNames = fetchItemNames(so);
+    Map<String, Map<String, String>> itemNamesAndImageIds = fetchItemNamesAndImages(
+      so
+    );
 
     Integer rowNum = 1;
 
@@ -122,7 +124,9 @@ public with sharing class SalesOrderMapper {
 
       dto.id = rowNum++;
       dto.item = it.item?.internalId;
-      dto.itemName = itemNames.get(dto.item);
+      Map<String, String> itemDetails = itemNamesAndImageIds.get(dto.item);
+      dto.itemName = itemDetails != null ? itemDetails.get('name') : null;
+      dto.imageUrl = itemDetails != null ? itemDetails.get('imageUrl') : null;
       dto.quantity = it.quantity != null ? String.valueOf(it.quantity) : null;
       dto.rate = it.rate;
       dto.amount = it.amount != null ? String.valueOf(it.amount) : null;
@@ -161,9 +165,15 @@ public with sharing class SalesOrderMapper {
     return addr;
   }
 
-  private static Map<String, String> fetchItemNames(
+  private static Map<String, Map<String, String>> fetchItemNamesAndImages(
     SalesOrderResModel.SalesOrder so
   ) {
+    Map<String, Map<String, String>> result = new Map<String, Map<String, String>>();
+
+    if (so == null || so.itemList == null || so.itemList.item == null) {
+      return result;
+    }
+
     Set<String> ids = new Set<String>();
 
     for (SalesOrderResModel.SalesOrderItem it : so.itemList.item) {
@@ -176,15 +186,20 @@ public with sharing class SalesOrderMapper {
       }
     }
 
-    Map<String, String> result = new Map<String, String>();
-
     if (!ids.isEmpty()) {
       for (breadwinner_ns__BW_Item__c item : [
-        SELECT Name, breadwinner_ns__InternalId__c
+        SELECT Name, breadwinner_ns__InternalId__c, imageId__c
         FROM breadwinner_ns__BW_Item__c
         WHERE breadwinner_ns__InternalId__c IN :ids
       ]) {
-        result.put(item.breadwinner_ns__InternalId__c, item.Name);
+        String imageUrl = item.imageId__c != null
+          ? '/sfc/servlet.shepherd/document/download/' + item.imageId__c
+          : '';
+
+        result.put(
+          item.breadwinner_ns__InternalId__c,
+          new Map<String, String>{ 'name' => item.Name, 'imageUrl' => imageUrl }
+        );
       }
     }
 

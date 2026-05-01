@@ -5,11 +5,13 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import searchSellableItem from "@salesforce/apex/FilterDataController.searchSellableItem";
 import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
 import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
+import IMAGE_ID from "@salesforce/schema/breadwinner_ns__BW_Item__c.imageId__c";
 
 const DEFAULT_ROW = Object.freeze({
   id: 1,
   item: "",
   itemName: "",
+  imageUrl: "",
   quantity: "",
   rate: "",
   amount: "",
@@ -36,8 +38,8 @@ export default class SalesOrderLineItems extends LightningElement {
 
   @api
   loadRows(rows, itemNames) {
-    this.rows = rows;
-    this.nextRowId = rows.length + 1;
+    this.rows = (rows || []).map((row) => ({ ...DEFAULT_ROW, ...row }));
+    this.nextRowId = this.rows.length + 1;
     this.pendingItemNames = itemNames;
   }
 
@@ -66,6 +68,7 @@ export default class SalesOrderLineItems extends LightningElement {
         id: index + 1,
         item: line.item || "",
         itemName,
+        imageUrl: line.imageUrl || "",
         quantity: isDiscount ? "" : qty,
         rate,
         amount,
@@ -95,7 +98,10 @@ export default class SalesOrderLineItems extends LightningElement {
     this.pendingItemNames = null;
   }
 
-  @wire(getRecord, { recordId: "$selectedItemId", fields: [BASE_PRICE] })
+  @wire(getRecord, {
+    recordId: "$selectedItemId",
+    fields: [BASE_PRICE, IMAGE_ID]
+  })
   wiredItemRecord({ data, error }) {
     if (data && this.selectedItemRowIndex !== null) {
       const row = this.rows[this.selectedItemRowIndex];
@@ -103,14 +109,22 @@ export default class SalesOrderLineItems extends LightningElement {
       if (row?.isDiscount) return;
 
       const basePrice = getFieldValue(data, BASE_PRICE);
+      const imageId = getFieldValue(data, IMAGE_ID);
+      const imageUrl = imageId
+        ? "/sfc/servlet.shepherd/document/download/" + imageId
+        : "";
+
       const updatedRows = [...this.rows];
 
       if (updatedRows[this.selectedItemRowIndex]) {
+        updatedRows[this.selectedItemRowIndex].imageUrl = imageUrl;
         updatedRows[this.selectedItemRowIndex].quantity = 1;
         updatedRows[this.selectedItemRowIndex].rate = basePrice ?? "";
         updatedRows[this.selectedItemRowIndex].amount = basePrice ?? "";
         this.rows = updatedRows;
       }
+
+      console.log(JSON.stringify(this.rows));
     } else if (error) {
       console.error("Error fetching item base price", error);
     }
@@ -200,6 +214,7 @@ export default class SalesOrderLineItems extends LightningElement {
       updatedRows[index].item = selectedNsId;
       updatedRows[index].itemName = selectedName;
       updatedRows[index].isDiscount = isDiscount;
+      updatedRows[index].imageUrl = "";
 
       if (isDiscount) {
         updatedRows[index].quantity = "";
@@ -288,6 +303,7 @@ export default class SalesOrderLineItems extends LightningElement {
         id: this.nextRowId++,
         item: "",
         itemName: "",
+        imageUrl: "",
         quantity: "",
         rate: "",
         amount: "",
@@ -339,6 +355,7 @@ export default class SalesOrderLineItems extends LightningElement {
         ...updatedRows[index],
         item: "",
         itemName: "",
+        imageUrl: "",
         quantity: "",
         rate: "",
         amount: "",

@@ -64,3 +64,8 @@
   z-index: 99;
   border-radius: 10px;
 }
+
+.item-image {
+  height: 50px;
+  width: auto;
+}
