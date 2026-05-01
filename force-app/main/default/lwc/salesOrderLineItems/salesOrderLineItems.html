@@ -6,6 +6,13 @@
 
     <h3 class="table-title">Order Items</h3>
     <table class="order-table">
+      <colgroup>
+        <col class="order-col" />
+        <col class="order-col" />
+        <col class="order-col" />
+        <col class="order-col" />
+        <col class="order-col" />
+      </colgroup>
       <thead>
         <tr>
           <th scope="col">Item</th>
@@ -28,21 +35,6 @@
                 onselect={handleLookupSelect}
                 onfocus={handleFocus}
               ></c-lookup-input>
-              <template if:true={row.showAction}>
-                <div class="row-action-container">
-                  <lightning-button
-                    label="Add Row"
-                    data-index={index}
-                    onclick={addRow}
-                  ></lightning-button>
-                  <lightning-button
-                    label="Remove Row"
-                    data-index={index}
-                    onclick={removeRow}
-                    disabled={row.disableRemove}
-                  ></lightning-button>
-                </div>
-              </template>
             </td>
             <td>
               <img src={row.imageUrl} alt="" class="item-image" />
@@ -102,6 +94,25 @@
               ></lightning-input>
             </td>
           </tr>
+          <template if:true={row.showAction}>
+            <tr key={row.actionKey} class="row-action-row">
+              <td colspan="5">
+                <div class="row-action-container">
+                  <lightning-button
+                    label="Add Row"
+                    data-index={index}
+                    onclick={addRow}
+                  ></lightning-button>
+                  <lightning-button
+                    label="Remove Row"
+                    data-index={index}
+                    onclick={removeRow}
+                    disabled={row.disableRemove}
+                  ></lightning-button>
+                </div>
+              </td>
+            </tr>
+          </template>
         </template>
       </tbody>
     </table>

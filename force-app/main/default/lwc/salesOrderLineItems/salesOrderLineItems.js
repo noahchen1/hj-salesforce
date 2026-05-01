@@ -9,6 +9,7 @@ import IMAGE_ID from "@salesforce/schema/breadwinner_ns__BW_Item__c.imageId__c";
 
 const DEFAULT_ROW = Object.freeze({
   id: 1,
+  actionKey: "action-1",
   item: "",
   itemName: "",
   imageUrl: "",
@@ -38,7 +39,17 @@ export default class SalesOrderLineItems extends LightningElement {
 
   @api
   loadRows(rows, itemNames) {
-    this.rows = (rows || []).map((row) => ({ ...DEFAULT_ROW, ...row }));
+    this.rows = (rows || []).map((row, index) => {
+      const rowId = row.id || index + 1;
+
+      return {
+        ...DEFAULT_ROW,
+        ...row,
+        id: rowId,
+        actionKey: row.actionKey || `action-${rowId}`
+      };
+    });
+
     this.nextRowId = this.rows.length + 1;
     this.pendingItemNames = itemNames;
   }
@@ -66,6 +77,7 @@ export default class SalesOrderLineItems extends LightningElement {
 
       return {
         id: index + 1,
+        actionKey: `action-${index + 1}`,
         item: line.item || "",
         itemName,
         imageUrl: line.imageUrl || "",
@@ -299,8 +311,10 @@ export default class SalesOrderLineItems extends LightningElement {
     const index = Number(e.target.dataset.index);
 
     try {
+      const newRowId = this.nextRowId++;
       const newRow = {
-        id: this.nextRowId++,
+        id: newRowId,
+        actionKey: `action-${newRowId}`,
         item: "",
         itemName: "",
         imageUrl: "",

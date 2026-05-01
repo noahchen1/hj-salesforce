@@ -12,11 +12,16 @@
 
 .order-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   background: #ffffff;
   border: 1px solid #d8dde6;
   border-radius: 8px;
   overflow: hidden;
+}
+
+.order-col {
+  width: 20%;
 }
 
 .order-table th,
@@ -43,15 +48,24 @@
 }
 
 .row-action-container {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
+  min-width: 300px;
+  width: auto;
   gap: 8px;
-  padding: 5px 12px;
+  padding: 8px 12px;
   background: #ffffff;
   border: 1px solid #d8dde6;
   border-radius: 0 0 10px 10px;
   box-shadow: 0 5px 5px rgba(15, 23, 42, 0.16);
   white-space: nowrap;
+}
+
+.row-action-row td {
+  padding: 0 5px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
 }
 
 .table-overlay {
