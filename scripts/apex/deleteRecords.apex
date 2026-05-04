@@ -1,5 +1,5 @@
-Id deleteJobId = Database.executeBatch(
-  new ObjectMassDelete('Sales_History__c'),
-  200
-);
-System.debug('deleteJobId: ' + deleteJobId);
+List<Map<String, String>> users = new List<Map<String, String>>{
+
+
+
+};

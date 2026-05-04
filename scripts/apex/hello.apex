@@ -52,3 +52,8 @@ new NpcTaskScheduler().execute(null);
 String jobName = 'NPC Task Scheduler - Daily 9AM';
 String cronExp = '0 0 9 * * ?';
 System.schedule(jobName, cronExp, new NpcTaskScheduler());
+
+
+User testUser = [SELECT Id FROM User WHERE Id = '005WJ00000SsssvYAB'];
+testUser.IsActive = false;
+update testUser;
