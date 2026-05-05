@@ -273,7 +273,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         await notifyOrderSaveStatus({
           isSuccess: false,
           soNsInternalId: null,
-          orderRecordId: null,
+          orderRecordId: this.accountId || this.recordId,
           errorMessage:
             error?.body?.message || error?.message || "Unknown error"
         });
@@ -348,6 +348,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
+      console.error("Failed to save sales order");
+      console.error(err.name);
+      console.error(err.message);
+      console.error(err.stack);
       throw err;
     }
   }

@@ -29,7 +29,11 @@ public with sharing class SalesOrderValidator {
     Boolean hasValidItem = false;
 
     for (SalesOrderDataModel.LineItem item : items) {
-      if (item != null && !String.isBlank(item.item)) {
+      if (
+        item != null &&
+        !String.isBlank(item.item) &&
+        !String.isBlank(item.rate)
+      ) {
         hasValidItem = true;
         break;
       }
