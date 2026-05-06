@@ -90,13 +90,19 @@ public with sharing class FilterDataController {
     List<LookupResult> vendors = new List<LookupResult>();
     try {
       for (breadwinner_ns__BW_Company__c vendor : [
-        SELECT Name
+        SELECT Id, Name, breadwinner_ns__InternalId__c
         FROM breadwinner_ns__BW_Company__c
         WHERE
           breadwinner_ns__Entity_Type__c = 'Vendor'
           AND Name LIKE :'%' + input + '%'
       ]) {
-        vendors.add(new LookupResult(vendor.Name, vendor.Name));
+        vendors.add(
+          new LookupResult(
+            vendor.Id,
+            vendor.Name,
+            vendor.breadwinner_ns__InternalId__c
+          )
+        );
       }
       return vendors;
     } catch (Exception e) {

@@ -1,6 +1,7 @@
 import { LightningElement, api } from "lwc";
 import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
+import searchVendor from "@salesforce/apex/FilterDataController.searchVendor";
 
 export default class SalesOrderBody extends LightningElement {
   @api subsidiaryOptions = [];
@@ -12,6 +13,12 @@ export default class SalesOrderBody extends LightningElement {
   @api orderType;
   @api specialDate;
   @api needByDate;
+  @api specialOrderItemType;
+  @api specialOrderVendor;
+  @api specialOrderRequestedVendor;
+  @api specialOrderComments;
+  @api specialOrderNotes;
+  @api specialOrderMemoOrSold;
   @api isOrderTypeDisabled;
 
   get isLocationDisabled() {
@@ -23,6 +30,26 @@ export default class SalesOrderBody extends LightningElement {
       { label: "Sales Order", value: "sales" },
       { label: "Special Order", value: "special" },
       { label: "Repair Order", value: "repair" }
+    ];
+  }
+
+  get specialItemTypeOptions() {
+    return [
+      { label: "Bridal", value: "101" },
+      { label: "Designer", value: "1" },
+      { label: "Giftware", value: "2" },
+      { label: "Jewelry", value: "3" },
+      { label: "Watch", value: "4" },
+      { label: "Watch Strap", value: "5" },
+      { label: "Rolex", value: "6" },
+      { label: "Patek", value: "7" }
+    ];
+  }
+
+  get memoOrSoldOptions() {
+    return [
+      { label: "Memo", value: "1" },
+      { label: "Sold", value: "2" }
     ];
   }
 
@@ -52,10 +79,18 @@ export default class SalesOrderBody extends LightningElement {
     const searchKey = e.detail.searchKey;
     const input = e.target;
 
-    const searchFn = type === "customer" ? searchCustomer : searchSalesRep;
+    const searchFn =
+      type === "customer"
+        ? searchCustomer
+        : ["salesRep1", "salesRep2"].includes(type)
+          ? searchSalesRep
+          : type === "specialOrderVendor"
+            ? searchVendor
+            : null;
 
     if (searchKey.length > 1) {
       input.setLoading(true);
+
       try {
         const results = await searchFn({ input: searchKey });
         input.setResults(results);
@@ -81,9 +116,13 @@ export default class SalesOrderBody extends LightningElement {
       this.dispatchEvent(
         new CustomEvent("customerselect", { detail: { id, nsId } })
       );
-    } else {
+    } else if (type === "salesRep1" || type === "salesRep2") {
       this.dispatchEvent(
         new CustomEvent("salesrepselect", { detail: { type, nsId } })
+      );
+    } else if (type === "specialOrderVendor") {
+      this.dispatchEvent(
+        new CustomEvent("specialordervendorselect", { detail: { type, nsId } })
       );
     }
   }

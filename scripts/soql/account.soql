@@ -120,3 +120,6 @@ SELECT COUNT() FROM Sales_History__c
  SELECT Name, Owner.Name FROM Sales_History__c WHERE Sales_Rep__c = 'Lauren Tischler'
 
 SELECT Id, Name, breadwinner_ns__InternalId__c FROM breadwinner_ns__BW_Employee__c WHERE breadwinner_ns__IsSalesRep__c = true
+
+
+SELECT Name FROM USER WHERE isActive = true

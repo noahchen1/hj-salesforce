@@ -28,9 +28,15 @@
         order-type={orderType}
         special-date={specialDate}
         need-by-date={needByDate}
+        special-order-item-type={specialOrderItemType}
+        special-order-vendor={specialOrderVendor}
+        special-order-requested-vendor={specialOrderRequestedVendor}
+        special-order-comments={specialOrderComments}
+        special-order-notes={specialOrderMemoOrSold}
         is-order-type-disabled={isOrderTypeDisabled}
         oncustomerselect={handleCustomerSelect}
         onsalesrepselect={handleSalesRepSelect}
+        onspecialordervendorselect={handleSpecialOrderVendorSelect}
         onfieldchange={handleHeaderFieldChange}
         onfieldclear={handleHeaderFieldClear}
         oncomboboxchange={handleHeaderComboboxChange}
@@ -43,6 +49,7 @@
       <c-sales-order-line-items
         location={location}
         disabled={showTableOverlay}
+        order-type={orderType}
       ></c-sales-order-line-items>
     </div>
   </lightning-card>

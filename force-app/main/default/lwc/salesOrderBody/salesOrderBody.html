@@ -86,18 +86,55 @@
       ></lightning-input>
       <lightning-input
         label="Special Order Date"
-        data-type="date"
-        type="speicialDate"
+        data-type="speicialDate"
+        type="date"
         value={specialDate}
         onchange={handleInputChange}
       ></lightning-input>
       <lightning-input
         label="Need By Date"
-        data-type="date"
-        type="needByDate"
+        data-type="needByDate"
+        type="date"
         value={needByDate}
         onchange={handleInputChange}
       ></lightning-input>
+      <lightning-combobox
+        name="specialOrderItemType"
+        label="Special Order Item Type"
+        value={specialOrderItemType}
+        placeholder="Select an item type"
+        options={specialItemTypeOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
+      <c-lookup-input
+        data-type="specialOrderVendor"
+        label="Special Order Vendor"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-input
+        label="Requested Vendor"
+        data-type="specialOrderRequestedVendor"
+        type="text"
+        value={specialOrderRequestedVendor}
+      ></lightning-input>
+      <lightning-textarea
+        label="Comments/DESC/Metal/Color/Size"
+        value={specialOrderComments}
+      ></lightning-textarea>
+      <lightning-textarea
+        label="Merchandise Note"
+        value={specialOrderNotes}
+      ></lightning-textarea>
+      <lightning-combobox
+        name="specialOrderMemoOrSold"
+        label="Memo Or Sold"
+        value={specialOrderMemoOrSold}
+        placeholder="Select An Option"
+        options={memoOrSoldOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
       <c-lookup-input
         data-type="salesRep1"
         label="Sales Rep"

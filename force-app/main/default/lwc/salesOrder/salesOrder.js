@@ -31,8 +31,16 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   location = "";
   memo = "";
   orderType = "sales";
+
   specialDate = "";
   needByDate = "";
+  specialOrderItemType = "";
+  specialOrderVendor = "";
+  specialOrderRequestedVendor = "";
+  specialOrderComments = "";
+  specialOrderNotes = "";
+  specialOrderMemoOrSold = "";
+
   subsidiary = "";
   isLoading = true;
   locationOptions = [];
@@ -170,6 +178,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this[e.detail.type] = e.detail.nsId;
   }
 
+  handleSpecialOrderVendorSelect(e) {
+    this[e.detail.type] = e.detail.nsId;
+  }
+
   handleHeaderFieldChange(e) {
     this[e.detail.field] = e.detail.value;
   }
@@ -189,7 +201,48 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     if (name === "orderType") {
       this[name] = value;
       this.reset();
+
+      const isSpecialOrder = value === "special";
+
+      if (isSpecialOrder) {
+        this.initSpecialOrderForm();
+      }
+
       return;
+    }
+
+    if (name === "specialOrderItemType") {
+      const isRolex = value === "6";
+
+      if (isRolex) {
+        this.specialOrderVendor = "220";
+
+        this.header?.setLookupValue(
+          "specialOrderVendor",
+          "ROLEX WATCH U.S.A., INC"
+        );
+      } else {
+        this.specialOrderVendor = "";
+
+        this.header?.setLookupValue("specialOrderVendor", "");
+      }
+
+      const itemMap = {
+        1: { itemId: 213836, itemName: "Special Order Item Designer" },
+        2: { itemId: 213837, itemName: "Special Order Item Giftware" },
+        3: { itemId: 213838, itemName: "Special Order Item Jewelry" },
+        4: { itemId: 213839, itemName: "Special Order Item Watch" },
+        5: { itemId: 213840, itemName: "Special Order Item Watch Strap" },
+        6: { itemId: 213841, itemName: "Special Order Item Rolex" },
+        7: { itemId: 213842, itemName: "Special Order Item Patek" },
+        101: { itemId: 213834, itemName: "Special Order Item Bridal" }
+      };
+
+      const item = itemMap[value] || null;
+
+      if (item) {
+        this.lineItems?.setSpecialItem(item);
+      }
     }
 
     if (name === "subsidiary" && this.subsidiary !== value) {
@@ -341,12 +394,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
-      const soNsInternalId = await saveSalesOrder(payload);
-      this.soNsInternalId = soNsInternalId;
+      // const soNsInternalId = await saveSalesOrder(payload);
+      // this.soNsInternalId = soNsInternalId;
 
-      const orderRecordId = await getOrder({ soNsInternalId });
+      // const orderRecordId = await getOrder({ soNsInternalId });
 
-      return { soNsInternalId, orderRecordId, isUpdate };
+      // return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
       console.error("Failed to save sales order");
       console.error(err.name);
@@ -454,5 +507,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this.isAddressLoaded = true;
       this.checkLoadingState();
     }
+  }
+
+  initSpecialOrderForm() {
+    this.specialDate = new Date().toISOString();
   }
 }

@@ -25,12 +25,25 @@ const DEFAULT_ROW = Object.freeze({
 export default class SalesOrderLineItems extends LightningElement {
   @api location;
   @api disabled = false;
+  @api orderType;
 
   rows = [{ ...DEFAULT_ROW }];
   nextRowId = 2;
   selectedItemId;
   selectedItemRowIndex = null;
   pendingItemNames = null;
+
+  get isSalesOrder() {
+    return this.orderType === "sales";
+  }
+
+  get isSpecialOrder() {
+    return this.orderType === "special";
+  }
+
+  get isRepairOrder() {
+    return this.orderType === "repair";
+  }
 
   @api
   getRows() {
@@ -92,6 +105,36 @@ export default class SalesOrderLineItems extends LightningElement {
     });
 
     return mappedRows;
+  }
+
+  @api
+  setSpecialItem({ itemId, itemName }) {
+    this.reset();
+
+    const newRowId = this.nextRowId++;
+    const newRow = {
+      id: newRowId,
+      actionKey: `action-${newRowId}`,
+      item: itemId,
+      itemName: itemName,
+      imageUrl: "",
+      quantity: 1,
+      rate: "",
+      amount: "",
+      line: "",
+      isDiscount: false,
+      showAction: false,
+      disableRemove: false
+    };
+
+    this.rows = [newRow];
+
+    this.pendingItemNames = [itemName];
+    // const itemLookup = this.template.querySelector(
+    //   'c-lookup-input[data-type="item"]'
+    // );
+
+    // itemLookup.setSelected(itemName);
   }
 
   renderedCallback() {
