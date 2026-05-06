@@ -157,24 +157,26 @@
                 ></c-lookup-input>
               </td>
               <td>
-                <lightning-input
+                <c-lookup-input
                   data-index={index}
-                  data-field="specialOrderItem"
-                  value={row.specialOrderItem}
-                  variant="label-hidden"
-                  type="text"
-                  placeholder=""
-                ></lightning-input>
+                  data-type="specialOrderItem"
+                  label=""
+                  placeholder="Enter Item Name"
+                  onsearch={handleLookupSearch}
+                  onselect={handleLookupSelect}
+                  onfocus={handleFocus}
+                ></c-lookup-input>
               </td>
               <td>
-                <lightning-input
+                <c-lookup-input
                   data-index={index}
-                  data-field="specialOrderVendorNum"
-                  value={row.specialOrderVendorNum}
-                  variant="label-hidden"
-                  type="text"
-                  placeholder=""
-                ></lightning-input>
+                  data-type="specialOrderVendorNum"
+                  label=""
+                  placeholder="Enter Vendor Number"
+                  onsearch={handleLookupSearch}
+                  onselect={handleLookupSelect}
+                  onfocus={handleFocus}
+                ></c-lookup-input>
               </td>
               <td>
                 <img src={row.imageUrl} alt="" class="item-image" />
@@ -236,7 +238,7 @@
             </tr>
             <template if:true={row.showAction}>
               <tr key={row.actionKey} class="row-action-row">
-                <td colspan="5">
+                <td colspan="7">
                   <div class="row-action-container">
                     <lightning-button
                       label="Add Row"

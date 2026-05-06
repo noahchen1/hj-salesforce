@@ -3,23 +3,25 @@ import { getRecord, getFieldValue } from "lightning/uiRecordApi";
 import LightningAlert from "lightning/alert";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import searchSellableItem from "@salesforce/apex/FilterDataController.searchSellableItem";
+import searchSepcialOrderItem from "@salesforce/apex/FilterDataController.searchSepcialOrderItem";
+import searchItem from "@salesforce/apex/FilterDataController.searchItem";
+import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
+import getValue from "@salesforce/apex/DataService.getValue";
 import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
 import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
 import IMAGE_ID from "@salesforce/schema/breadwinner_ns__BW_Item__c.imageId__c";
 
-const DEFAULT_ROW = Object.freeze({
-  id: 1,
-  actionKey: "action-1",
+const BASE_ROW = Object.freeze({
   item: "",
   itemName: "",
+  specialOrderItem: "",
+  specialOrderVendorNum: "",
   imageUrl: "",
   quantity: "",
   rate: "",
   amount: "",
   line: "",
-  isDiscount: false,
-  showAction: true,
-  disableRemove: true
+  isDiscount: false
 });
 
 export default class SalesOrderLineItems extends LightningElement {
@@ -27,11 +29,16 @@ export default class SalesOrderLineItems extends LightningElement {
   @api disabled = false;
   @api orderType;
 
-  rows = [{ ...DEFAULT_ROW }];
-  nextRowId = 2;
+  rows = [];
+  nextRowId = 1;
   selectedItemId;
   selectedItemRowIndex = null;
   pendingItemNames = null;
+
+  constructor() {
+    super();
+    this.reset();
+  }
 
   get isSalesOrder() {
     return this.orderType === "sales";
@@ -45,6 +52,27 @@ export default class SalesOrderLineItems extends LightningElement {
     return this.orderType === "repair";
   }
 
+  createRow({
+    id,
+    showAction = false,
+    disableRemove = false,
+    overrides = {}
+  } = {}) {
+    const rowId = id ?? this.nextRowId++;
+    const row = {
+      id: rowId,
+      actionKey: `action-${rowId}`,
+      ...BASE_ROW,
+      showAction,
+      disableRemove
+    };
+
+    return {
+      ...row,
+      ...overrides
+    };
+  }
+
   @api
   getRows() {
     return [...this.rows];
@@ -55,12 +83,15 @@ export default class SalesOrderLineItems extends LightningElement {
     this.rows = (rows || []).map((row, index) => {
       const rowId = row.id || index + 1;
 
-      return {
-        ...DEFAULT_ROW,
-        ...row,
+      return this.createRow({
         id: rowId,
-        actionKey: row.actionKey || `action-${rowId}`
-      };
+        showAction: index === 0,
+        disableRemove: index === 0,
+        overrides: {
+          ...row,
+          actionKey: row.actionKey || `action-${rowId}`
+        }
+      });
     });
 
     this.nextRowId = this.rows.length + 1;
@@ -69,8 +100,8 @@ export default class SalesOrderLineItems extends LightningElement {
 
   @api
   reset() {
-    this.rows = [{ ...DEFAULT_ROW }];
-    this.nextRowId = 2;
+    this.nextRowId = 1;
+    this.rows = [this.createRow({ showAction: true, disableRemove: true })];
     this.selectedItemId = null;
     this.selectedItemRowIndex = null;
 
@@ -81,6 +112,7 @@ export default class SalesOrderLineItems extends LightningElement {
   @api
   getMappedRows(rows) {
     const mappedRows = (rows || []).map((line, index) => {
+      const rowId = index + 1;
       const qty = line.quantity || "";
       const rate = line.rate || "";
       const amount = line.amount || "";
@@ -88,20 +120,23 @@ export default class SalesOrderLineItems extends LightningElement {
       const isDiscount = itemName === "Store Discount";
       const lineNum = line.line || "";
 
-      return {
-        id: index + 1,
-        actionKey: `action-${index + 1}`,
-        item: line.item || "",
-        itemName,
-        imageUrl: line.imageUrl || "",
-        quantity: isDiscount ? "" : qty,
-        rate,
-        amount,
-        line: lineNum,
-        isDiscount,
+      return this.createRow({
+        id: rowId,
         showAction: index === 0,
-        disableRemove: index === 0
-      };
+        disableRemove: index === 0,
+        overrides: {
+          item: line.item || "",
+          itemName,
+          specialOrderItem: line.specialOrderItem || "",
+          specialOrderVendorNum: line.specialOrderVendorNum || "",
+          imageUrl: line.imageUrl || "",
+          quantity: isDiscount ? "" : qty,
+          rate,
+          amount,
+          line: lineNum,
+          isDiscount
+        }
+      });
     });
 
     return mappedRows;
@@ -111,30 +146,19 @@ export default class SalesOrderLineItems extends LightningElement {
   setSpecialItem({ itemId, itemName }) {
     this.reset();
 
-    const newRowId = this.nextRowId++;
-    const newRow = {
-      id: newRowId,
-      actionKey: `action-${newRowId}`,
-      item: itemId,
-      itemName: itemName,
-      imageUrl: "",
-      quantity: 1,
-      rate: "",
-      amount: "",
-      line: "",
-      isDiscount: false,
-      showAction: false,
-      disableRemove: false
-    };
+    const newRow = this.createRow({
+      overrides: {
+        item: itemId,
+        itemName,
+        quantity: 1,
+        showAction: false,
+        disableRemove: false
+      }
+    });
 
     this.rows = [newRow];
 
     this.pendingItemNames = [itemName];
-    // const itemLookup = this.template.querySelector(
-    //   'c-lookup-input[data-type="item"]'
-    // );
-
-    // itemLookup.setSelected(itemName);
   }
 
   renderedCallback() {
@@ -178,38 +202,65 @@ export default class SalesOrderLineItems extends LightningElement {
         updatedRows[this.selectedItemRowIndex].amount = basePrice ?? "";
         this.rows = updatedRows;
       }
-
-      console.log(JSON.stringify(this.rows));
     } else if (error) {
       console.error("Error fetching item base price", error);
     }
   }
 
   async handleLookupSearch(e) {
+    const type = e.target.dataset.type;
     const searchKey = e.detail.searchKey;
     const input = e.target;
     const index = Number(e.target.dataset.index);
 
     if (searchKey.length > 1) {
       input.setLoading(true);
+
+      const searchFn =
+        type === "item"
+          ? this.isSpecialOrder
+            ? searchSepcialOrderItem
+            : searchSellableItem
+          : type === "specialOrderItem"
+            ? searchItem
+            : type === "specialOrderVendorNum"
+              ? searchVendorNum
+              : null;
+
+      if (!searchFn) {
+        input.setResults([]);
+        return;
+      }
+
       try {
-        const results = await searchSellableItem({ input: searchKey });
+        const results = await searchFn({ input: searchKey });
+
         input.setResults(results);
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error(err.name);
+        console.error(err.message);
+        console.error(err.stack);
         input.setResults([]);
       } finally {
         input.setLoading(false);
       }
     } else {
       input.setResults([]);
-      this.clearItemRow(index);
+      this.resetItemRow(index);
     }
   }
 
-  handleLookupSelect(e) {
+  async handleLookupSelect(e) {
+    const type = e.target.dataset.type;
+
     try {
-      this.handleItemSelect(e);
+      if (type === "item") {
+        await this.handleItemSelect(e);
+      } else if (type === "specialOrderItem") {
+        await this.handleSpecialOrderItemSelect(e);
+      } else if (type === "specialOrderVendorNum") {
+        await this.handleSpecialOrderVendorNumSelect(e);
+      }
     } catch (err) {
       console.error(err.name);
       console.error(err.message);
@@ -227,7 +278,7 @@ export default class SalesOrderLineItems extends LightningElement {
 
     if (isDiscount) {
       if (index === 0) {
-        this.resetItemRow(index, input);
+        this.resetItemRow(index);
         await LightningAlert.open({
           label: "Error!",
           message:
@@ -238,7 +289,7 @@ export default class SalesOrderLineItems extends LightningElement {
       }
 
       if (this.rows[index - 1]?.isDiscount) {
-        this.resetItemRow(index, input);
+        this.resetItemRow(index);
         await LightningAlert.open({
           label: "Error!",
           message: "Each item can only be followed by one Store Discount.",
@@ -283,6 +334,60 @@ export default class SalesOrderLineItems extends LightningElement {
       this.selectedItemRowIndex = index;
       this.selectedItemId = selectedId;
     }
+  }
+
+  async handleSpecialOrderItemSelect(e) {
+    const selectedId = e.detail.id;
+    const index = Number(e.target.dataset.index);
+
+    const results = await getValue({
+      recordName: "breadwinner_ns__BW_Item__c",
+      fieldNames: ["breadwinner_ns__VendorName__c", "Base_Price__c"],
+      recordId: selectedId
+    });
+
+    const vendorNum = results.breadwinner_ns__VendorName__c;
+    const basePrice = results.Base_Price__c;
+    const updates = {};
+
+    if (this.hasValue(vendorNum)) {
+      this.setLookupValue(index, "specialOrderVendorNum", vendorNum);
+      updates.specialOrderVendorNum = vendorNum;
+    }
+
+    if (this.hasValue(basePrice)) {
+      updates.rate = basePrice;
+      updates.amount = basePrice;
+    }
+
+    this.updateRowFields(index, updates);
+  }
+
+  async handleSpecialOrderVendorNumSelect(e) {
+    const selectedId = e.detail.id;
+    const index = Number(e.target.dataset.index);
+
+    const results = await getValue({
+      recordName: "breadwinner_ns__BW_Item__c",
+      fieldNames: ["Name", "Base_Price__c"],
+      recordId: selectedId
+    });
+
+    const name = results.Name;
+    const basePrice = results.Base_Price__c;
+    const updates = {};
+
+    if (this.hasValue(name)) {
+      this.setLookupValue(index, "specialOrderItem", name);
+      updates.specialOrderItem = name;
+    }
+
+    if (this.hasValue(basePrice)) {
+      updates.rate = basePrice;
+      updates.amount = basePrice;
+    }
+
+    this.updateRowFields(index, updates);
   }
 
   async handleRowChange(e) {
@@ -354,21 +459,7 @@ export default class SalesOrderLineItems extends LightningElement {
     const index = Number(e.target.dataset.index);
 
     try {
-      const newRowId = this.nextRowId++;
-      const newRow = {
-        id: newRowId,
-        actionKey: `action-${newRowId}`,
-        item: "",
-        itemName: "",
-        imageUrl: "",
-        quantity: "",
-        rate: "",
-        amount: "",
-        line: "",
-        isDiscount: false,
-        showAction: false,
-        disableRemove: false
-      };
+      const newRow = this.createRow();
 
       const updatedRows = [...this.rows];
       updatedRows.splice(index + 1, 0, newRow);
@@ -412,6 +503,8 @@ export default class SalesOrderLineItems extends LightningElement {
         ...updatedRows[index],
         item: "",
         itemName: "",
+        specialOrderItem: "",
+        specialOrderVendorNum: "",
         imageUrl: "",
         quantity: "",
         rate: "",
@@ -428,11 +521,42 @@ export default class SalesOrderLineItems extends LightningElement {
     }
   }
 
-  resetItemRow(index, input) {
+  resetItemRow(index) {
     this.clearItemRow(index);
 
-    if (input?.setSelected) {
-      input.setSelected("");
+    const lookupInputs = this.template.querySelectorAll(
+      `c-lookup-input[data-index="${index}"]`
+    );
+
+    lookupInputs.forEach((lookup) => lookup.setSelected(""));
+  }
+
+  hasValue(value) {
+    return value !== null && value !== undefined && value !== "";
+  }
+
+  setLookupValue(index, lookupType, value) {
+    if (!this.hasValue(value)) return;
+
+    const lookupInput = this.template.querySelector(
+      `c-lookup-input[data-type="${lookupType}"][data-index="${index}"]`
+    );
+
+    if (lookupInput?.setSelected) {
+      lookupInput.setSelected(String(value));
+    }
+  }
+
+  updateRowFields(index, updates) {
+    if (!updates || Object.keys(updates).length === 0) return;
+
+    const updatedRows = [...this.rows];
+    if (updatedRows[index]) {
+      updatedRows[index] = {
+        ...updatedRows[index],
+        ...updates
+      };
+      this.rows = updatedRows;
     }
   }
 

@@ -122,7 +122,7 @@ public with sharing class FilterDataController {
       List<breadwinner_ns__BW_Item__c> batch;
       if (lastName == null) {
         batch = [
-          SELECT breadwinner_ns__VendorName__c
+          SELECT Id, breadwinner_ns__InternalId__c, breadwinner_ns__VendorName__c
           FROM breadwinner_ns__BW_Item__c
           WHERE
             breadwinner_ns__VendorName__c != NULL
@@ -132,7 +132,7 @@ public with sharing class FilterDataController {
         ];
       } else {
         batch = [
-          SELECT breadwinner_ns__VendorName__c
+          SELECT Id, breadwinner_ns__InternalId__c, breadwinner_ns__VendorName__c
           FROM breadwinner_ns__BW_Item__c
           WHERE
             breadwinner_ns__VendorName__c != NULL
@@ -142,8 +142,15 @@ public with sharing class FilterDataController {
           LIMIT :batchSize
         ];
       }
+
       for (breadwinner_ns__BW_Item__c item : batch) {
-        vendorNumSet.add(item.breadwinner_ns__VendorName__c);
+        String vendorNum = item.breadwinner_ns__VendorName__c;
+        if (!vendorNumSet.contains(vendorNum)) {
+          vendorNumSet.add(vendorNum);
+          vendorNums.add(
+            new LookupResult(item.Id, vendorNum, item.breadwinner_ns__InternalId__c)
+          );
+        }
       }
 
       if (batch.size() == batchSize) {
@@ -151,10 +158,6 @@ public with sharing class FilterDataController {
       } else {
         moreRecords = false;
       }
-    }
-
-    for (String vendorNum : vendorNumSet) {
-      vendorNums.add(new LookupResult(vendorNum, vendorNum));
     }
 
     return vendorNums;
@@ -198,6 +201,42 @@ public with sharing class FilterDataController {
           AND (ncf_item_serialized_item_type__c = FALSE
           OR (ncf_item_serialized_item_type__c = TRUE
           AND breadwinner_ns__Parent__c != NULL))
+      ]) {
+        items.add(
+          new LookupResult(
+            item.Id,
+            item.Name,
+            item.breadwinner_ns__InternalId__c
+          )
+        );
+      }
+
+      return items;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
+  public static List<LookupResult> searchSepcialOrderItem(String input) {
+    List<LookupResult> items = new List<LookupResult>();
+
+    try {
+      for (breadwinner_ns__BW_Item__c item : [
+        SELECT Id, Name, breadwinner_ns__InternalId__c
+        FROM breadwinner_ns__BW_Item__c
+        WHERE
+          Name LIKE :input + '%'
+          AND breadwinner_ns__InternalId__c IN (
+            '213836',
+            '213837',
+            '213838',
+            '213839',
+            '213840',
+            '213841',
+            '213842',
+            '213834'
+          )
       ]) {
         items.add(
           new LookupResult(

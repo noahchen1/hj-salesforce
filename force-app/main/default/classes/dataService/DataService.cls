@@ -101,4 +101,48 @@ public with sharing class DataService {
       );
     }
   }
+
+  @AuraEnabled(cacheable=true)
+  public static Map<String, String> getValue(
+    String recordName,
+    List<String> fieldNames,
+    Id recordId
+  ) {
+    if (String.isBlank(recordName) || fieldNames == null || fieldNames.isEmpty() || recordId == null) {
+      throw new AuraHandledException('recordName, fieldNames, and recordId are required.');
+    }
+
+    Pattern apiNamePattern = Pattern.compile('^[a-zA-Z_][a-zA-Z0-9_]*(__c|__r)?$');
+    if (!apiNamePattern.matcher(recordName).matches()) {
+      throw new AuraHandledException('Invalid object name.');
+    }
+    for (String fieldName : fieldNames) {
+      if (!apiNamePattern.matcher(fieldName).matches()) {
+        throw new AuraHandledException('Invalid field name: ' + fieldName);
+      }
+    }
+
+    String query =
+      'SELECT ' +
+      String.join(fieldNames, ', ') +
+      ' FROM ' +
+      recordName +
+      ' WHERE Id = :recordId';
+
+    List<SObject> results = Database.query(query);
+
+    if (results.isEmpty()) {
+      return null;
+    }
+
+    Map<String, String> fieldValues = new Map<String, String>();
+
+    for (String fieldName : fieldNames) {
+      Object fieldValue = results[0].get(fieldName);
+
+      fieldValues.put(fieldName, fieldValue != null ? String.valueOf(fieldValue) : null);
+    }
+
+    return fieldValues;
+  }
 }
