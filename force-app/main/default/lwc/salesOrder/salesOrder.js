@@ -68,13 +68,29 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   }
 
   get showTableOverlay() {
-    return !(
-      this.custNsInternalId &&
-      this.salesRep1 &&
-      this.subsidiary &&
-      this.location &&
-      this.date
-    );
+    if (this.orderType === "sales") {
+      return !(
+        this.custNsInternalId &&
+        this.salesRep1 &&
+        this.subsidiary &&
+        this.location &&
+        this.date
+      );
+    } else if (this.orderType === "special") {
+      return !(
+        this.custNsInternalId &&
+        this.salesRep1 &&
+        this.subsidiary &&
+        this.location &&
+        this.date &&
+        this.needByDate &&
+        this.specialOrderItemType &&
+        this.specialOrderVendor &&
+        this.specialOrderMemoOrSold
+      );
+    }
+
+    return false;
   }
 
   @wire(getSubsidiaryLocations, { subsidiary: "$subsidiary" })
