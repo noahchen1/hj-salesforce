@@ -300,7 +300,7 @@ export default class SalesOrderLineItems extends LightningElement {
       }
     }
 
-    if (!isDiscount) {
+    if (!isDiscount && !this.isSpecialOrder) {
       const itemIsAvailable = await checkOnHand({
         itemName: selectedName,
         nsLocationId: this.location,
@@ -316,7 +316,22 @@ export default class SalesOrderLineItems extends LightningElement {
       }
     }
 
+    if (this.isSpecialOrder && index > 0) {
+      const firstItem = this.rows[0];
+
+      if (firstItem && firstItem.item !== selectedNsId) {
+        this.resetItemRow(index);
+        await LightningAlert.open({
+          label: "Error!",
+          message: "You can only enter the same special order item!",
+          theme: "error"
+        });
+        return;
+      }
+    }
+
     const updatedRows = [...this.rows];
+
     if (updatedRows[index]) {
       updatedRows[index].item = selectedNsId;
       updatedRows[index].itemName = selectedName;
@@ -329,6 +344,7 @@ export default class SalesOrderLineItems extends LightningElement {
         updatedRows[index].amount = "";
       }
     }
+
     this.rows = updatedRows;
 
     if (!isDiscount) {
