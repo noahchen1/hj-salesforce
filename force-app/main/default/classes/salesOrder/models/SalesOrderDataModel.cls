@@ -27,6 +27,22 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String memo;
     @AuraEnabled
+    public String specialDate;
+    @AuraEnabled
+    public String needByDate;
+    @AuraEnabled
+    public String specialOrderItemType;
+    @AuraEnabled
+    public String specialOrderVendor;
+    @AuraEnabled
+    public String specialOrderRequestedVendor;
+    @AuraEnabled
+    public String specialOrderComments;
+    @AuraEnabled
+    public String specialOrderNotes;
+    @AuraEnabled
+    public String specialOrderMemoOrSold;
+    @AuraEnabled
     public Address shippingAddress;
     @AuraEnabled
     public Address billingAddress;
@@ -41,6 +57,10 @@ public with sharing class SalesOrderDataModel {
     public String item;
     @AuraEnabled
     public String itemName;
+    @AuraEnabled
+    public String specialOrderItem;
+    @AuraEnabled
+    public String specialOrderVendorNum;
     @AuraEnabled
     public String imageUrl;
     @AuraEnabled

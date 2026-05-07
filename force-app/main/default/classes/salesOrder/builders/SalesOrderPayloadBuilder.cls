@@ -1,5 +1,6 @@
 public with sharing class SalesOrderPayloadBuilder {
   public static Map<String, Object> buildSaveRequest(
+    String orderType,
     String soNsInternalId,
     String custNsInternalId,
     Date orderDate,
@@ -8,6 +9,14 @@ public with sharing class SalesOrderPayloadBuilder {
     String subsidiary,
     String location,
     String memo,
+    Date specialDate,
+    Date needByDate,
+    String specialOrderItemType,
+    String specialOrderVendor,
+    String specialOrderRequestedVendor,
+    String specialOrderComments,
+    String specialOrderNotes,
+    String specialOrderMemoOrSold,
     SalesOrderDataModel.Address shippingAddress,
     SalesOrderDataModel.Address billingAddress,
     List<SalesOrderDataModel.LineItem> lineItems,
@@ -15,7 +24,12 @@ public with sharing class SalesOrderPayloadBuilder {
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
 
-    requestMap.put('customForm', lookupByInternalId('115'));
+    if (orderType == 'special') {
+      requestMap.put('customForm', lookupByInternalId('275'));
+    } else {
+      requestMap.put('customForm', lookupByInternalId('115'));
+    }
+
     requestMap.put('entity', lookupByInternalId(custNsInternalId));
     requestMap.put('salesRep', lookupByInternalId(salesRep1));
     requestMap.put('subsidiary', lookupByInternalId(subsidiary));
@@ -48,11 +62,24 @@ public with sharing class SalesOrderPayloadBuilder {
 
     requestMap.put(
       'customFieldList',
-      new Map<String, Object>{ 'customField' => buildCustomFields(salesRep2) }
+      new Map<String, Object>{
+        'customField' => buildCustomFields(
+          orderType,
+          salesRep2,
+          specialDate,
+          needByDate,
+          specialOrderItemType,
+          specialOrderVendor,
+          specialOrderRequestedVendor,
+          specialOrderComments,
+          specialOrderNotes,
+          specialOrderMemoOrSold
+        )
+      }
     );
 
     Map<String, Object> itemList = new Map<String, Object>{
-      'item' => buildItemList(lineItems, location)
+      'item' => buildItemList(orderType, lineItems, location)
     };
 
     if (isUpdate) {
@@ -119,7 +146,18 @@ public with sharing class SalesOrderPayloadBuilder {
     return new Map<String, Object>{ 'internalId' => internalId };
   }
 
-  private static List<Object> buildCustomFields(String salesRep2) {
+  private static List<Object> buildCustomFields(
+    String orderType,
+    String salesRep2,
+    Date specialOrderDate,
+    Date needByDate,
+    String specialOrderItemType,
+    String specialORderVendor,
+    String specialOrderRequestedVendor,
+    String specialOrderComments,
+    String specialOrderNotes,
+    String specialOrderMemoOrSold
+  ) {
     List<Object> customFields = new List<Object>();
 
     customFields.add(
@@ -140,10 +178,93 @@ public with sharing class SalesOrderPayloadBuilder {
       );
     }
 
+    if (orderType == 'special') {
+      if (specialOrderDate != null) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'date',
+            'scriptId' => 'custbody_special_date',
+            'value' => Helpers.toUnixSeconds(specialOrderDate)
+          }
+        );
+      }
+
+      if (needByDate != null) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'date',
+            'scriptId' => 'custbody_special_order_date',
+            'value' => Helpers.toUnixSeconds(needByDate)
+          }
+        );
+      }
+
+      if (String.isNotBlank(specialOrderItemType)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'select',
+            'scriptId' => 'custbody_special_item_type',
+            'valueLookup' => lookupByInternalId(specialOrderItemType)
+          }
+        );
+      }
+
+      if (String.isNotBlank(specialORderVendor)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'select',
+            'scriptId' => 'custbody_special_order_vendor',
+            'valueLookup' => lookupByInternalId(specialORderVendor)
+          }
+        );
+      }
+
+      if (String.isNotBlank(specialOrderRequestedVendor)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_special_pref_vendor',
+            'value' => specialOrderRequestedVendor
+          }
+        );
+      }
+
+      if (String.isNotBlank(specialOrderComments)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_special_comments',
+            'value' => specialOrderComments
+          }
+        );
+      }
+
+      if (String.isNotBlank(specialOrderNotes)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_special_merch_note',
+            'value' => specialOrderNotes
+          }
+        );
+      }
+
+      if (String.isNotBlank(specialOrderMemoOrSold)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'select',
+            'scriptId' => 'custbody_special_memo_sold',
+            'valueLookup' => lookupByInternalId(specialOrderMemoOrSold)
+          }
+        );
+      }
+    }
+
     return customFields;
   }
 
   private static List<Object> buildItemList(
+    String orderType,
     List<SalesOrderDataModel.LineItem> lineItems,
     String location
   ) {
@@ -167,6 +288,35 @@ public with sharing class SalesOrderPayloadBuilder {
 
       if (!String.isBlank(lineItem.line)) {
         itemMap.put('line', lineItem.line);
+      }
+
+      if (orderType == 'special') {
+        List<Object> customFields = new List<Object>();
+
+        if (String.isNotBlank(lineItem.specialOrderItem)) {
+          customFields.add(
+            new Map<String, Object>{
+              'fieldType' => 'string',
+              'scriptId' => 'custcol_special_sku',
+              'value' => lineItem.specialOrderItem
+            }
+          );
+        }
+
+        if (String.isNotBlank(lineItem.specialOrderVendorNum)) {
+          customFields.add(
+            new Map<String, Object>{
+              'fieldType' => 'string',
+              'scriptId' => 'custcol_special_order_number',
+              'value' => lineItem.specialOrderVendorNum
+            }
+          );
+        }
+
+        itemMap.put(
+          'customFieldList',
+          new Map<String, Object>{ 'customField' => customFields }
+        );
       }
 
       items.add(itemMap);

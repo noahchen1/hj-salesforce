@@ -394,7 +394,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         };
 
       const rows = this.lineItems?.getRows() ?? [];
+
       const payload = {
+        orderType: this.orderType,
         soNsInternalId: this.soNsInternalId,
         custNsInternalId: this.custNsInternalId,
         orderDate: this.date,
@@ -403,6 +405,14 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         subsidiary: this.subsidiary,
         location: this.location,
         memo: this.memo,
+        specialDate: this.specialDate,
+        needByDate: this.needByDate,
+        specialOrderItemType: this.specialOrderItemType,
+        specialOrderVendor: this.specialOrderVendor,
+        specialOrderRequestedVendor: this.specialOrderRequestedVendor,
+        specialOrderComments: this.specialOrderComments,
+        specialOrderNotes: this.specialOrderNotes,
+        specialOrderMemoOrSold: this.specialOrderMemoOrSold,
         shippingAddressJson: JSON.stringify(shippingAddressState),
         billingAddressJson: JSON.stringify(billingAddressState),
         lineItemsJson: JSON.stringify(rows)
@@ -410,12 +420,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
-      // const soNsInternalId = await saveSalesOrder(payload);
-      // this.soNsInternalId = soNsInternalId;
+      const soNsInternalId = await saveSalesOrder(payload);
+      this.soNsInternalId = soNsInternalId;
 
-      // const orderRecordId = await getOrder({ soNsInternalId });
+      const orderRecordId = await getOrder({ soNsInternalId });
 
-      // return { soNsInternalId, orderRecordId, isUpdate };
+      return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
       console.error("Failed to save sales order");
       console.error(err.name);

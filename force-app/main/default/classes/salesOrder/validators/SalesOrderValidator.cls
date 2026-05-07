@@ -1,12 +1,25 @@
 public with sharing class SalesOrderValidator {
   public static void validateParams(
+    String orderType,
     String custNsInternalId,
     Date orderDate,
     String salesRep1,
     String subsidiary,
     String location,
+    Date specialDate,
+    Date needByDate,
+    String specialOrderItemType,
+    String specialOrderVendor,
+    String specialOrderMemoOrSold,
     String lineItemsJson
   ) {
+    Boolean isSalesOrder = orderType == 'sales';
+    Boolean isSpecialOrder = orderType == 'special';
+
+    if (!isSalesOrder && !isSpecialOrder) {
+      return;
+    }
+
     if (
       String.isBlank(custNsInternalId) ||
       orderDate == null ||
@@ -14,6 +27,17 @@ public with sharing class SalesOrderValidator {
       String.isBlank(subsidiary) ||
       String.isBlank(location) ||
       String.isBlank(lineItemsJson)
+    ) {
+      throw new AuraHandledException('Missing required parameters.');
+    }
+
+    if (
+      isSpecialOrder &&
+      (specialDate == null ||
+      needByDate == null ||
+      String.isBlank(specialOrderItemType) ||
+      String.isBlank(specialOrderVendor) ||
+      String.isBlank(specialOrderMemoOrSold))
     ) {
       throw new AuraHandledException('Missing required parameters.');
     }
@@ -29,10 +53,14 @@ public with sharing class SalesOrderValidator {
     Boolean hasValidItem = false;
 
     for (SalesOrderDataModel.LineItem item : items) {
+      if (item == null || String.isBlank(item.item) || String.isBlank(item.rate)) {
+        continue;
+      }
+
       if (
-        item != null &&
-        !String.isBlank(item.item) &&
-        !String.isBlank(item.rate)
+        !isSpecialOrder ||
+        (!String.isBlank(item.specialOrderVendorNum) &&
+        !String.isBlank(item.specialOrderItem))
       ) {
         hasValidItem = true;
         break;

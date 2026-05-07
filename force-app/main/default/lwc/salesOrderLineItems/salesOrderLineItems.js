@@ -30,7 +30,7 @@ export default class SalesOrderLineItems extends LightningElement {
   @api orderType;
 
   rows = [];
-  nextRowId = 1;
+  nextRowId = 0;
   selectedItemId;
   selectedItemRowIndex = null;
   pendingItemNames = null;
@@ -100,8 +100,10 @@ export default class SalesOrderLineItems extends LightningElement {
 
   @api
   reset() {
-    this.nextRowId = 1;
-    this.rows = [this.createRow({ showAction: true, disableRemove: true })];
+    this.rows = [
+      this.createRow({ id: 1, showAction: true, disableRemove: true })
+    ];
+    this.nextRowId = 2;
     this.selectedItemId = null;
     this.selectedItemRowIndex = null;
 
@@ -144,9 +146,8 @@ export default class SalesOrderLineItems extends LightningElement {
 
   @api
   setSpecialItem({ itemId, itemName }) {
-    this.reset();
-
     const newRow = this.createRow({
+      id: 1,
       overrides: {
         item: itemId,
         itemName,
@@ -157,7 +158,7 @@ export default class SalesOrderLineItems extends LightningElement {
     });
 
     this.rows = [newRow];
-
+    this.nextRowId = 2;
     this.pendingItemNames = [itemName];
   }
 
@@ -337,6 +338,7 @@ export default class SalesOrderLineItems extends LightningElement {
   }
 
   async handleSpecialOrderItemSelect(e) {
+    const selectedName = e.detail.name;
     const selectedId = e.detail.id;
     const index = Number(e.target.dataset.index);
 
@@ -348,7 +350,7 @@ export default class SalesOrderLineItems extends LightningElement {
 
     const vendorNum = results.breadwinner_ns__VendorName__c;
     const basePrice = results.Base_Price__c;
-    const updates = {};
+    const updates = { specialOrderItem: selectedName };
 
     if (this.hasValue(vendorNum)) {
       this.setLookupValue(index, "specialOrderVendorNum", vendorNum);
@@ -364,6 +366,7 @@ export default class SalesOrderLineItems extends LightningElement {
   }
 
   async handleSpecialOrderVendorNumSelect(e) {
+    const selectedName = e.detail.name;
     const selectedId = e.detail.id;
     const index = Number(e.target.dataset.index);
 
@@ -375,7 +378,7 @@ export default class SalesOrderLineItems extends LightningElement {
 
     const name = results.Name;
     const basePrice = results.Base_Price__c;
-    const updates = {};
+    const updates = { specialOrderVendorNum: selectedName };
 
     if (this.hasValue(name)) {
       this.setLookupValue(index, "specialOrderItem", name);

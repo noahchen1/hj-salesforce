@@ -1,6 +1,7 @@
 public with sharing class SalesOrderController {
   @AuraEnabled
   public static String saveSalesOrder(
+    String orderType,
     String soNsInternalId,
     String custNsInternalId,
     Date orderDate,
@@ -9,11 +10,20 @@ public with sharing class SalesOrderController {
     String subsidiary,
     String location,
     String memo,
+    Date specialDate,
+    Date needByDate,
+    String specialOrderItemType,
+    String specialOrderVendor,
+    String specialOrderRequestedVendor,
+    String specialOrderComments,
+    String specialOrderNotes,
+    String specialOrderMemoOrSold,
     String shippingAddressJson,
     String billingAddressJson,
     String lineItemsJson
   ) {
     return SalesOrderService.saveSalesOrder(
+      orderType,
       soNsInternalId,
       custNsInternalId,
       orderDate,
@@ -22,6 +32,14 @@ public with sharing class SalesOrderController {
       subsidiary,
       location,
       memo,
+      specialDate,
+      needByDate,
+      specialOrderItemType,
+      specialOrderVendor,
+      specialOrderRequestedVendor,
+      specialOrderComments,
+      specialOrderNotes,
+      specialOrderMemoOrSold,
       shippingAddressJson,
       billingAddressJson,
       lineItemsJson

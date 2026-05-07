@@ -1,5 +1,6 @@
 public with sharing class SalesOrderService {
   public static String saveSalesOrder(
+    String orderType,
     String soNsInternalId,
     String custNsInternalId,
     Date orderDate,
@@ -8,17 +9,31 @@ public with sharing class SalesOrderService {
     String subsidiary,
     String location,
     String memo,
+    Date specialDate,
+    Date needByDate,
+    String specialOrderItemType,
+    String specialOrderVendor,
+    String specialOrderRequestedVendor,
+    String specialOrderComments,
+    String specialOrderNotes,
+    String specialOrderMemoOrSold,
     String shippingAddressJson,
     String billingAddressJson,
     String lineItemsJson
   ) {
     try {
       SalesOrderValidator.validateParams(
+        orderType,
         custNsInternalId,
         orderDate,
         salesRep1,
         subsidiary,
         location,
+        specialDate,
+        needByDate,
+        specialOrderItemType,
+        specialOrderVendor,
+        specialOrderMemoOrSold,
         lineItemsJson
       );
 
@@ -37,6 +52,7 @@ public with sharing class SalesOrderService {
       );
 
       Map<String, Object> salesOrderRequest = SalesOrderPayloadBuilder.buildSaveRequest(
+        orderType,
         soNsInternalId,
         custNsInternalId,
         orderDate,
@@ -45,6 +61,14 @@ public with sharing class SalesOrderService {
         subsidiary,
         location,
         memo,
+        specialDate,
+        needByDate,
+        specialOrderItemType,
+        specialOrderVendor,
+        specialOrderRequestedVendor,
+        specialOrderComments,
+        specialOrderNotes,
+        specialOrderMemoOrSold,
         shippingAddress,
         billingAddress,
         lineItems,
