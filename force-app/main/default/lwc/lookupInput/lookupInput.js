@@ -3,6 +3,8 @@ import { LightningElement, track, api } from "lwc";
 export default class LookupInput extends LightningElement {
   @api label = "";
   @api placeholder = "Type to search...";
+  @api disabled = false;
+  @api required = false;
   @track searchKey = "";
   @track results = [];
   @track showResults = false;

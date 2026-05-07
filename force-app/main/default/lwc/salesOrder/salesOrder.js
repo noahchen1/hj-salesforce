@@ -230,6 +230,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     if (name === "specialOrderItemType") {
       const isRolex = value === "6";
 
+      this.specialOrderVendor = "";
+      this.specialOrderRequestedVendor = "";
+
       if (isRolex) {
         this.specialOrderVendor = "220";
 
@@ -420,12 +423,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
-      const soNsInternalId = await saveSalesOrder(payload);
-      this.soNsInternalId = soNsInternalId;
+      // const soNsInternalId = await saveSalesOrder(payload);
+      // this.soNsInternalId = soNsInternalId;
 
-      const orderRecordId = await getOrder({ soNsInternalId });
+      // const orderRecordId = await getOrder({ soNsInternalId });
 
-      return { soNsInternalId, orderRecordId, isUpdate };
+      // return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
       console.error("Failed to save sales order");
       console.error(err.name);

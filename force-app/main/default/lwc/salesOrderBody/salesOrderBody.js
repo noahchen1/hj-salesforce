@@ -4,6 +4,8 @@ import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer
 import searchVendor from "@salesforce/apex/FilterDataController.searchVendor";
 
 export default class SalesOrderBody extends LightningElement {
+  static VENDOR_REQUIRED_ITEM_TYPES = new Set(["1", "2", "4", "5", "6"]);
+
   @api subsidiaryOptions = [];
   @api locationOptions = [];
   @api date;
@@ -63,6 +65,20 @@ export default class SalesOrderBody extends LightningElement {
 
   get isRepairOrder() {
     return this.orderType === "repair";
+  }
+
+  get isVendorRequiredItemType() {
+    return SalesOrderBody.VENDOR_REQUIRED_ITEM_TYPES.has(
+      this.specialOrderItemType
+    );
+  }
+
+  get isSpecialOrderVendorRequired() {
+    return this.isVendorRequiredItemType;
+  }
+
+  get isSpecialOrderVendorDisabled() {
+    return !this.isVendorRequiredItemType;
   }
 
   @api

@@ -8,6 +8,8 @@
       onchange={handleInputChange}
       onfocus={handleFocus}
       variant={variant}
+      disabled={disabled}
+      required={required}
     ></lightning-input>
     <template if:true={showResultsOrLoading}>
       <ul class="lookup-dropdown" style={dropdownStyle}>

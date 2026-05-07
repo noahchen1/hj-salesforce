@@ -1,4 +1,16 @@
 public with sharing class SalesOrderValidator {
+  private static final Set<String> VENDOR_REQUIRED_ITEM_TYPES = new Set<String>{
+    '1',
+    '2',
+    '4',
+    '5',
+    '6'
+  };
+
+  private static Boolean isVendorRequiredItemType(String specialOrderItemType) {
+    return VENDOR_REQUIRED_ITEM_TYPES.contains(specialOrderItemType);
+  }
+
   public static void validateParams(
     String orderType,
     String custNsInternalId,
@@ -36,7 +48,8 @@ public with sharing class SalesOrderValidator {
       (specialDate == null ||
       needByDate == null ||
       String.isBlank(specialOrderItemType) ||
-      String.isBlank(specialOrderVendor) ||
+      (isVendorRequiredItemType(specialOrderItemType) &&
+      String.isBlank(specialOrderVendor)) ||
       String.isBlank(specialOrderMemoOrSold))
     ) {
       throw new AuraHandledException('Missing required parameters.');
@@ -53,7 +66,11 @@ public with sharing class SalesOrderValidator {
     Boolean hasValidItem = false;
 
     for (SalesOrderDataModel.LineItem item : items) {
-      if (item == null || String.isBlank(item.item) || String.isBlank(item.rate)) {
+      if (
+        item == null ||
+        String.isBlank(item.item) ||
+        String.isBlank(item.rate)
+      ) {
         continue;
       }
 
