@@ -25,3 +25,5 @@ export function processPicklistData(data, isAddress = false) {
 
   return { options, defaultShipping, defaultBilling };
 }
+
+export const VENDOR_REQUIRED_ITEM_TYPES = new Set(["1", "2", "4", "5", "6"]);

@@ -316,7 +316,7 @@ export default class SalesOrderLineItems extends LightningElement {
       }
     }
 
-    if (this.isSpecialOrder && index > 0) {
+    if (this.isSpecialOrder && index > 0 && !isDiscount) {
       const firstItem = this.rows[0];
 
       if (firstItem && firstItem.item !== selectedNsId) {

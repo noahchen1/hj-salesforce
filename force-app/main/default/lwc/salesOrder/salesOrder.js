@@ -17,6 +17,7 @@ import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNs
 import getCustomerAddresses from "@salesforce/apex/DropdownDataController.getCustomerAddresses";
 import notifyOrderSaveStatus from "@salesforce/apex/SalesOrderController.notifyOrderSaveStatus";
 import { processPicklistData } from "c/salesOrderUtils";
+import { VENDOR_REQUIRED_ITEM_TYPES } from "c/salesOrderUtils";
 
 export default class SalesOrder extends NavigationMixin(LightningElement) {
   @api recordId;
@@ -85,7 +86,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         this.date &&
         this.needByDate &&
         this.specialOrderItemType &&
-        this.specialOrderVendor &&
+        (!VENDOR_REQUIRED_ITEM_TYPES.has(this.specialOrderItemType) ||
+          this.specialOrderVendor) &&
         this.specialOrderMemoOrSold
       );
     }

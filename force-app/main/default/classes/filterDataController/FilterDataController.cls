@@ -235,7 +235,8 @@ public with sharing class FilterDataController {
             '213840',
             '213841',
             '213842',
-            '213834'
+            '213834',
+            '186466'
           )
       ]) {
         items.add(
