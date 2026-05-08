@@ -4,6 +4,7 @@ import LightningAlert from "lightning/alert";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import searchSellableItem from "@salesforce/apex/FilterDataController.searchSellableItem";
 import searchSepcialOrderItem from "@salesforce/apex/FilterDataController.searchSepcialOrderItem";
+import searchParentItem from "@salesforce/apex/FilterDataController.searchParentItem";
 import searchItem from "@salesforce/apex/FilterDataController.searchItem";
 import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
 import getValue from "@salesforce/apex/DataService.getValue";
@@ -33,7 +34,7 @@ export default class SalesOrderLineItems extends LightningElement {
   nextRowId = 0;
   selectedItemId;
   selectedItemRowIndex = null;
-  pendingItemNames = null;
+  pendingLookupSelections = null;
 
   constructor() {
     super();
@@ -79,8 +80,10 @@ export default class SalesOrderLineItems extends LightningElement {
   }
 
   @api
-  loadRows(rows, itemNames) {
-    this.rows = (rows || []).map((row, index) => {
+  loadRows(rows) {
+    const sourceRows = rows || [];
+
+    this.rows = sourceRows.map((row, index) => {
       const rowId = row.id || index + 1;
 
       return this.createRow({
@@ -95,7 +98,26 @@ export default class SalesOrderLineItems extends LightningElement {
     });
 
     this.nextRowId = this.rows.length + 1;
-    this.pendingItemNames = itemNames;
+
+    this.pendingLookupSelections = {
+      item: this.rows.map((row) => row.itemName || "")
+    };
+
+    const hasSpecialRowData = sourceRows.some(
+      (row) =>
+        row &&
+        ((row.specialOrderItem ?? "") !== "" ||
+          (row.specialOrderVendorNum ?? "") !== "")
+    );
+
+    if (this.isSpecialOrder || hasSpecialRowData) {
+      this.pendingLookupSelections.specialOrderItem = this.rows.map(
+        (row) => row.specialOrderItem || ""
+      );
+      this.pendingLookupSelections.specialOrderVendorNum = this.rows.map(
+        (row) => row.specialOrderVendorNum || ""
+      );
+    }
   }
 
   @api
@@ -108,7 +130,9 @@ export default class SalesOrderLineItems extends LightningElement {
     this.selectedItemRowIndex = null;
 
     this.clearItemLookups();
-    this.pendingItemNames = [""];
+    this.pendingLookupSelections = {
+      item: [""]
+    };
   }
 
   @api
@@ -159,23 +183,37 @@ export default class SalesOrderLineItems extends LightningElement {
 
     this.rows = [newRow];
     this.nextRowId = 2;
-    this.pendingItemNames = [itemName];
+    this.pendingLookupSelections = {
+      item: [itemName || ""]
+    };
+
+    if (this.isSpecialOrder) {
+      this.pendingLookupSelections.specialOrderItem = [""];
+      this.pendingLookupSelections.specialOrderVendorNum = [""];
+    }
   }
 
   renderedCallback() {
-    if (!this.pendingItemNames) return;
+    if (!this.pendingLookupSelections) return;
 
-    const itemLookups = this.template.querySelectorAll(
-      'c-lookup-input[data-type="item"]'
-    );
+    const lookupTypes = Object.keys(this.pendingLookupSelections);
 
-    if (itemLookups.length < this.pendingItemNames.length) return;
+    for (const lookupType of lookupTypes) {
+      const values = this.pendingLookupSelections[lookupType] || [];
+      const lookups = this.template.querySelectorAll(
+        `c-lookup-input[data-type="${lookupType}"]`
+      );
 
-    itemLookups.forEach((lookup, index) => {
-      lookup.setSelected(this.pendingItemNames[index] || "");
-    });
+      if (lookups.length < values.length) {
+        return;
+      }
 
-    this.pendingItemNames = null;
+      lookups.forEach((lookup, index) => {
+        lookup.setSelected(values[index] || "");
+      });
+    }
+
+    this.pendingLookupSelections = null;
   }
 
   @wire(getRecord, {
@@ -223,7 +261,7 @@ export default class SalesOrderLineItems extends LightningElement {
             ? searchSepcialOrderItem
             : searchSellableItem
           : type === "specialOrderItem"
-            ? searchItem
+            ? searchParentItem
             : type === "specialOrderVendorNum"
               ? searchVendorNum
               : null;

@@ -122,7 +122,10 @@ public with sharing class FilterDataController {
       List<breadwinner_ns__BW_Item__c> batch;
       if (lastName == null) {
         batch = [
-          SELECT Id, breadwinner_ns__InternalId__c, breadwinner_ns__VendorName__c
+          SELECT
+            Id,
+            breadwinner_ns__InternalId__c,
+            breadwinner_ns__VendorName__c
           FROM breadwinner_ns__BW_Item__c
           WHERE
             breadwinner_ns__VendorName__c != NULL
@@ -132,7 +135,10 @@ public with sharing class FilterDataController {
         ];
       } else {
         batch = [
-          SELECT Id, breadwinner_ns__InternalId__c, breadwinner_ns__VendorName__c
+          SELECT
+            Id,
+            breadwinner_ns__InternalId__c,
+            breadwinner_ns__VendorName__c
           FROM breadwinner_ns__BW_Item__c
           WHERE
             breadwinner_ns__VendorName__c != NULL
@@ -148,7 +154,11 @@ public with sharing class FilterDataController {
         if (!vendorNumSet.contains(vendorNum)) {
           vendorNumSet.add(vendorNum);
           vendorNums.add(
-            new LookupResult(item.Id, vendorNum, item.breadwinner_ns__InternalId__c)
+            new LookupResult(
+              item.Id,
+              vendorNum,
+              item.breadwinner_ns__InternalId__c
+            )
           );
         }
       }
@@ -172,6 +182,35 @@ public with sharing class FilterDataController {
         SELECT Id, Name, breadwinner_ns__InternalId__c
         FROM breadwinner_ns__BW_Item__c
         WHERE Name LIKE :input + '%'
+      ]) {
+        items.add(
+          new LookupResult(
+            item.Id,
+            item.Name,
+            item.breadwinner_ns__InternalId__c
+          )
+        );
+      }
+
+      return items;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
+  public static List<LookupResult> searchParentItem(String input) {
+    List<LookupResult> items = new List<LookupResult>();
+
+    try {
+      for (breadwinner_ns__BW_Item__c item : [
+        SELECT Id, Name, breadwinner_ns__InternalId__c
+        FROM breadwinner_ns__BW_Item__c
+        WHERE
+          Name LIKE :input + '%'
+          AND (ncf_item_serialized_item_type__c = FALSE
+          OR (ncf_item_serialized_item_type__c = TRUE
+          AND breadwinner_ns__Parent__c = NULL))
       ]) {
         items.add(
           new LookupResult(

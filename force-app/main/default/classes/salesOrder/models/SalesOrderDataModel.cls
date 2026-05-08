@@ -1,6 +1,8 @@
 public with sharing class SalesOrderDataModel {
   public class SalesOrderData {
     @AuraEnabled
+    public String orderType;
+    @AuraEnabled
     public String soNsInternalId;
     @AuraEnabled
     public Id nsCompanyId;
@@ -33,7 +35,9 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String specialOrderItemType;
     @AuraEnabled
-    public String specialOrderVendor;
+    public String specialOrderVendorName;
+    @AuraEnabled
+    public String specialOrderVendorNsId;
     @AuraEnabled
     public String specialOrderRequestedVendor;
     @AuraEnabled

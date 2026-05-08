@@ -444,20 +444,48 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     try {
       const data = await getOrderData({ salesOrderId: this.recordId });
 
-      this.soNsInternalId = data.soNsInternalId || this.soNsInternalId;
-      this.accountId = data.accountId || this.accountId;
+      console.log(data);
+
+      const isSpecialOrder =
+        data.specialOrderItemType !== null &&
+        data.specialOrderItemType !== "" &&
+        data.specialOrderItemType !== undefined;
+
+      this.orderType = isSpecialOrder ? "special" : "sales";
+      this.soNsInternalId = data.soNsInternalId || "";
+      this.accountId = data.accountId || "";
       this.custNsInternalId = data.customerNsId || "";
-      this.date = data.orderDate || this.date;
+      this.date = data.orderDate || null;
       this.salesRep1 = data.salesRep1NsId || "";
       this.salesRep2 = data.salesRep2NsId || "";
       this.memo = data.memo || "";
       this.subsidiary = data.subsidiaryNsId || "";
       this.location = data.locationNsId || "";
 
+      if (isSpecialOrder) {
+        this.specialDate = data.specialDate || null;
+        this.needByDate = data.needByDate || null;
+        this.specialOrderItemType = data.specialOrderItemType || "";
+        this.specialOrderVendor = data.specialOrderVendorNsId || "";
+        this.specialOrderRequestedVendor =
+          data.specialOrderRequestedVendor || "";
+        this.specialOrderComments = data.specialOrderComments || "";
+        this.specialOrderNotes = data.specialOrderNotes || "";
+        this.specialOrderMemoOrSold = data.specialOrderMemoOrSold || "";
+      } else {
+        this.specialDate = "";
+        this.needByDate = "";
+        this.specialOrderItemType = "";
+        this.specialOrderVendor = "";
+        this.specialOrderRequestedVendor = "";
+        this.specialOrderComments = "";
+        this.specialOrderNotes = "";
+        this.specialOrderMemoOrSold = "";
+      }
+
       this.addressSection?.loadFromOrderData(data);
       const mappedRows = this.lineItems?.getMappedRows(data.lineItems);
-      const itemNames = mappedRows.map((row) => row.itemName || "");
-      this.lineItems?.loadRows(mappedRows, itemNames);
+      this.lineItems?.loadRows(mappedRows);
 
       await this.fetchCustomerAddresses({
         nsCompanyId: data.nsCompanyId,
@@ -467,6 +495,15 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this.header?.setLookupValue("customer", data.customerName || "");
       this.header?.setLookupValue("salesRep1", data.salesRep1Name || "");
       this.header?.setLookupValue("salesRep2", data.salesRep2Name || "");
+
+      if (isSpecialOrder) {
+        this.header?.setLookupValue(
+          "specialOrderVendor",
+          data.specialOrderVendorName
+        );
+      } else {
+        this.header?.setLookupValue("specialOrderVendor", "");
+      }
     } catch (error) {
       console.error("Failed to load existing sales order");
       console.error(error.name);

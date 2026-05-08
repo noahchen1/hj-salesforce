@@ -40,7 +40,7 @@ public with sharing class SalesOrderMapper {
     result.locationNsId = so.location?.internalId;
 
     mapCustomer(so, result);
-    mapSalesRep2(so, result);
+    mapOrderCustomFields(so, result);
     mapLineItems(so, result);
     mapAddresses(so, result);
 
@@ -80,7 +80,7 @@ public with sharing class SalesOrderMapper {
     }
   }
 
-  private static void mapSalesRep2(
+  private static void mapOrderCustomFields(
     SalesOrderResModel.SalesOrder so,
     SalesOrderDataModel.SalesOrderData result
   ) {
@@ -89,7 +89,11 @@ public with sharing class SalesOrderMapper {
     }
 
     for (SalesOrderResModel.CustomField cf : so.customFieldList.customField) {
-      if (cf != null && cf.scriptId == 'custbody_salesrep2') {
+      if (cf == null || String.isBlank(cf.scriptId)) {
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_salesrep2') {
         result.salesRep2Name = cf.valueLookup != null
           ? cf.valueLookup.name
           : cf.value;
@@ -98,8 +102,80 @@ public with sharing class SalesOrderMapper {
           ? cf.valueLookup.internalId
           : null;
 
-        return;
+        continue;
       }
+
+      if (cf.scriptId == 'custbody_is_special_order') {
+        Boolean isSpecialOrder = Boolean.valueOf(cf.value);
+
+        result.orderType = isSpecialOrder ? 'special' : 'sales';
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_special_date') {
+        result.specialDate = toDateOnlyFromUnixSeconds(cf.value);
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_special_order_date') {
+        result.needByDate = toDateOnlyFromUnixSeconds(cf.value);
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_special_item_type') {
+        result.specialOrderItemType = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : cf.value;
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_special_order_vendor') {
+        result.specialOrderVendorName = cf.valueLookup != null
+          ? cf.valueLookup.name
+          : cf.value;
+
+        result.specialOrderVendorNsId = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : null;
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_special_pref_vendor') {
+        result.specialOrderRequestedVendor = cf.value;
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_special_comments') {
+        result.specialOrderComments = cf.value;
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_special_merch_note') {
+        result.specialOrderNotes = cf.value;
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_special_memo_sold') {
+        result.specialOrderMemoOrSold = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : cf.value;
+        continue;
+      }
+    }
+  }
+
+  private static String toDateOnlyFromUnixSeconds(String unixSecondsText) {
+    if (String.isBlank(unixSecondsText)) {
+      return null;
+    }
+
+    try {
+      return Helpers.toDateOnlyFromUnixSeconds(
+        Long.valueOf(unixSecondsText.trim())
+      );
+    } catch (Exception e) {
+      return null;
     }
   }
 
@@ -131,8 +207,39 @@ public with sharing class SalesOrderMapper {
       dto.rate = it.rate;
       dto.amount = it.amount != null ? String.valueOf(it.amount) : null;
       dto.line = it.line;
+      mapLineItemCustomFields(it, dto);
 
       result.lineItems.add(dto);
+    }
+  }
+
+  private static void mapLineItemCustomFields(
+    SalesOrderResModel.SalesOrderItem source,
+    SalesOrderDataModel.LineItem target
+  ) {
+    if (
+      source == null ||
+      source.customFieldList == null ||
+      source.customFieldList.customField == null
+    ) {
+      return;
+    }
+
+    for (
+      SalesOrderResModel.CustomField cf : source.customFieldList.customField
+    ) {
+      if (cf == null || String.isBlank(cf.scriptId)) {
+        continue;
+      }
+
+      if (cf.scriptId == 'custcol_special_sku') {
+        target.specialOrderItem = cf.value;
+        continue;
+      }
+
+      if (cf.scriptId == 'custcol_special_order_number') {
+        target.specialOrderVendorNum = cf.value;
+      }
     }
   }
 
@@ -157,6 +264,7 @@ public with sharing class SalesOrderMapper {
     addr.internalId = src.internalId;
     addr.country = src.country;
     addr.city = src.city;
+    addr.attention = src.attention;
     addr.addressee = src.addressee;
     addr.addr1 = src.addr1;
     addr.addr2 = src.addr2;

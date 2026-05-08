@@ -29,6 +29,7 @@ public with sharing class SalesOrderResModel {
 
   public class ItemList {
     public List<SalesOrderItem> item;
+    public CustomFieldList customFieldList;
   }
 
   public class SalesOrderItem {
@@ -37,6 +38,7 @@ public with sharing class SalesOrderResModel {
     public String rate;
     public Decimal amount;
     public String line;
+    public CustomFieldList customFieldList;
   }
 
   public class CustomFieldList {
@@ -68,6 +70,7 @@ public with sharing class SalesOrderResModel {
     public String internalId;
     public String country;
     public String city;
+    public String attention;
     public String addressee;
     public String addr1;
     public String addr2;
