@@ -7,7 +7,8 @@
     <h3 class="table-title">Order Items</h3>
 
     <template if:true={isSalesOrder}>
-      <table class="order-table">
+      <div class="table-scroll">
+        <table class="order-table sales-order-table">
         <colgroup>
           <col class="order-col" />
           <col class="order-col" />
@@ -117,11 +118,13 @@
             </template>
           </template>
         </tbody>
-      </table>
+        </table>
+      </div>
     </template>
 
     <template if:true={isSpecialOrder}>
-      <table class="order-table">
+      <div class="table-scroll">
+        <table class="order-table special-order-table">
         <colgroup>
           <col class="order-col" />
           <col class="order-col" />
@@ -257,7 +260,8 @@
             </template>
           </template>
         </tbody>
-      </table>
+        </table>
+      </div>
     </template>
   </div>
 </template>
