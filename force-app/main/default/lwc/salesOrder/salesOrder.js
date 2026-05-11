@@ -32,9 +32,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   location = "";
   memo = "";
   orderType = "sales";
+  paymentTerm = "149";
 
-  specialDate = "";
-  needByDate = "";
+  specialDate = null;
+  needByDate = null;
   specialOrderItemType = "";
   specialOrderVendor = "";
   specialOrderRequestedVendor = "";
@@ -285,6 +286,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.salesRep2 = "";
     this.location = "";
     this.memo = "";
+    this.paymentTerm = "149";
     this.subsidiary = "";
     this.specialDate = "";
     this.needByDate = "";
@@ -409,9 +411,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         salesRep2: this.salesRep2,
         subsidiary: this.subsidiary,
         location: this.location,
+        termsNsInternalId: this.paymentTerm,
         memo: this.memo,
-        specialDate: this.specialDate,
-        needByDate: this.needByDate,
         specialOrderItemType: this.specialOrderItemType,
         specialOrderVendor: this.specialOrderVendor,
         specialOrderRequestedVendor: this.specialOrderRequestedVendor,
@@ -423,14 +424,17 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         lineItemsJson: JSON.stringify(rows)
       };
 
+      if (this.specialDate) payload.specialDate = this.specialDate;
+      if (this.needByDate) payload.needByDate = this.needByDate;
+
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
-      // const soNsInternalId = await saveSalesOrder(payload);
-      // this.soNsInternalId = soNsInternalId;
+      const soNsInternalId = await saveSalesOrder(payload);
+      this.soNsInternalId = soNsInternalId;
 
-      // const orderRecordId = await getOrder({ soNsInternalId });
+      const orderRecordId = await getOrder({ soNsInternalId });
 
-      // return { soNsInternalId, orderRecordId, isUpdate };
+      return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
       console.error("Failed to save sales order");
       console.error(err.name);
@@ -452,26 +456,28 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         data.specialOrderItemType !== undefined;
 
       this.orderType = isSpecialOrder ? "special" : "sales";
-      this.soNsInternalId = data.soNsInternalId || "";
-      this.accountId = data.accountId || "";
-      this.custNsInternalId = data.customerNsId || "";
-      this.date = data.orderDate || null;
-      this.salesRep1 = data.salesRep1NsId || "";
-      this.salesRep2 = data.salesRep2NsId || "";
-      this.memo = data.memo || "";
-      this.subsidiary = data.subsidiaryNsId || "";
-      this.location = data.locationNsId || "";
+      this.soNsInternalId = data.soNsInternalId ?? "";
+      this.accountId = data.accountId ?? "";
+      this.custNsInternalId = data.customerNsId ?? "";
+      this.date = data.orderDate ?? null;
+      this.salesRep1 = data.salesRep1NsId ?? "";
+      this.salesRep2 = data.salesRep2NsId ?? "";
+      this.memo = data.memo ?? "";
+      this.paymentTerm = data.paymentTerm ?? "149";
+      this.subsidiary = data.subsidiaryNsId ?? "";
+      this.location = data.locationNsId ?? "";
+      this.paymentTerm = data.termNsId ?? "";
 
       if (isSpecialOrder) {
-        this.specialDate = data.specialDate || null;
-        this.needByDate = data.needByDate || null;
-        this.specialOrderItemType = data.specialOrderItemType || "";
-        this.specialOrderVendor = data.specialOrderVendorNsId || "";
+        this.specialDate = data.specialDate ?? null;
+        this.needByDate = data.needByDate ?? null;
+        this.specialOrderItemType = data.specialOrderItemType ?? "";
+        this.specialOrderVendor = data.specialOrderVendorNsId ?? "";
         this.specialOrderRequestedVendor =
-          data.specialOrderRequestedVendor || "";
-        this.specialOrderComments = data.specialOrderComments || "";
-        this.specialOrderNotes = data.specialOrderNotes || "";
-        this.specialOrderMemoOrSold = data.specialOrderMemoOrSold || "";
+          data.specialOrderRequestedVendor ?? "";
+        this.specialOrderComments = data.specialOrderComments ?? "";
+        this.specialOrderNotes = data.specialOrderNotes ?? "";
+        this.specialOrderMemoOrSold = data.specialOrderMemoOrSold ?? "";
       } else {
         this.specialDate = "";
         this.needByDate = "";
@@ -492,9 +498,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         skipSelection: true
       });
 
-      this.header?.setLookupValue("customer", data.customerName || "");
-      this.header?.setLookupValue("salesRep1", data.salesRep1Name || "");
-      this.header?.setLookupValue("salesRep2", data.salesRep2Name || "");
+      this.header?.setLookupValue("customer", data.customerName ?? "");
+      this.header?.setLookupValue("salesRep1", data.salesRep1Name ?? "");
+      this.header?.setLookupValue("salesRep2", data.salesRep2Name ?? "");
 
       if (isSpecialOrder) {
         this.header?.setLookupValue(

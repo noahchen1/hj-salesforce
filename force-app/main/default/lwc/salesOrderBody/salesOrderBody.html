@@ -65,6 +65,14 @@
         onchange={handleComboboxChange}
         disabled={isLocationDisabled}
       ></lightning-combobox>
+      <lightning-combobox
+        name="paymentTerm"
+        label="Payment Term"
+        value={paymentTerm}
+        placeholder="Select a payment term"
+        options={paymentTermOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
     </div>
   </template>
 
@@ -87,7 +95,7 @@
       ></lightning-input>
       <lightning-input
         label="Special Order Date"
-        data-type="speicialDate"
+        data-type="specialDate"
         type="date"
         value={specialDate}
         onchange={handleInputChange}
@@ -181,6 +189,14 @@
         options={locationOptions}
         onchange={handleComboboxChange}
         disabled={isLocationDisabled}
+      ></lightning-combobox>
+      <lightning-combobox
+        name="paymentTerm"
+        label="Payment Term"
+        value={paymentTerm}
+        placeholder="Select a payment term"
+        options={paymentTermOptions}
+        onchange={handleComboboxChange}
       ></lightning-combobox>
     </div>
   </template>

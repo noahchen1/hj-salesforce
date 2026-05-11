@@ -27,6 +27,8 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String locationNsId;
     @AuraEnabled
+    public String termNsId;
+    @AuraEnabled
     public String memo;
     @AuraEnabled
     public String specialDate;

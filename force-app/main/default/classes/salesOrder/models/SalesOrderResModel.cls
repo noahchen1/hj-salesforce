@@ -22,6 +22,7 @@ public with sharing class SalesOrderResModel {
     public RecordRef subsidiary;
     public RecordRef location;
     public ItemList itemList;
+    public RecordRef terms;
     public CustomFieldList customFieldList;
     public Address shippingAddress;
     public Address billingAddress;

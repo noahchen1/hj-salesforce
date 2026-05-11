@@ -12,6 +12,7 @@ export default class SalesOrderBody extends LightningElement {
   @api location;
   @api memo;
   @api orderType;
+  @api paymentTerm;
   @api specialDate;
   @api needByDate;
   @api specialOrderItemType;
@@ -51,6 +52,28 @@ export default class SalesOrderBody extends LightningElement {
     return [
       { label: "Memo", value: "1" },
       { label: "Sold", value: "2" }
+    ];
+  }
+
+  get paymentTermOptions() {
+    return [
+      { label: "NET 10", value: "87" },
+      { label: "NET 120", value: "90" },
+      { label: "NET 150", value: "98" },
+      { label: "NET 180", value: "99" },
+      { label: "NET 210", value: "100" },
+      { label: "NET 240", value: "101" },
+      { label: "NET 30", value: "81" },
+      { label: "NET 45", value: "94" },
+      { label: "NET 5", value: "120" },
+      { label: "NET 75", value: "133" },
+      { label: "NET 90", value: "95" },
+      { label: "NO TERM", value: "149" },
+      { label: "Net 15", value: "1" },
+      { label: "Net 20", value: "166" },
+      { label: "Net 30", value: "2" },
+      { label: "Net 60", value: "3" },
+      { label: "Net 7", value: "160" }
     ];
   }
 

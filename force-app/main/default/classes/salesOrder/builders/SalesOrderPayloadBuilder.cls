@@ -8,6 +8,7 @@ public with sharing class SalesOrderPayloadBuilder {
     String salesRep2,
     String subsidiary,
     String location,
+    String termsNsInternalId,
     String memo,
     Date specialDate,
     Date needByDate,
@@ -34,6 +35,7 @@ public with sharing class SalesOrderPayloadBuilder {
     requestMap.put('salesRep', lookupByInternalId(salesRep1));
     requestMap.put('subsidiary', lookupByInternalId(subsidiary));
     requestMap.put('location', lookupByInternalId(location));
+    requestMap.put('terms', lookupByInternalId(termsNsInternalId));
     requestMap.put('tranDate', Helpers.toUnixSeconds(orderDate));
 
     if (String.isNotBlank(soNsInternalId)) {

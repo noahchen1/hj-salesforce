@@ -38,6 +38,7 @@ public with sharing class SalesOrderMapper {
     result.salesRep1NsId = so.salesRep?.internalId;
     result.subsidiaryNsId = so.subsidiary?.internalId;
     result.locationNsId = so.location?.internalId;
+    result.termNsId = so.terms?.internalId;
 
     mapCustomer(so, result);
     mapOrderCustomFields(so, result);
