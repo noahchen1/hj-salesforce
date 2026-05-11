@@ -50,6 +50,47 @@ public with sharing class DataService {
   }
 
   @AuraEnabled(cacheable=true)
+  public static Map<String, Decimal> getItemQuantities(
+    String itemName,
+    String nsLocationId
+  ) {
+    try {
+      List<breadwinner_ns__BW_Inventory_Location__c> inventoryLocations = [
+        SELECT
+          breadwinner_ns__QuantityAvailable__c,
+          breadwinner_ns__QuantityBackOrdered__c
+        FROM breadwinner_ns__BW_Inventory_Location__c
+        WHERE
+          breadwinner_ns__Item__r.Name = :itemName
+          AND breadwinner_ns__Location__r.breadwinner_ns__InternalId__c = :nsLocationId
+        LIMIT 1
+      ];
+
+      if (inventoryLocations.isEmpty()) {
+        return new Map<String, Decimal>();
+      }
+
+      Decimal quantityAvailable = inventoryLocations[0]
+        .breadwinner_ns__QuantityAvailable__c;
+      Decimal quantityBackOrdered = inventoryLocations[0]
+        .breadwinner_ns__QuantityBackOrdered__c;
+
+      return new Map<String, Decimal>{
+        'quantityAvailable' => quantityAvailable,
+        'quantityBackOrdered' => quantityBackOrdered
+      };
+    } catch (Exception err) {
+      System.debug(
+        LoggingLevel.ERROR,
+        'DataService.getItemQuantities failed: ' + err.getMessage()
+      );
+      throw new AuraHandledException(
+        'Unable to verify on-hand inventory at this time.'
+      );
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
   public static EmployeeResult getEmployeeData(Id userId) {
     if (userId == null) {
       throw new AuraHandledException('User Id is required.');
@@ -108,11 +149,20 @@ public with sharing class DataService {
     List<String> fieldNames,
     Id recordId
   ) {
-    if (String.isBlank(recordName) || fieldNames == null || fieldNames.isEmpty() || recordId == null) {
-      throw new AuraHandledException('recordName, fieldNames, and recordId are required.');
+    if (
+      String.isBlank(recordName) ||
+      fieldNames == null ||
+      fieldNames.isEmpty() ||
+      recordId == null
+    ) {
+      throw new AuraHandledException(
+        'recordName, fieldNames, and recordId are required.'
+      );
     }
 
-    Pattern apiNamePattern = Pattern.compile('^[a-zA-Z_][a-zA-Z0-9_]*(__c|__r)?$');
+    Pattern apiNamePattern = Pattern.compile(
+      '^[a-zA-Z_][a-zA-Z0-9_]*(__c|__r)?$'
+    );
     if (!apiNamePattern.matcher(recordName).matches()) {
       throw new AuraHandledException('Invalid object name.');
     }
@@ -140,7 +190,10 @@ public with sharing class DataService {
     for (String fieldName : fieldNames) {
       Object fieldValue = results[0].get(fieldName);
 
-      fieldValues.put(fieldName, fieldValue != null ? String.valueOf(fieldValue) : null);
+      fieldValues.put(
+        fieldName,
+        fieldValue != null ? String.valueOf(fieldValue) : null
+      );
     }
 
     return fieldValues;

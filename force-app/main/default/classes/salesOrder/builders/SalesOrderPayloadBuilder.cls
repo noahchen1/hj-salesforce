@@ -313,6 +313,16 @@ public with sharing class SalesOrderPayloadBuilder {
           );
         }
 
+        if (String.isNotBlank(lineItem.quotedPrice)) {
+          customFields.add(
+            new Map<String, Object>{
+              'fieldType' => 'string',
+              'scriptId' => 'custcol_special_quoted_price',
+              'value' => lineItem.quotedPrice
+            }
+          );
+        }
+
         itemMap.put(
           'customFieldList',
           new Map<String, Object>{ 'customField' => customFields }

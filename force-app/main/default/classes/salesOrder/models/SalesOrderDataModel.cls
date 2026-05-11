@@ -74,7 +74,15 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String amount;
     @AuraEnabled
+    public String quotedPrice;
+    @AuraEnabled
     public String line;
+    @AuraEnabled
+    public String quantityAvailable;
+    @AuraEnabled
+    public String quantityBackOrdered;
+    @AuraEnabled
+    public String displayName;
   }
 
   public class Address {

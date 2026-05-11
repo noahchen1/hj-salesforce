@@ -9,115 +9,156 @@
     <template if:true={isSalesOrder}>
       <div class="table-scroll">
         <table class="order-table sales-order-table">
-        <colgroup>
-          <col class="order-col" />
-          <col class="order-col" />
-          <col class="order-col" />
-          <col class="order-col" />
-          <col class="order-col" />
-        </colgroup>
-        <thead>
-          <tr>
-            <th scope="col">Item</th>
-            <th scope="col">Image</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">Rate</th>
-            <th scope="col">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          <template for:each={rows} for:item="row" for:index="index">
-            <tr key={row.id}>
-              <td>
-                <c-lookup-input
-                  data-index={index}
-                  data-type="item"
-                  label=""
-                  placeholder="Enter Item Name"
-                  onsearch={handleLookupSearch}
-                  onselect={handleLookupSelect}
-                  onfocus={handleFocus}
-                ></c-lookup-input>
-              </td>
-              <td>
-                <img src={row.imageUrl} alt="" class="item-image" />
-              </td>
-              <td>
-                <lightning-input
-                  data-index={index}
-                  data-field="quantity"
-                  value={row.quantity}
-                  variant="label-hidden"
-                  type="number"
-                  placeholder=""
-                  onchange={handleRowChange}
-                  onfocus={handleFocus}
-                  disabled={row.isDiscount}
-                ></lightning-input>
-              </td>
-              <td>
-                <template if:true={row.isDiscount}>
+          <colgroup>
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col">Item</th>
+              <th scope="col">Display Name</th>
+              <th scope="col">Quantity Available</th>
+              <th scope="col">Quantity Back-ordered</th>
+              <th scope="col">Image</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Rate</th>
+              <th scope="col">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template for:each={rows} for:item="row" for:index="index">
+              <tr key={row.id}>
+                <td>
+                  <c-lookup-input
+                    data-index={index}
+                    data-type="item"
+                    label=""
+                    placeholder="Enter Item Name"
+                    onsearch={handleLookupSearch}
+                    onselect={handleLookupSelect}
+                    onfocus={handleFocus}
+                  ></c-lookup-input>
+                </td>
+                <td>
                   <lightning-input
                     data-index={index}
-                    data-field="rate"
-                    value={row.rate}
+                    data-field="displayName"
+                    value={row.displayName}
                     variant="label-hidden"
                     type="text"
-                    placeholder="Enter a Number/Percent"
+                    placeholder=""
                     onchange={handleRowChange}
                     onfocus={handleFocus}
+                    readonly
                   ></lightning-input>
-                </template>
-                <template if:false={row.isDiscount}>
+                </td>
+                <td>
                   <lightning-input
                     data-index={index}
-                    data-field="rate"
-                    value={row.rate}
+                    data-field="quantityAvailable"
+                    value={row.quantityAvailable}
+                    variant="label-hidden"
+                    type="number"
+                    placeholder=""
+                    readonly
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="quantityBackordered"
+                    value={row.quantityBackordered}
+                    variant="label-hidden"
+                    type="number"
+                    placeholder=""
+                    readonly
+                  ></lightning-input>
+                </td>
+                <td>
+                  <img src={row.imageUrl} alt="" class="item-image" />
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="quantity"
+                    value={row.quantity}
+                    variant="label-hidden"
+                    type="number"
+                    placeholder=""
+                    onchange={handleRowChange}
+                    onfocus={handleFocus}
+                    disabled={row.isDiscount}
+                  ></lightning-input>
+                </td>
+                <td>
+                  <template if:true={row.isDiscount}>
+                    <lightning-input
+                      data-index={index}
+                      data-field="rate"
+                      value={row.rate}
+                      variant="label-hidden"
+                      type="text"
+                      placeholder="Enter a Number/Percent"
+                      onchange={handleRowChange}
+                      onfocus={handleFocus}
+                    ></lightning-input>
+                  </template>
+                  <template if:false={row.isDiscount}>
+                    <lightning-input
+                      data-index={index}
+                      data-field="rate"
+                      value={row.rate}
+                      variant="label-hidden"
+                      type="number"
+                      formatter="currency"
+                      step="0.01"
+                      placeholder=""
+                      onchange={handleRowChange}
+                      onfocus={handleFocus}
+                    ></lightning-input>
+                  </template>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="amount"
+                    value={row.amount}
                     variant="label-hidden"
                     type="number"
                     formatter="currency"
                     step="0.01"
                     placeholder=""
-                    onchange={handleRowChange}
-                    onfocus={handleFocus}
+                    readonly
                   ></lightning-input>
-                </template>
-              </td>
-              <td>
-                <lightning-input
-                  data-index={index}
-                  data-field="amount"
-                  value={row.amount}
-                  variant="label-hidden"
-                  type="number"
-                  formatter="currency"
-                  step="0.01"
-                  placeholder=""
-                  readonly
-                ></lightning-input>
-              </td>
-            </tr>
-            <template if:true={row.showAction}>
-              <tr key={row.actionKey} class="row-action-row">
-                <td colspan="5">
-                  <div class="row-action-container">
-                    <lightning-button
-                      label="Add Row"
-                      data-index={index}
-                      onclick={addRow}
-                    ></lightning-button>
-                    <lightning-button
-                      label="Remove Row"
-                      data-index={index}
-                      onclick={removeRow}
-                      disabled={row.disableRemove}
-                    ></lightning-button>
-                  </div>
                 </td>
               </tr>
+              <template if:true={row.showAction}>
+                <tr key={row.actionKey} class="row-action-row">
+                  <td colspan="8">
+                    <div class="row-action-container">
+                      <lightning-button
+                        label="Add Row"
+                        data-index={index}
+                        onclick={addRow}
+                      ></lightning-button>
+                      <lightning-button
+                        label="Remove Row"
+                        data-index={index}
+                        onclick={removeRow}
+                        disabled={row.disableRemove}
+                      ></lightning-button>
+                    </div>
+                  </td>
+                </tr>
+              </template>
             </template>
-          </template>
-        </tbody>
+          </tbody>
         </table>
       </div>
     </template>
@@ -125,96 +166,121 @@
     <template if:true={isSpecialOrder}>
       <div class="table-scroll">
         <table class="order-table special-order-table">
-        <colgroup>
-          <col class="order-col" />
-          <col class="order-col" />
-          <col class="order-col" />
-          <col class="order-col" />
-          <col class="order-col" />
-          <col class="order-col" />
-          <col class="order-col" />
-        </colgroup>
-        <thead>
-          <tr>
-            <th scope="col">Item</th>
-            <th scope="col">HJ SKU</th>
-            <th scope="col">Vendor Item Number</th>
-            <th scope="col">Image</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">Rate</th>
-            <th scope="col">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          <template for:each={rows} for:item="row" for:index="index">
-            <tr key={row.id}>
-              <td>
-                <c-lookup-input
-                  data-index={index}
-                  data-type="item"
-                  label=""
-                  placeholder="Enter Item Name"
-                  onsearch={handleLookupSearch}
-                  onselect={handleLookupSelect}
-                  onfocus={handleFocus}
-                ></c-lookup-input>
-              </td>
-              <td>
-                <c-lookup-input
-                  data-index={index}
-                  data-type="specialOrderItem"
-                  label=""
-                  placeholder="Enter Item Name"
-                  onsearch={handleLookupSearch}
-                  onselect={handleLookupSelect}
-                  onfocus={handleFocus}
-                ></c-lookup-input>
-              </td>
-              <td>
-                <c-lookup-input
-                  data-index={index}
-                  data-type="specialOrderVendorNum"
-                  label=""
-                  placeholder="Enter Vendor Number"
-                  onsearch={handleLookupSearch}
-                  onselect={handleLookupSelect}
-                  onfocus={handleFocus}
-                ></c-lookup-input>
-              </td>
-              <td>
-                <img src={row.imageUrl} alt="" class="item-image" />
-              </td>
-              <td>
-                <lightning-input
-                  data-index={index}
-                  data-field="quantity"
-                  value={row.quantity}
-                  variant="label-hidden"
-                  type="number"
-                  placeholder=""
-                  onchange={handleRowChange}
-                  onfocus={handleFocus}
-                  disabled={row.isDiscount}
-                ></lightning-input>
-              </td>
-              <td>
-                <template if:true={row.isDiscount}>
+          <colgroup>
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+            <col class="order-col" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col">Item</th>
+              <th scope="col">HJ SKU</th>
+              <th scope="col">Vendor Item Number</th>
+              <th scope="col">Display Name</th>
+              <th scope="col">Quantity Available</th>
+              <th scope="col">Quantity Back-ordered</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Quoted Price</th>
+              <th scope="col">Rate</th>
+              <th scope="col">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template for:each={rows} for:item="row" for:index="index">
+              <tr key={row.id}>
+                <td>
+                  <c-lookup-input
+                    data-index={index}
+                    data-type="item"
+                    label=""
+                    placeholder="Enter Item Name"
+                    onsearch={handleLookupSearch}
+                    onselect={handleLookupSelect}
+                    onfocus={handleFocus}
+                  ></c-lookup-input>
+                </td>
+                <td>
+                  <c-lookup-input
+                    data-index={index}
+                    data-type="specialOrderItem"
+                    label=""
+                    placeholder="Enter Item Name"
+                    onsearch={handleLookupSearch}
+                    onselect={handleLookupSelect}
+                    onfocus={handleFocus}
+                  ></c-lookup-input>
+                </td>
+                <td>
+                  <c-lookup-input
+                    data-index={index}
+                    data-type="specialOrderVendorNum"
+                    label=""
+                    placeholder="Enter Vendor Number"
+                    onsearch={handleLookupSearch}
+                    onselect={handleLookupSelect}
+                    onfocus={handleFocus}
+                  ></c-lookup-input>
+                </td>
+                <td>
                   <lightning-input
                     data-index={index}
-                    data-field="rate"
-                    value={row.rate}
+                    data-field="displayName"
+                    value={row.displayName}
                     variant="label-hidden"
                     type="text"
-                    placeholder="Enter a Number/Percent"
+                    placeholder=""
                     onchange={handleRowChange}
                     onfocus={handleFocus}
+                    readonly
                   ></lightning-input>
-                </template>
-                <template if:false={row.isDiscount}>
+                </td>
+                <td>
                   <lightning-input
                     data-index={index}
-                    data-field="rate"
-                    value={row.rate}
+                    data-field="quantityAvailable"
+                    value={row.quantityAvailable}
+                    variant="label-hidden"
+                    type="number"
+                    placeholder=""
+                    readonly
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="quantityBackordered"
+                    value={row.quantityBackordered}
+                    variant="label-hidden"
+                    type="number"
+                    placeholder=""
+                    readonly
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="quantity"
+                    value={row.quantity}
+                    variant="label-hidden"
+                    type="number"
+                    placeholder=""
+                    onchange={handleRowChange}
+                    onfocus={handleFocus}
+                    disabled={row.isDiscount}
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="quotedPrice"
+                    value={row.quotedPrice}
                     variant="label-hidden"
                     type="number"
                     formatter="currency"
@@ -222,44 +288,72 @@
                     placeholder=""
                     onchange={handleRowChange}
                     onfocus={handleFocus}
+                    disabled={row.isDiscount}
                   ></lightning-input>
-                </template>
-              </td>
-              <td>
-                <lightning-input
-                  data-index={index}
-                  data-field="amount"
-                  value={row.amount}
-                  variant="label-hidden"
-                  type="number"
-                  formatter="currency"
-                  step="0.01"
-                  placeholder=""
-                  readonly
-                ></lightning-input>
-              </td>
-            </tr>
-            <template if:true={row.showAction}>
-              <tr key={row.actionKey} class="row-action-row">
-                <td colspan="7">
-                  <div class="row-action-container">
-                    <lightning-button
-                      label="Add Row"
+                </td>
+                <td>
+                  <template if:true={row.isDiscount}>
+                    <lightning-input
                       data-index={index}
-                      onclick={addRow}
-                    ></lightning-button>
-                    <lightning-button
-                      label="Remove Row"
+                      data-field="rate"
+                      value={row.rate}
+                      variant="label-hidden"
+                      type="text"
+                      placeholder="Enter a Number/Percent"
+                      onchange={handleRowChange}
+                      onfocus={handleFocus}
+                    ></lightning-input>
+                  </template>
+                  <template if:false={row.isDiscount}>
+                    <lightning-input
                       data-index={index}
-                      onclick={removeRow}
-                      disabled={row.disableRemove}
-                    ></lightning-button>
-                  </div>
+                      data-field="rate"
+                      value={row.rate}
+                      variant="label-hidden"
+                      type="number"
+                      formatter="currency"
+                      step="0.01"
+                      placeholder=""
+                      onchange={handleRowChange}
+                      onfocus={handleFocus}
+                    ></lightning-input>
+                  </template>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="amount"
+                    value={row.amount}
+                    variant="label-hidden"
+                    type="number"
+                    formatter="currency"
+                    step="0.01"
+                    placeholder=""
+                    readonly
+                  ></lightning-input>
                 </td>
               </tr>
+              <template if:true={row.showAction}>
+                <tr key={row.actionKey} class="row-action-row">
+                  <td colspan="10">
+                    <div class="row-action-container">
+                      <lightning-button
+                        label="Add Row"
+                        data-index={index}
+                        onclick={addRow}
+                      ></lightning-button>
+                      <lightning-button
+                        label="Remove Row"
+                        data-index={index}
+                        onclick={removeRow}
+                        disabled={row.disableRemove}
+                      ></lightning-button>
+                    </div>
+                  </td>
+                </tr>
+              </template>
             </template>
-          </template>
-        </tbody>
+          </tbody>
         </table>
       </div>
     </template>

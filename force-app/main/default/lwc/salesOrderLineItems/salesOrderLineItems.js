@@ -5,22 +5,27 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import searchSellableItem from "@salesforce/apex/FilterDataController.searchSellableItem";
 import searchSepcialOrderItem from "@salesforce/apex/FilterDataController.searchSepcialOrderItem";
 import searchParentItem from "@salesforce/apex/FilterDataController.searchParentItem";
-import searchItem from "@salesforce/apex/FilterDataController.searchItem";
 import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
 import getValue from "@salesforce/apex/DataService.getValue";
 import checkOnHand from "@salesforce/apex/DataService.checkOnHand";
+import getItemQuantities from "@salesforce/apex/DataService.getItemQuantities";
 import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
 import IMAGE_ID from "@salesforce/schema/breadwinner_ns__BW_Item__c.imageId__c";
+import DISPLAY_NAME from "@salesforce/schema/breadwinner_ns__BW_Item__c.breadwinner_ns__DisplayName__c";
 
 const BASE_ROW = Object.freeze({
   item: "",
   itemName: "",
+  displayName: "",
+  quantityAvailable: "",
+  quantityBackordered: "",
   specialOrderItem: "",
   specialOrderVendorNum: "",
   imageUrl: "",
   quantity: "",
   rate: "",
   amount: "",
+  quotedPrice: "",
   line: "",
   isDiscount: false
 });
@@ -139,26 +144,34 @@ export default class SalesOrderLineItems extends LightningElement {
   getMappedRows(rows) {
     const mappedRows = (rows || []).map((line, index) => {
       const rowId = index + 1;
-      const qty = line.quantity || "";
-      const rate = line.rate || "";
-      const amount = line.amount || "";
-      const itemName = line.itemName || "";
+      const qty = line.quantity ?? "";
+      const rate = line.rate ?? "";
+      const amount = line.amount ?? "";
+      const quotedPrice = line.quotedPrice ?? "";
+      const displayName = line.displayName ?? "";
+      const quantityAvailable = line.quantityAvailable ?? "";
+      const quantityBackordered = line.quantityBackOrdered ?? "";
+      const itemName = line.itemName ?? "";
       const isDiscount = itemName === "Store Discount";
-      const lineNum = line.line || "";
+      const lineNum = line.line ?? "";
 
       return this.createRow({
         id: rowId,
         showAction: index === 0,
         disableRemove: index === 0,
         overrides: {
-          item: line.item || "",
+          item: line.item ?? "",
           itemName,
-          specialOrderItem: line.specialOrderItem || "",
-          specialOrderVendorNum: line.specialOrderVendorNum || "",
-          imageUrl: line.imageUrl || "",
+          displayName,
+          quantityAvailable,
+          quantityBackordered,
+          specialOrderItem: line.specialOrderItem ?? "",
+          specialOrderVendorNum: line.specialOrderVendorNum ?? "",
+          imageUrl: line.imageUrl ?? "",
           quantity: isDiscount ? "" : qty,
           rate,
           amount,
+          quotedPrice,
           line: lineNum,
           isDiscount
         }
@@ -218,7 +231,7 @@ export default class SalesOrderLineItems extends LightningElement {
 
   @wire(getRecord, {
     recordId: "$selectedItemId",
-    fields: [BASE_PRICE, IMAGE_ID]
+    fields: [BASE_PRICE, IMAGE_ID, DISPLAY_NAME]
   })
   wiredItemRecord({ data, error }) {
     if (data && this.selectedItemRowIndex !== null) {
@@ -228,6 +241,7 @@ export default class SalesOrderLineItems extends LightningElement {
 
       const basePrice = getFieldValue(data, BASE_PRICE);
       const imageId = getFieldValue(data, IMAGE_ID);
+      const displayName = getFieldValue(data, DISPLAY_NAME);
       const imageUrl = imageId
         ? "/sfc/servlet.shepherd/document/download/" + imageId
         : "";
@@ -239,6 +253,7 @@ export default class SalesOrderLineItems extends LightningElement {
         updatedRows[this.selectedItemRowIndex].quantity = 1;
         updatedRows[this.selectedItemRowIndex].rate = basePrice ?? "";
         updatedRows[this.selectedItemRowIndex].amount = basePrice ?? "";
+        updatedRows[this.selectedItemRowIndex].displayName = displayName ?? "";
         this.rows = updatedRows;
       }
     } else if (error) {
@@ -371,10 +386,18 @@ export default class SalesOrderLineItems extends LightningElement {
     const updatedRows = [...this.rows];
 
     if (updatedRows[index]) {
+      const results = await getItemQuantities({
+        itemName: selectedName,
+        nsLocationId: this.location
+      });
+
       updatedRows[index].item = selectedNsId;
       updatedRows[index].itemName = selectedName;
       updatedRows[index].isDiscount = isDiscount;
       updatedRows[index].imageUrl = "";
+      updatedRows[index].quantityAvailable = results.quantityAvailable ?? "";
+      updatedRows[index].quantityBackordered =
+        results.quantityBackOrdered ?? "";
 
       if (isDiscount) {
         updatedRows[index].quantity = "";
@@ -412,6 +435,7 @@ export default class SalesOrderLineItems extends LightningElement {
     }
 
     if (this.hasValue(basePrice)) {
+      updates.quotedPrice = basePrice;
       updates.rate = basePrice;
       updates.amount = basePrice;
     }
@@ -440,6 +464,7 @@ export default class SalesOrderLineItems extends LightningElement {
     }
 
     if (this.hasValue(basePrice)) {
+      updates.quotedPrice = basePrice;
       updates.rate = basePrice;
       updates.amount = basePrice;
     }
@@ -454,7 +479,7 @@ export default class SalesOrderLineItems extends LightningElement {
     const updatedRows = [...this.rows];
     const row = updatedRows[index];
 
-    if (field === "quantity") {
+    if (field === "quantity" && !this.isSpecialOrder) {
       if (!row.isDiscount) {
         const itemIsAvailable = await checkOnHand({
           itemName: row.itemName,
@@ -472,7 +497,10 @@ export default class SalesOrderLineItems extends LightningElement {
       }
     }
 
-    if (field === "rate" && row.isDiscount) {
+    if (field === "quotedPrice") {
+      row.quotedPrice = value;
+      row.rate = value;
+    } else if (field === "rate" && row.isDiscount) {
       const trimmed = `${value ?? ""}`.trim();
       const isPercent = trimmed.endsWith("%");
       const numericValue = parseFloat(trimmed.replace("%", ""));
@@ -560,12 +588,16 @@ export default class SalesOrderLineItems extends LightningElement {
         ...updatedRows[index],
         item: "",
         itemName: "",
+        displayName: "",
+        quantityAvailable: "",
+        quantityBackordered: "",
         specialOrderItem: "",
         specialOrderVendorNum: "",
         imageUrl: "",
         quantity: "",
         rate: "",
         amount: "",
+        quotedPrice: "",
         isDiscount: false
       };
 

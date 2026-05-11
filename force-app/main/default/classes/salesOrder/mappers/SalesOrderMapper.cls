@@ -202,11 +202,18 @@ public with sharing class SalesOrderMapper {
       dto.item = it.item?.internalId;
       Map<String, String> itemDetails = itemNamesAndImageIds.get(dto.item);
       dto.itemName = itemDetails != null ? itemDetails.get('name') : null;
-      dto.imageUrl = itemDetails != null ? itemDetails.get('imageUrl') : null;
       dto.quantity = it.quantity != null ? String.valueOf(it.quantity) : null;
       dto.rate = it.rate;
       dto.amount = it.amount != null ? String.valueOf(it.amount) : null;
       dto.line = it.line;
+      dto.quantityAvailable = it.quantityAvailable != null
+        ? String.valueOf(it.quantityAvailable)
+        : null;
+
+      dto.quantityBackOrdered = it.quantityBackOrdered != null
+        ? String.valueOf(it.quantityBackOrdered)
+        : null;
+
       mapLineItemCustomFields(it, dto);
 
       result.lineItems.add(dto);
@@ -239,6 +246,16 @@ public with sharing class SalesOrderMapper {
 
       if (cf.scriptId == 'custcol_special_order_number') {
         target.specialOrderVendorNum = cf.value;
+        continue;
+      }
+
+      if (cf.scriptId == 'custcol_special_quoted_price') {
+        target.quotedPrice = cf.value;
+        continue;
+      }
+
+      if (cf.scriptId == 'custcol_itemdisname') {
+        target.displayName = cf.value;
       }
     }
   }

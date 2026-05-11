@@ -39,6 +39,8 @@ public with sharing class SalesOrderResModel {
     public Decimal amount;
     public String line;
     public CustomFieldList customFieldList;
+    public Decimal quantityBackOrdered;
+    public Decimal quantityAvailable;
   }
 
   public class CustomFieldList {
