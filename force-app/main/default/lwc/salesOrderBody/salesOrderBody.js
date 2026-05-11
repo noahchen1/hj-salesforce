@@ -22,6 +22,7 @@ export default class SalesOrderBody extends LightningElement {
   @api specialOrderNotes;
   @api specialOrderMemoOrSold;
   @api isOrderTypeDisabled;
+  @api specialOrderStatus;
 
   get isLocationDisabled() {
     return !this.subsidiary;

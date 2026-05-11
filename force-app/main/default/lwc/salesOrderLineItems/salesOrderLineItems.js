@@ -12,6 +12,7 @@ import getItemQuantities from "@salesforce/apex/DataService.getItemQuantities";
 import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
 import IMAGE_ID from "@salesforce/schema/breadwinner_ns__BW_Item__c.imageId__c";
 import DISPLAY_NAME from "@salesforce/schema/breadwinner_ns__BW_Item__c.breadwinner_ns__DisplayName__c";
+import { SELLABLE_SPECIAL_ALLOWED_STATUSES } from "c/salesOrderUtils";
 
 const BASE_ROW = Object.freeze({
   item: "",
@@ -34,12 +35,16 @@ export default class SalesOrderLineItems extends LightningElement {
   @api location;
   @api disabled = false;
   @api orderType;
+  @api specialOrderStatus;
 
   rows = [];
   nextRowId = 0;
   selectedItemId;
   selectedItemRowIndex = null;
   pendingLookupSelections = null;
+  isSellableAllowed = SELLABLE_SPECIAL_ALLOWED_STATUSES.has(
+    this.specialOrderStatus
+  );
 
   constructor() {
     super();
@@ -272,7 +277,7 @@ export default class SalesOrderLineItems extends LightningElement {
 
       const searchFn =
         type === "item"
-          ? this.isSpecialOrder
+          ? this.isSpecialOrder && !this.isSellableAllowed
             ? searchSepcialOrderItem
             : searchSellableItem
           : type === "specialOrderItem"
@@ -372,7 +377,11 @@ export default class SalesOrderLineItems extends LightningElement {
     if (this.isSpecialOrder && index > 0 && !isDiscount) {
       const firstItem = this.rows[0];
 
-      if (firstItem && firstItem.item !== selectedNsId) {
+      if (
+        firstItem &&
+        firstItem.item !== selectedNsId &&
+        !this.isSellableAllowed
+      ) {
         this.resetItemRow(index);
         await LightningAlert.open({
           label: "Error!",

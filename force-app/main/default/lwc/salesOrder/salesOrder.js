@@ -42,6 +42,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   specialOrderComments = "";
   specialOrderNotes = "";
   specialOrderMemoOrSold = "";
+  specialOrderStatus = "";
 
   subsidiary = "";
   isLoading = true;
@@ -272,6 +273,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this.lineItems?.reset();
     }
 
+    if (name === "location" && this.location !== value) {
+      this.lineItems?.reset();
+    }
+
     this[name] = value;
   }
 
@@ -429,12 +434,14 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
-      const soNsInternalId = await saveSalesOrder(payload);
-      this.soNsInternalId = soNsInternalId;
+      this.validatePayload(payload);
 
-      const orderRecordId = await getOrder({ soNsInternalId });
+      // const soNsInternalId = await saveSalesOrder(payload);
+      // this.soNsInternalId = soNsInternalId;
 
-      return { soNsInternalId, orderRecordId, isUpdate };
+      // const orderRecordId = await getOrder({ soNsInternalId });
+
+      // return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
       console.error("Failed to save sales order");
       console.error(err.name);
@@ -478,6 +485,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         this.specialOrderComments = data.specialOrderComments ?? "";
         this.specialOrderNotes = data.specialOrderNotes ?? "";
         this.specialOrderMemoOrSold = data.specialOrderMemoOrSold ?? "";
+        this.specialOrderStatus = data.specialOrderStatus ?? "";
       } else {
         this.specialDate = "";
         this.needByDate = "";
@@ -580,6 +588,57 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     } finally {
       this.isAddressLoaded = true;
       this.checkLoadingState();
+    }
+  }
+
+  validatePayload(payload) {
+    const orderType = payload.orderType;
+
+    if (orderType === "special") {
+      const specialOrderItemType = payload.specialOrderItemType;
+      const isRolex = specialOrderItemType === "6";
+
+      if (isRolex) {
+        let parsedLineItems = [];
+
+        try {
+          parsedLineItems = JSON.parse(payload.lineItemsJson || "[]");
+        } catch (error) {
+          throw new Error("Invalid line item payload.");
+        }
+
+        const rolexRows = parsedLineItems.filter(
+          (line) => String(line?.item ?? "") === "213841"
+        );
+        const isValidFormat = (str) => {
+          const regex = /^M\d{5,}[A-Za-z]*-\d{4}$/i;
+
+          return regex.test(str);
+        };
+
+        const hasMissingVendorNum =
+          rolexRows.length === 0 ||
+          rolexRows.some(
+            (line) => String(line?.specialOrderVendorNum ?? "").trim() === ""
+          );
+
+        if (hasMissingVendorNum) {
+          throw new Error(
+            "Special Order Vendor # is required for Rolex."
+          );
+        }
+
+        const hasInvalidVendorNumFormat = rolexRows.some(
+          (line) =>
+            !isValidFormat(String(line?.specialOrderVendorNum ?? "").trim())
+        );
+
+        if (hasInvalidVendorNumFormat) {
+          throw new Error(
+            "Special Order Vendor # format is invalid. Expected: M#####-####."
+          );
+        }
+      }
     }
   }
 

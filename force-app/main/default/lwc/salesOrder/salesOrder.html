@@ -35,6 +35,7 @@
         special-order-comments={specialOrderComments}
         special-order-notes={specialOrderNotes}
         special-order-memo-or-sold={specialOrderMemoOrSold}
+        special-order-status={specialOrderStatus}
         is-order-type-disabled={isOrderTypeDisabled}
         oncustomerselect={handleCustomerSelect}
         onsalesrepselect={handleSalesRepSelect}
@@ -50,6 +51,7 @@
 
       <c-sales-order-line-items
         location={location}
+        special-order-status={specialOrderStatus}
         disabled={showTableOverlay}
         order-type={orderType}
       ></c-sales-order-line-items>

@@ -27,3 +27,12 @@ export function processPicklistData(data, isAddress = false) {
 }
 
 export const VENDOR_REQUIRED_ITEM_TYPES = new Set(["1", "2", "4", "5", "6"]);
+
+export const SELLABLE_SPECIAL_ALLOWED_STATUSES = new Set([
+  "3",
+  "4",
+  "102",
+  "5",
+  "6",
+  "7"
+]);

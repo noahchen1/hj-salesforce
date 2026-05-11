@@ -163,6 +163,12 @@ public with sharing class SalesOrderMapper {
           : cf.value;
         continue;
       }
+
+      if (cf.scriptId == 'custbody_special_statuses') {
+        result.specialOrderStatus = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : cf.value;
+      }
     }
   }
 
@@ -203,6 +209,7 @@ public with sharing class SalesOrderMapper {
       dto.item = it.item?.internalId;
       Map<String, String> itemDetails = itemNamesAndImageIds.get(dto.item);
       dto.itemName = itemDetails != null ? itemDetails.get('name') : null;
+      dto.imageUrl = itemDetails != null ? itemDetails.get('imageUrl') : null;
       dto.quantity = it.quantity != null ? String.valueOf(it.quantity) : null;
       dto.rate = it.rate;
       dto.amount = it.amount != null ? String.valueOf(it.amount) : null;

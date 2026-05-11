@@ -31,6 +31,8 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String memo;
     @AuraEnabled
+    public String specialOrderStatus;
+    @AuraEnabled
     public String specialDate;
     @AuraEnabled
     public String needByDate;
