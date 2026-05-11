@@ -327,6 +327,29 @@ export default class SalesOrderLineItems extends LightningElement {
     }
   }
 
+  handleLookupBlur(e) {
+    const type = e.target.dataset.type;
+
+    if (type !== "specialOrderItem" && type !== "specialOrderVendorNum") {
+      return;
+    }
+
+    const index = Number(e.target.dataset.index);
+    const value = String(e.detail?.searchKey ?? "").trim();
+    const field =
+      type === "specialOrderItem"
+        ? "specialOrderItem"
+        : "specialOrderVendorNum";
+
+    this.updateRowFields(index, { [field]: value });
+
+    if (this.pendingLookupSelections && this.pendingLookupSelections[type]) {
+      this.pendingLookupSelections[type][index] = value;
+    }
+
+    e.target.setResults([]);
+  }
+
   async handleItemSelect(e) {
     const selectedName = e.detail.name;
     const selectedId = e.detail.id;

@@ -75,6 +75,14 @@ export default class LookupInput extends LightningElement {
     );
   }
 
+  handleBlur() {
+    this.dispatchEvent(
+      new CustomEvent("blur", {
+        detail: { searchKey: this.searchKey }
+      })
+    );
+  }
+
   handleSelect(event) {
     const id = event.target.dataset.id;
     const name = event.target.dataset.name;
