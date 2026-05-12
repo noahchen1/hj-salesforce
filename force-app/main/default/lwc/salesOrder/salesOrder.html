@@ -7,7 +7,14 @@
           size="medium"
         ></lightning-spinner>
       </div>
-      <div class="title">Sales Order Form</div>
+
+      <Template if:false={isSpecialOrder}>
+        <div class="title">Sales Order Form</div>
+      </Template>
+
+      <Template if:true={isSpecialOrder}>
+        <div class="title">Special Order Form</div>
+      </Template>
 
       <div class="btn-container">
         <lightning-button

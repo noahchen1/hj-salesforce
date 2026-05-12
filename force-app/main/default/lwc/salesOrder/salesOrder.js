@@ -71,6 +71,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     return this.template.querySelector("c-sales-order-line-items");
   }
 
+  get isSpecialOrder() {
+    return this.orderType === "special";
+  }
+
   get showTableOverlay() {
     if (this.orderType === "sales") {
       return !(

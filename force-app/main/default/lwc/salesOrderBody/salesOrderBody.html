@@ -13,6 +13,7 @@
   </div>
 
   <template if:true={isSalesOrder}>
+    <div class="section-title">Primary Information:</div>
     <div class="form-body">
       <c-lookup-input
         data-type="customer"
@@ -84,6 +85,7 @@
   </template>
 
   <template if:true={isSpecialOrder}>
+    <div class="section-title">Primary Information:</div>
     <div class="form-body">
       <c-lookup-input
         data-type="customer"
@@ -101,7 +103,6 @@
         onchange={handleInputChange}
         required
       ></lightning-input>
-
       <c-lookup-input
         data-type="salesRep1"
         label="Sales Rep"
@@ -136,7 +137,19 @@
         disabled={isLocationDisabled}
         required
       ></lightning-combobox>
+      <lightning-combobox
+        name="paymentTerm"
+        label="Payment Term"
+        value={paymentTerm}
+        placeholder="Select a payment term"
+        options={paymentTermOptions}
+        onchange={handleComboboxChange}
+        required
+      ></lightning-combobox>
+    </div>
 
+    <div class="section-title">Special Order Information:</div>
+    <div class="form-body">
       <lightning-input
         label="Special Order Date"
         data-type="specialDate"
@@ -200,16 +213,6 @@
         value={specialOrderNotes}
         onchange={handleInputChange}
       ></lightning-textarea>
-
-      <lightning-combobox
-        name="paymentTerm"
-        label="Payment Term"
-        value={paymentTerm}
-        placeholder="Select a payment term"
-        options={paymentTermOptions}
-        onchange={handleComboboxChange}
-        required
-      ></lightning-combobox>
     </div>
   </template>
 </template>

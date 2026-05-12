@@ -9,3 +9,11 @@
   flex: 1 1 40%;
   box-sizing: border-box;
 }
+
+.section-title {
+  margin: 30px 30px 10px 30px;
+  background-color: #DFE4EB;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 8px;
+}
