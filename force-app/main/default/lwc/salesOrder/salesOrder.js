@@ -321,7 +321,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     try {
       payload = this.buildPayload();
 
-      this.validateFields();
+      this.validateFields(payload);
     } catch (error) {
       await LightningAlert.open({
         label: "Validation Error",
@@ -610,11 +610,59 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     }
   }
 
-  validateFields() {
+  validateFields(payload) {
     const isHeaderValid = this.header?.validateFields();
-    
-    if (!isHeaderValid) {
+    const isLineItemValid = this.lineItems?.validateFields();
+
+    if (!isHeaderValid || !isLineItemValid) {
       throw new Error("Please fill in all required fields.");
+    }
+
+    const orderType = payload.orderType;
+
+    if (orderType === "special") {
+      const specialOrderItemType = payload.specialOrderItemType;
+      const isRolex = specialOrderItemType === "6";
+
+      if (isRolex) {
+        let parsedLineItems = [];
+
+        try {
+          parsedLineItems = JSON.parse(payload.lineItemsJson || "[]");
+        } catch (error) {
+          throw new Error("Invalid line item payload.");
+        }
+
+        const rolexRows = parsedLineItems.filter(
+          (line) => String(line?.item ?? "") === "213841"
+        );
+        const isValidFormat = (str) => {
+          const regex = /^M\d{5,}[A-Za-z]*-\d{4}$/i;
+
+          return regex.test(str);
+        };
+
+        const hasMissingVendorNum =
+          rolexRows.length === 0 ||
+          rolexRows.some(
+            (line) => String(line?.specialOrderVendorNum ?? "").trim() === ""
+          );
+
+        if (hasMissingVendorNum) {
+          throw new Error("Special Order Vendor # is required for Rolex.");
+        }
+
+        const hasInvalidVendorNumFormat = rolexRows.some(
+          (line) =>
+            !isValidFormat(String(line?.specialOrderVendorNum ?? "").trim())
+        );
+
+        if (hasInvalidVendorNumFormat) {
+          throw new Error(
+            "Special Order Vendor # format is invalid. Expected: M#####-####."
+          );
+        }
+      }
     }
   }
 

@@ -211,6 +211,26 @@ export default class SalesOrderLineItems extends LightningElement {
     }
   }
 
+  @api
+  validateFields() {
+    const inputs = [
+      ...this.template.querySelectorAll("lightning-input"),
+      ...this.template.querySelectorAll("c-lookup-input")
+    ];
+
+    let isValid = true;
+
+    inputs.forEach((field) => {
+      const fieldIsValid = field.reportValidity();
+
+      if (!fieldIsValid) {
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  }
+
   renderedCallback() {
     if (!this.pendingLookupSelections) return;
 

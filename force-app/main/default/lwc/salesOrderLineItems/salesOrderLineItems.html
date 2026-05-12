@@ -43,6 +43,7 @@
                     onsearch={handleLookupSearch}
                     onselect={handleLookupSelect}
                     onfocus={handleFocus}
+                    required
                   ></c-lookup-input>
                 </td>
                 <td>
@@ -107,6 +108,7 @@
                       placeholder="Enter a Number/Percent"
                       onchange={handleRowChange}
                       onfocus={handleFocus}
+                      required
                     ></lightning-input>
                   </template>
                   <template if:false={row.isDiscount}>
@@ -121,6 +123,7 @@
                       placeholder=""
                       onchange={handleRowChange}
                       onfocus={handleFocus}
+                      required
                     ></lightning-input>
                   </template>
                 </td>
@@ -204,6 +207,7 @@
                     onsearch={handleLookupSearch}
                     onselect={handleLookupSelect}
                     onfocus={handleFocus}
+                    required
                   ></c-lookup-input>
                 </td>
                 <td>
@@ -291,6 +295,7 @@
                     onchange={handleRowChange}
                     onfocus={handleFocus}
                     disabled={row.isDiscount}
+                    required
                   ></lightning-input>
                 </td>
                 <td>
@@ -304,6 +309,7 @@
                       placeholder="Enter a Number/Percent"
                       onchange={handleRowChange}
                       onfocus={handleFocus}
+                      required
                     ></lightning-input>
                   </template>
                   <template if:false={row.isDiscount}>
@@ -318,6 +324,7 @@
                       placeholder=""
                       onchange={handleRowChange}
                       onfocus={handleFocus}
+                      required
                     ></lightning-input>
                   </template>
                 </td>
