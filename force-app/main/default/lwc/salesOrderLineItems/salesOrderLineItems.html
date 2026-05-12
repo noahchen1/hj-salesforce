@@ -211,28 +211,32 @@
                   ></c-lookup-input>
                 </td>
                 <td>
-                  <c-lookup-input
-                    data-index={index}
-                    data-type="specialOrderItem"
-                    label=""
-                    placeholder="Enter Item Name"
-                    onsearch={handleLookupSearch}
-                    onselect={handleLookupSelect}
-                    onblur={handleLookupBlur}
-                    onfocus={handleFocus}
-                  ></c-lookup-input>
+                  <template if:false={row.isDiscount}>
+                    <c-lookup-input
+                      data-index={index}
+                      data-type="specialOrderItem"
+                      label=""
+                      placeholder="Enter Item Name"
+                      onsearch={handleLookupSearch}
+                      onselect={handleLookupSelect}
+                      onblur={handleLookupBlur}
+                      onfocus={handleFocus}
+                    ></c-lookup-input>
+                  </template>
                 </td>
                 <td>
-                  <c-lookup-input
-                    data-index={index}
-                    data-type="specialOrderVendorNum"
-                    label=""
-                    placeholder="Enter Vendor Number"
-                    onsearch={handleLookupSearch}
-                    onselect={handleLookupSelect}
-                    onblur={handleLookupBlur}
-                    onfocus={handleFocus}
-                  ></c-lookup-input>
+                  <template if:false={row.isDiscount}>
+                    <c-lookup-input
+                      data-index={index}
+                      data-type="specialOrderVendorNum"
+                      label=""
+                      placeholder="Enter Vendor Number"
+                      onsearch={handleLookupSearch}
+                      onselect={handleLookupSelect}
+                      onblur={handleLookupBlur}
+                      onfocus={handleFocus}
+                    ></c-lookup-input>
+                  </template>
                 </td>
                 <td>
                   <lightning-input

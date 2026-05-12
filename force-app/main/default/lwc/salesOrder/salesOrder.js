@@ -271,12 +271,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
     if (name === "subsidiary" && this.subsidiary !== value) {
       this.location = "";
-      this.lineItems?.reset();
+      // this.lineItems?.reset();
     }
 
-    if (name === "location" && this.location !== value) {
-      this.lineItems?.reset();
-    }
+    // if (name === "location" && this.location !== value) {
+    //   this.lineItems?.reset();
+    // }
 
     this[name] = value;
   }
@@ -457,9 +457,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       const soNsInternalId = await saveSalesOrder(payload);
       this.soNsInternalId = soNsInternalId;
-
       const orderRecordId = await getOrder({ soNsInternalId });
-
       return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
       console.error("Failed to save sales order");
@@ -636,11 +634,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         const rolexRows = parsedLineItems.filter(
           (line) => String(line?.item ?? "") === "213841"
         );
-        const isValidFormat = (str) => {
-          const regex = /^M\d{5,}[A-Za-z]*-\d{4}$/i;
-
-          return regex.test(str);
-        };
 
         const hasMissingVendorNum =
           rolexRows.length === 0 ||
@@ -654,7 +647,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
         const hasInvalidVendorNumFormat = rolexRows.some(
           (line) =>
-            !isValidFormat(String(line?.specialOrderVendorNum ?? "").trim())
+            !isValidRolexVendorNum(
+              String(line?.specialOrderVendorNum ?? "").trim()
+            )
         );
 
         if (hasInvalidVendorNumFormat) {

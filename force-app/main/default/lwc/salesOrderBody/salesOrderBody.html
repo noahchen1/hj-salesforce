@@ -101,6 +101,42 @@
         onchange={handleInputChange}
         required
       ></lightning-input>
+
+      <c-lookup-input
+        data-type="salesRep1"
+        label="Sales Rep"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+        required
+      ></c-lookup-input>
+      <c-lookup-input
+        data-type="salesRep2"
+        label="Sales Rep 2"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-combobox
+        name="subsidiary"
+        label="Subsidiary"
+        value={subsidiary}
+        placeholder="Select a subsidiary"
+        options={subsidiaryOptions}
+        onchange={handleComboboxChange}
+        required
+      ></lightning-combobox>
+      <lightning-combobox
+        name="location"
+        label="Location"
+        value={location}
+        placeholder="Select a location"
+        options={locationOptions}
+        onchange={handleComboboxChange}
+        disabled={isLocationDisabled}
+        required
+      ></lightning-combobox>
+
       <lightning-input
         label="Special Order Date"
         data-type="specialDate"
@@ -143,14 +179,6 @@
         disabled={isSpecialOrderVendorRequired}
         onchange={handleInputChange}
       ></lightning-input>
-      <lightning-textarea
-        label="Comments/DESC/Metal/Color/Size"
-        value={specialOrderComments}
-      ></lightning-textarea>
-      <lightning-textarea
-        label="Merchandise Note"
-        value={specialOrderNotes}
-      ></lightning-textarea>
       <lightning-combobox
         name="specialOrderMemoOrSold"
         label="Memo Or Sold"
@@ -160,47 +188,19 @@
         onchange={handleComboboxChange}
         required
       ></lightning-combobox>
-      <c-lookup-input
-        data-type="salesRep1"
-        label="Sales Rep"
-        placeholder="Enter Name"
-        onsearch={handleLookupSearch}
-        onselect={handleLookupSelect}
-        required
-      ></c-lookup-input>
-      <c-lookup-input
-        data-type="salesRep2"
-        label="Sales Rep 2"
-        placeholder="Enter Name"
-        onsearch={handleLookupSearch}
-        onselect={handleLookupSelect}
-      ></c-lookup-input>
-      <lightning-input
-        label="Memo"
-        data-type="memo"
-        type="text"
-        value={memo}
+      <lightning-textarea
+        label="Comments/DESC/Metal/Color/Size"
+        data-type="specialOrderComments"
+        value={specialOrderComments}
         onchange={handleInputChange}
-      ></lightning-input>
-      <lightning-combobox
-        name="subsidiary"
-        label="Subsidiary"
-        value={subsidiary}
-        placeholder="Select a subsidiary"
-        options={subsidiaryOptions}
-        onchange={handleComboboxChange}
-        required
-      ></lightning-combobox>
-      <lightning-combobox
-        name="location"
-        label="Location"
-        value={location}
-        placeholder="Select a location"
-        options={locationOptions}
-        onchange={handleComboboxChange}
-        disabled={isLocationDisabled}
-        required
-      ></lightning-combobox>
+      ></lightning-textarea>
+      <lightning-textarea
+        label="Merchandise Note"
+        data-type="specialOrderNotes"
+        value={specialOrderNotes}
+        onchange={handleInputChange}
+      ></lightning-textarea>
+
       <lightning-combobox
         name="paymentTerm"
         label="Payment Term"

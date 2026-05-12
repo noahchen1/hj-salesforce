@@ -42,3 +42,10 @@ export const SELLABLE_SPECIAL_ALLOWED_STATUSES = new Set([
   "6",
   "7"
 ]);
+
+// Manager Approved
+// Request Received
+// Order Confirmed
+// On Backorder
+// Ordered
+// Stocked

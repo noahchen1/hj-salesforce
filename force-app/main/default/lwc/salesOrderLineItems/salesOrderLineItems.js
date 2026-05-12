@@ -42,9 +42,6 @@ export default class SalesOrderLineItems extends LightningElement {
   selectedItemId;
   selectedItemRowIndex = null;
   pendingLookupSelections = null;
-  isSellableAllowed = SELLABLE_SPECIAL_ALLOWED_STATUSES.has(
-    this.specialOrderStatus
-  );
 
   constructor() {
     super();
@@ -61,6 +58,10 @@ export default class SalesOrderLineItems extends LightningElement {
 
   get isRepairOrder() {
     return this.orderType === "repair";
+  }
+
+  get isSellableAllowed() {
+    return SELLABLE_SPECIAL_ALLOWED_STATUSES.has(this.specialOrderStatus);
   }
 
   createRow({
@@ -238,17 +239,26 @@ export default class SalesOrderLineItems extends LightningElement {
 
     for (const lookupType of lookupTypes) {
       const values = this.pendingLookupSelections[lookupType] || [];
-      const lookups = this.template.querySelectorAll(
-        `c-lookup-input[data-type="${lookupType}"]`
-      );
 
-      if (lookups.length < values.length) {
-        return;
-      }
+      for (let index = 0; index < values.length; index += 1) {
+        const lookup = this.template.querySelector(
+          `c-lookup-input[data-type="${lookupType}"][data-index="${index}"]`
+        );
 
-      lookups.forEach((lookup, index) => {
+        if (!lookup) {
+          const isSpecialLookup =
+            lookupType === "specialOrderItem" ||
+            lookupType === "specialOrderVendorNum";
+
+          if (isSpecialLookup && this.rows[index]?.isDiscount) {
+            continue;
+          }
+
+          return;
+        }
+
         lookup.setSelected(values[index] || "");
-      });
+      }
     }
 
     this.pendingLookupSelections = null;
@@ -279,6 +289,12 @@ export default class SalesOrderLineItems extends LightningElement {
         updatedRows[this.selectedItemRowIndex].rate = basePrice ?? "";
         updatedRows[this.selectedItemRowIndex].amount = basePrice ?? "";
         updatedRows[this.selectedItemRowIndex].displayName = displayName ?? "";
+
+        if (updatedRows[this.selectedItemRowIndex + 1]?.isDiscount) {
+          updatedRows[this.selectedItemRowIndex + 1].amount =
+            this.calcDiscountAmount(this.selectedItemRowIndex + 1, updatedRows);
+        }
+
         this.rows = updatedRows;
       }
     } else if (error) {
@@ -325,7 +341,9 @@ export default class SalesOrderLineItems extends LightningElement {
       }
     } else {
       input.setResults([]);
-      this.resetItemRow(index);
+
+      // if (type )
+      // this.resetItemRow(index);
     }
   }
 
@@ -355,19 +373,22 @@ export default class SalesOrderLineItems extends LightningElement {
     }
 
     const index = Number(e.target.dataset.index);
+    const target = e.target;
     const value = String(e.detail?.searchKey ?? "").trim();
     const field =
       type === "specialOrderItem"
         ? "specialOrderItem"
         : "specialOrderVendorNum";
 
-    this.updateRowFields(index, { [field]: value });
+    setTimeout(() => {
+      this.updateRowFields(index, { [field]: value });
 
-    if (this.pendingLookupSelections && this.pendingLookupSelections[type]) {
-      this.pendingLookupSelections[type][index] = value;
-    }
+      if (this.pendingLookupSelections && this.pendingLookupSelections[type]) {
+        this.pendingLookupSelections[type][index] = value;
+      }
 
-    e.target.setResults([]);
+      target.setResults([]);
+    }, 150);
   }
 
   async handleItemSelect(e) {
@@ -401,7 +422,7 @@ export default class SalesOrderLineItems extends LightningElement {
       }
     }
 
-    if (!isDiscount && !this.isSpecialOrder) {
+    if (!isDiscount && (!this.isSpecialOrder || this.isSellableAllowed)) {
       const itemIsAvailable = await checkOnHand({
         itemName: selectedName,
         nsLocationId: this.location,

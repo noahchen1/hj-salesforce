@@ -92,7 +92,11 @@ public with sharing class SalesOrderValidator {
         );
       }
 
-      if (isSpecialOrder && String.isBlank(item.quotedPrice)) {
+      if (
+        !isStoreDiscount &&
+        isSpecialOrder &&
+        String.isBlank(item.quotedPrice)
+      ) {
         throw new AuraHandledException(
           'Line item ' +
             (i + 1) +
