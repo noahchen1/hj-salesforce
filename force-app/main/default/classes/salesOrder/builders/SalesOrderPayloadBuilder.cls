@@ -85,7 +85,7 @@ public with sharing class SalesOrderPayloadBuilder {
     };
 
     if (isUpdate) {
-      itemList.put('replaceAll', false);
+      itemList.put('replaceAll', true);
     }
 
     requestMap.put('itemList', itemList);

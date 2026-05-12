@@ -42,7 +42,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   specialOrderRequestedVendor = "";
   specialOrderComments = "";
   specialOrderNotes = "";
-  specialOrderMemoOrSold = "";
+  specialOrderMemoOrSold = "2";
   specialOrderStatus = "";
 
   subsidiary = "";
