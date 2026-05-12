@@ -8,6 +8,7 @@
       options={orderTypeOptions}
       onchange={handleComboboxChange}
       disabled={isOrderTypeDisabled}
+      required
     ></lightning-combobox>
   </div>
 
@@ -19,6 +20,7 @@
         placeholder="Enter Name"
         onsearch={handleLookupSearch}
         onselect={handleLookupSelect}
+        required
       ></c-lookup-input>
       <lightning-input
         label="Date"
@@ -26,6 +28,7 @@
         type="date"
         value={date}
         onchange={handleInputChange}
+        required
       ></lightning-input>
       <c-lookup-input
         data-type="salesRep1"
@@ -33,6 +36,7 @@
         placeholder="Enter Name"
         onsearch={handleLookupSearch}
         onselect={handleLookupSelect}
+        required
       ></c-lookup-input>
       <c-lookup-input
         data-type="salesRep2"
@@ -55,6 +59,7 @@
         placeholder="Select a subsidiary"
         options={subsidiaryOptions}
         onchange={handleComboboxChange}
+        required
       ></lightning-combobox>
       <lightning-combobox
         name="location"
@@ -64,6 +69,7 @@
         options={locationOptions}
         onchange={handleComboboxChange}
         disabled={isLocationDisabled}
+        required
       ></lightning-combobox>
       <lightning-combobox
         name="paymentTerm"
@@ -72,6 +78,7 @@
         placeholder="Select a payment term"
         options={paymentTermOptions}
         onchange={handleComboboxChange}
+        required
       ></lightning-combobox>
     </div>
   </template>
@@ -84,6 +91,7 @@
         placeholder="Enter Name"
         onsearch={handleLookupSearch}
         onselect={handleLookupSelect}
+        required
       ></c-lookup-input>
       <lightning-input
         label="Date"
@@ -158,6 +166,7 @@
         placeholder="Enter Name"
         onsearch={handleLookupSearch}
         onselect={handleLookupSelect}
+        required
       ></c-lookup-input>
       <c-lookup-input
         data-type="salesRep2"
@@ -180,6 +189,7 @@
         placeholder="Select a subsidiary"
         options={subsidiaryOptions}
         onchange={handleComboboxChange}
+        required
       ></lightning-combobox>
       <lightning-combobox
         name="location"
@@ -189,6 +199,7 @@
         options={locationOptions}
         onchange={handleComboboxChange}
         disabled={isLocationDisabled}
+        required
       ></lightning-combobox>
       <lightning-combobox
         name="paymentTerm"
@@ -197,6 +208,7 @@
         placeholder="Select a payment term"
         options={paymentTermOptions}
         onchange={handleComboboxChange}
+        required
       ></lightning-combobox>
     </div>
   </template>

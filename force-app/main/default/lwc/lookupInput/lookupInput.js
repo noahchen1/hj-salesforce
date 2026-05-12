@@ -30,6 +30,25 @@ export default class LookupInput extends LightningElement {
     this.results = [];
   }
 
+  get inputElement() {
+    return this.template.querySelector("lightning-input");
+  }
+
+  @api
+  checkValidity() {
+    return this.inputElement?.checkValidity() ?? true;
+  }
+
+  @api
+  reportValidity() {
+    return this.inputElement?.reportValidity() ?? true;
+  }
+
+  @api
+  setCustomValidity(message) {
+    this.inputElement?.setCustomValidity(message);
+  }
+
   get showResultsOrLoading() {
     return this.showResults || this.isLoading;
   }
@@ -39,7 +58,7 @@ export default class LookupInput extends LightningElement {
   }
 
   renderedCallback() {
-    const input = this.template.querySelector("lightning-input");
+    const input = this.inputElement;
 
     if (input) {
       const width = input.offsetWidth;

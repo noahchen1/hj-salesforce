@@ -63,31 +63,42 @@ public with sharing class SalesOrderValidator {
       throw new AuraHandledException('At least one line item is required.');
     }
 
-    Boolean hasValidItem = false;
+    for (Integer i = 0; i < items.size(); i++) {
+      SalesOrderDataModel.LineItem item = items.get(i);
 
-    for (SalesOrderDataModel.LineItem item : items) {
-      if (
-        item == null ||
-        String.isBlank(item.item) ||
-        String.isBlank(item.rate)
-      ) {
-        continue;
+      Boolean isStoreDiscount = item.item == '186466'; //Store Discount
+
+      if (item == null || String.isBlank(item.item)) {
+        throw new AuraHandledException(
+          'Line item ' + (i + 1) + ': item is required.'
+        );
       }
 
-      if (
-        !isSpecialOrder ||
-        (!String.isBlank(item.specialOrderVendorNum) &&
-        !String.isBlank(item.specialOrderItem))
-      ) {
-        hasValidItem = true;
-        break;
+      if (String.isBlank(item.rate)) {
+        throw new AuraHandledException(
+          'Line item ' + (i + 1) + ': rate is required.'
+        );
       }
-    }
 
-    if (!hasValidItem) {
-      throw new AuraHandledException(
-        'At least one valid line item is required.'
-      );
+      if (String.isBlank(item.amount)) {
+        throw new AuraHandledException(
+          'Line item ' + (i + 1) + ': amount is required.'
+        );
+      }
+
+      if (!isStoreDiscount && String.isBlank(item.quantity)) {
+        throw new AuraHandledException(
+          'Line item ' + (i + 1) + ': quantity is required.'
+        );
+      }
+
+      if (isSpecialOrder && String.isBlank(item.quotedPrice)) {
+        throw new AuraHandledException(
+          'Line item ' +
+            (i + 1) +
+            ': quotedPrice is required for special orders.'
+        );
+      }
     }
   }
 

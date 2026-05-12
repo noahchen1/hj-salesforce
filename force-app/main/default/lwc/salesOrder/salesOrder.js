@@ -18,6 +18,7 @@ import getCustomerAddresses from "@salesforce/apex/DropdownDataController.getCus
 import notifyOrderSaveStatus from "@salesforce/apex/SalesOrderController.notifyOrderSaveStatus";
 import { processPicklistData } from "c/salesOrderUtils";
 import { VENDOR_REQUIRED_ITEM_TYPES } from "c/salesOrderUtils";
+import { isValidRolexVendorNum } from "c/salesOrderUtils";
 
 export default class SalesOrder extends NavigationMixin(LightningElement) {
   @api recordId;
@@ -315,8 +316,21 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   async saveOrder() {
     if (this.isLoading) return;
 
-    this.isLoading = true;
-    const savePromise = this.executeSave();
+    let payload;
+
+    try {
+      payload = this.buildPayload();
+
+      this.validateFields();
+    } catch (error) {
+      await LightningAlert.open({
+        label: "Validation Error",
+        message: error?.message || "Order validation failed.",
+        theme: "error"
+      });
+
+      return;
+    }
 
     const navigateAway = await LightningConfirm.open({
       label: "Save Order",
@@ -324,6 +338,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         "Would you like to go back to the account while the order saves in the background?",
       theme: "default"
     });
+
+    this.isLoading = true;
+    const savePromise = this.executeSave(payload);
 
     if (navigateAway) {
       this.isLoading = false;
@@ -395,53 +412,55 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     }
   }
 
-  async executeSave() {
+  buildPayload() {
+    const { shippingAddressState, billingAddressState } =
+      this.addressSection?.getAddressState() ?? {
+        shippingAddressState: {},
+        billingAddressState: {}
+      };
+
+    const rows = this.lineItems?.getRows() ?? [];
+
+    const payload = {
+      orderType: this.orderType,
+      soNsInternalId: this.soNsInternalId,
+      custNsInternalId: this.custNsInternalId,
+      orderDate: this.date,
+      salesRep1: this.salesRep1,
+      salesRep2: this.salesRep2,
+      subsidiary: this.subsidiary,
+      location: this.location,
+      termsNsInternalId: this.paymentTerm,
+      memo: this.memo,
+      specialOrderItemType: this.specialOrderItemType,
+      specialOrderVendor: this.specialOrderVendor,
+      specialOrderRequestedVendor: this.specialOrderRequestedVendor,
+      specialOrderComments: this.specialOrderComments,
+      specialOrderNotes: this.specialOrderNotes,
+      specialOrderMemoOrSold: this.specialOrderMemoOrSold,
+      shippingAddressJson: JSON.stringify(shippingAddressState),
+      billingAddressJson: JSON.stringify(billingAddressState),
+      lineItemsJson: JSON.stringify(rows)
+    };
+
+    if (this.specialDate) payload.specialDate = this.specialDate;
+    if (this.needByDate) payload.needByDate = this.needByDate;
+
+    return payload;
+  }
+
+  async executeSave(payload = this.buildPayload()) {
     const isUpdate = Boolean(this.soNsInternalId);
 
     try {
-      const { shippingAddressState, billingAddressState } =
-        this.addressSection?.getAddressState() ?? {
-          shippingAddressState: {},
-          billingAddressState: {}
-        };
-
-      const rows = this.lineItems?.getRows() ?? [];
-
-      const payload = {
-        orderType: this.orderType,
-        soNsInternalId: this.soNsInternalId,
-        custNsInternalId: this.custNsInternalId,
-        orderDate: this.date,
-        salesRep1: this.salesRep1,
-        salesRep2: this.salesRep2,
-        subsidiary: this.subsidiary,
-        location: this.location,
-        termsNsInternalId: this.paymentTerm,
-        memo: this.memo,
-        specialOrderItemType: this.specialOrderItemType,
-        specialOrderVendor: this.specialOrderVendor,
-        specialOrderRequestedVendor: this.specialOrderRequestedVendor,
-        specialOrderComments: this.specialOrderComments,
-        specialOrderNotes: this.specialOrderNotes,
-        specialOrderMemoOrSold: this.specialOrderMemoOrSold,
-        shippingAddressJson: JSON.stringify(shippingAddressState),
-        billingAddressJson: JSON.stringify(billingAddressState),
-        lineItemsJson: JSON.stringify(rows)
-      };
-
-      if (this.specialDate) payload.specialDate = this.specialDate;
-      if (this.needByDate) payload.needByDate = this.needByDate;
-
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
-      this.validatePayload(payload);
+      const soNsInternalId = await saveSalesOrder(payload);
+      this.soNsInternalId = soNsInternalId;
 
-      // const soNsInternalId = await saveSalesOrder(payload);
-      // this.soNsInternalId = soNsInternalId;
+      const orderRecordId = await getOrder({ soNsInternalId });
 
-      // const orderRecordId = await getOrder({ soNsInternalId });
-
-      // return { soNsInternalId, orderRecordId, isUpdate };
+      return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
       console.error("Failed to save sales order");
       console.error(err.name);
@@ -591,54 +610,11 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     }
   }
 
-  validatePayload(payload) {
-    const orderType = payload.orderType;
-
-    if (orderType === "special") {
-      const specialOrderItemType = payload.specialOrderItemType;
-      const isRolex = specialOrderItemType === "6";
-
-      if (isRolex) {
-        let parsedLineItems = [];
-
-        try {
-          parsedLineItems = JSON.parse(payload.lineItemsJson || "[]");
-        } catch (error) {
-          throw new Error("Invalid line item payload.");
-        }
-
-        const rolexRows = parsedLineItems.filter(
-          (line) => String(line?.item ?? "") === "213841"
-        );
-        const isValidFormat = (str) => {
-          const regex = /^M\d{5,}[A-Za-z]*-\d{4}$/i;
-
-          return regex.test(str);
-        };
-
-        const hasMissingVendorNum =
-          rolexRows.length === 0 ||
-          rolexRows.some(
-            (line) => String(line?.specialOrderVendorNum ?? "").trim() === ""
-          );
-
-        if (hasMissingVendorNum) {
-          throw new Error(
-            "Special Order Vendor # is required for Rolex."
-          );
-        }
-
-        const hasInvalidVendorNumFormat = rolexRows.some(
-          (line) =>
-            !isValidFormat(String(line?.specialOrderVendorNum ?? "").trim())
-        );
-
-        if (hasInvalidVendorNumFormat) {
-          throw new Error(
-            "Special Order Vendor # format is invalid. Expected: M#####-####."
-          );
-        }
-      }
+  validateFields() {
+    const isHeaderValid = this.header?.validateFields();
+    
+    if (!isHeaderValid) {
+      throw new Error("Please fill in all required fields.");
     }
   }
 

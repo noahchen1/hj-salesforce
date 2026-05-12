@@ -1,4 +1,4 @@
-export function processPicklistData(data, isAddress = false) {
+export const processPicklistData = (data, isAddress = false) => {
   const blank = { label: "Select", value: "" };
 
   if (!data?.length) {
@@ -24,7 +24,13 @@ export function processPicklistData(data, isAddress = false) {
   ];
 
   return { options, defaultShipping, defaultBilling };
-}
+};
+
+export const isValidRolexVendorNum = (str) => {
+  const regex = /^M\d{5,}[A-Za-z]*-\d{4}$/i;
+
+  return regex.test(str);
+};
 
 export const VENDOR_REQUIRED_ITEM_TYPES = new Set(["1", "2", "4", "5", "6"]);
 

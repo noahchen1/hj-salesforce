@@ -91,9 +91,7 @@ export default class SalesOrderBody extends LightningElement {
   }
 
   get isVendorRequiredItemType() {
-    return VENDOR_REQUIRED_ITEM_TYPES.has(
-      this.specialOrderItemType
-    );
+    return VENDOR_REQUIRED_ITEM_TYPES.has(this.specialOrderItemType);
   }
 
   get isSpecialOrderVendorRequired() {
@@ -145,6 +143,28 @@ export default class SalesOrderBody extends LightningElement {
         new CustomEvent("fieldclear", { detail: { field: type } })
       );
     }
+  }
+
+  @api
+  validateFields() {
+    const inputs = [
+      ...this.template.querySelectorAll("lightning-input"),
+      ...this.template.querySelectorAll("lightning-combobox"),
+      ...this.template.querySelectorAll("lightning-textarea"),
+      ...this.template.querySelectorAll("c-lookup-input")
+    ];
+
+    let isValid = true;
+
+    inputs.forEach((field) => {
+      const fieldIsValid = field.reportValidity();
+
+      if (!fieldIsValid) {
+        isValid = false;
+      }
+    });
+
+    return isValid;
   }
 
   handleLookupSelect(e) {
