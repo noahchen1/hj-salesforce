@@ -314,6 +314,62 @@ private class SalesOrderValidatorTest {
   }
 
   @isTest
+  static void responseJson_deserializesRepresentativePayload() {
+    String responseJson =
+      '{' +
+      '"status":"200",' +
+      '"errors":[{"code":"WARN","message":"none","detail":"detail","field":"memo","type":"validation"}],' +
+      '"salesOrders":[{' +
+      '"internalId":"SO-1",' +
+      '"tranDate":1715558400,' +
+      '"memo":"Test Memo",' +
+      '"entity":{"name":"Acme","internalId":"CUST123"},' +
+      '"salesRep":{"name":"Rep 1","internalId":"REP1"},' +
+      '"itemList":{' +
+      '"item":[{' +
+      '"quantity":2,' +
+      '"rate":"50.00",' +
+      '"amount":100,' +
+      '"line":"1",' +
+      '"item":{"name":"Widget","internalId":"ITEM123"},' +
+      '"customFieldList":{"customField":[{' +
+      '"scriptId":"custcol_special_sku","value":"SKU123"' +
+      '}]}' +
+      '}]' +
+      '},' +
+      '"customFieldList":{"customField":[{' +
+      '"scriptId":"custbody_is_special_order","value":"true"' +
+      '}]},' +
+      '"shippingAddress":{"city":"Ship City","country":"US"},' +
+      '"billingAddress":{"city":"Bill City","country":"US"}' +
+      '}]' +
+      '}';
+
+    SalesOrderResModel.ResponseJson body = (SalesOrderResModel.ResponseJson) JSON.deserialize(
+      responseJson,
+      SalesOrderResModel.ResponseJson.class
+    );
+
+    System.assertEquals('200', body.status);
+    System.assertEquals(1, body.errors.size());
+    System.assertEquals('WARN', body.errors[0].code);
+    System.assertEquals(1, body.salesOrders.size());
+    System.assertEquals('SO-1', body.salesOrders[0].internalId);
+    System.assertEquals('Acme', body.salesOrders[0].entity.getName());
+    System.assertEquals('CUST123', body.salesOrders[0].entity.getInternalId());
+    System.assertEquals(
+      'Widget',
+      body.salesOrders[0].itemList.item[0].item.name
+    );
+    System.assertEquals(
+      'SKU123',
+      body.salesOrders[0].itemList.item[0].customFieldList.customField[0].value
+    );
+    System.assertEquals('Ship City', body.salesOrders[0].shippingAddress.city);
+    System.assertEquals('Bill City', body.salesOrders[0].billingAddress.city);
+  }
+
+  @isTest
   static void validateTypedBody_success() {
     SalesOrderResModel.ResponseJson body = new SalesOrderResModel.ResponseJson();
     body.status = '200';

@@ -91,6 +91,9 @@ private class SalesOrderMapperTest {
     entity.internalId = 'CUST123';
     so.entity = entity;
 
+    System.assertEquals('Test Customer', entity.getName());
+    System.assertEquals('CUST123', entity.getInternalId());
+
     SalesOrderResModel.RecordRef salesRep = new SalesOrderResModel.RecordRef();
     salesRep.name = 'Rep Name';
     salesRep.internalId = 'SR123';
