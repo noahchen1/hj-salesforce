@@ -7,8 +7,14 @@ public with sharing class SalesOrderMapper {
         lineItemsJson,
         List<SalesOrderDataModel.LineItem>.class
       );
-    } catch (Exception e) {
-      throw new AuraHandledException('Invalid line item payload.');
+    } catch (Exception err) {
+      AuraHandledException e = new AuraHandledException(
+        'Invalid line item payload.'
+      );
+
+      e.setMessage('Invalid line item payload.');
+
+      throw e;
     }
   }
 
@@ -19,10 +25,20 @@ public with sharing class SalesOrderMapper {
       return null;
     }
 
-    return (SalesOrderDataModel.Address) JSON.deserialize(
-      addressJson,
-      SalesOrderDataModel.Address.class
-    );
+    try {
+      return (SalesOrderDataModel.Address) JSON.deserialize(
+        addressJson,
+        SalesOrderDataModel.Address.class
+      );
+    } catch (Exception err) {
+      AuraHandledException e = new AuraHandledException(
+        'Invalid address payload.'
+      );
+
+      e.setMessage('Invalid address payload.');
+
+      throw e;
+    }
   }
 
   public static SalesOrderDataModel.SalesOrderData mapSalesOrder(
