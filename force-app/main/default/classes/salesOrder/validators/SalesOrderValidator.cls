@@ -40,7 +40,13 @@ public with sharing class SalesOrderValidator {
       String.isBlank(location) ||
       String.isBlank(lineItemsJson)
     ) {
-      throw new AuraHandledException('Missing required parameters.');
+      AuraHandledException e = new AuraHandledException(
+        'Missing required parameters.'
+      );
+
+      e.setMessage('Missing required parameters.');
+
+      throw e;
     }
 
     if (
@@ -52,7 +58,13 @@ public with sharing class SalesOrderValidator {
       String.isBlank(specialOrderVendor)) ||
       String.isBlank(specialOrderMemoOrSold))
     ) {
-      throw new AuraHandledException('Missing required parameters.');
+      AuraHandledException e = new AuraHandledException(
+        'Missing required special order parameters.'
+      );
+
+      e.setMessage('Missing required special order parameters.');
+
+      throw e;
     }
 
     List<SalesOrderDataModel.LineItem> items = SalesOrderMapper.deserializeLineItems(
@@ -60,7 +72,13 @@ public with sharing class SalesOrderValidator {
     );
 
     if (items == null || items.isEmpty()) {
-      throw new AuraHandledException('At least one line item is required.');
+      AuraHandledException e = new AuraHandledException(
+        'At least one line item is required.'
+      );
+
+      e.setMessage('At least one line item is required.');
+
+      throw e;
     }
 
     for (Integer i = 0; i < items.size(); i++) {
@@ -69,27 +87,43 @@ public with sharing class SalesOrderValidator {
       Boolean isStoreDiscount = item.item == '186466'; //Store Discount
 
       if (item == null || String.isBlank(item.item)) {
-        throw new AuraHandledException(
+        AuraHandledException e = new AuraHandledException(
           'Line item ' + (i + 1) + ': item is required.'
         );
+
+        e.setMessage('Line item ' + (i + 1) + ': item is required.');
+
+        throw e;
       }
 
       if (String.isBlank(item.rate)) {
-        throw new AuraHandledException(
+        AuraHandledException e = new AuraHandledException(
           'Line item ' + (i + 1) + ': rate is required.'
         );
+
+        e.setMessage('Line item ' + (i + 1) + ': rate is required.');
+
+        throw e;
       }
 
       if (String.isBlank(item.amount)) {
-        throw new AuraHandledException(
+        AuraHandledException e = new AuraHandledException(
           'Line item ' + (i + 1) + ': amount is required.'
         );
+
+        e.setMessage('Line item ' + (i + 1) + ': amount is required.');
+
+        throw e;
       }
 
       if (!isStoreDiscount && String.isBlank(item.quantity)) {
-        throw new AuraHandledException(
+        AuraHandledException e = new AuraHandledException(
           'Line item ' + (i + 1) + ': quantity is required.'
         );
+
+        e.setMessage('Line item ' + (i + 1) + ': quantity is required.');
+
+        throw e;
       }
 
       if (
@@ -97,32 +131,54 @@ public with sharing class SalesOrderValidator {
         isSpecialOrder &&
         String.isBlank(item.quotedPrice)
       ) {
-        throw new AuraHandledException(
+        AuraHandledException e = new AuraHandledException(
           'Line item ' +
             (i + 1) +
             ': quotedPrice is required for special orders.'
         );
+
+        e.setMessage(
+          'Line item ' +
+            (i + 1) +
+            ': quotedPrice is required for special orders.'
+        );
+
+        throw e;
       }
     }
   }
 
   public static void validateRawResponse(Map<String, Object> response) {
     if (response == null) {
-      throw new AuraHandledException('No response returned from NetSuite.');
+      AuraHandledException e = new AuraHandledException(
+        'No response returned from NetSuite.'
+      );
+
+      e.setMessage('No response returned from NetSuite.');
+
+      throw e;
     }
 
     Boolean validRequest = (Boolean) response.get('validRequest');
     if (validRequest == null || !validRequest) {
-      throw new AuraHandledException(
+      AuraHandledException e = new AuraHandledException(
         'Invalid request: NetSuite rejected the payload.'
       );
+
+      e.setMessage('Invalid request: NetSuite rejected the payload.');
+
+      throw e;
     }
 
     String responseJsonStr = (String) response.get('responseJSON');
     if (String.isBlank(responseJsonStr)) {
-      throw new AuraHandledException(
+      AuraHandledException e = new AuraHandledException(
         'NetSuite returned an empty response body.'
       );
+
+      e.setMessage('NetSuite returned an empty response body.');
+
+      throw e;
     }
   }
 
@@ -130,23 +186,45 @@ public with sharing class SalesOrderValidator {
     SalesOrderResModel.ResponseJson response
   ) {
     if (response == null) {
-      throw new AuraHandledException('Unable to parse NetSuite response.');
+      AuraHandledException e = new AuraHandledException(
+        'Unable to parse NetSuite response.'
+      );
+
+      e.setMessage('Unable to parse NetSuite response.');
+
+      throw e;
     }
 
     if (response.errors != null && !response.errors.isEmpty()) {
-      throw new AuraHandledException(
+      AuraHandledException e = new AuraHandledException(
         'NetSuite returned errors: ' + JSON.serialize(response.errors)
       );
+
+      e.setMessage(
+        'NetSuite returned errors: ' + JSON.serialize(response.errors)
+      );
+
+      throw e;
     }
 
     if (response.status != '200') {
-      throw new AuraHandledException(
+      AuraHandledException e = new AuraHandledException(
         'Unexpected response status: ' + response.status
       );
+
+      e.setMessage('Unexpected response status: ' + response.status);
+
+      throw e;
     }
 
     if (response.salesOrders == null || response.salesOrders.isEmpty()) {
-      throw new AuraHandledException('No sales order returned in response.');
+      AuraHandledException e = new AuraHandledException(
+        'No sales order returned in response.'
+      );
+
+      e.setMessage('No sales order returned in response.');
+
+      throw e;
     }
   }
 }
