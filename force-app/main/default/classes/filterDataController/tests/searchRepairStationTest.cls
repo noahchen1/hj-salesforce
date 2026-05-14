@@ -1,25 +1,31 @@
 @isTest
 private class SearchRepairStationTest {
   @isTest
-  static void testSearchRepairStation_success() {
-    breadwinner_ns__BW_Sales_Order__c newOrder = new breadwinner_ns__BW_Sales_Order__c(
-      Name = 'Test Order',
-      ncf_body_repair_station__c = 'Test Station'
+  static void testSearchRepairStation_success_and_uniqueness() {
+    breadwinner_ns__BW_Sales_Order__c o1 = new breadwinner_ns__BW_Sales_Order__c(
+      Name = 'Order1',
+      ncf_body_repair_station__c = 'StationA'
     );
-
-    insert newOrder;
+    breadwinner_ns__BW_Sales_Order__c o2 = new breadwinner_ns__BW_Sales_Order__c(
+      Name = 'Order2',
+      ncf_body_repair_station__c = 'StationA'
+    );
+    breadwinner_ns__BW_Sales_Order__c o3 = new breadwinner_ns__BW_Sales_Order__c(
+      Name = 'Order3',
+      ncf_body_repair_station__c = 'StationB'
+    );
+    insert new List<breadwinner_ns__BW_Sales_Order__c>{ o1, o2, o3 };
 
     Test.startTest();
     List<FilterDataController.LookupResult> results = FilterDataController.searchRepairStation(
-      'Test Station'
+      'Station'
     );
     Test.stopTest();
 
-    System.assert(results.size() == 1, 'Should return one result');
-    System.assert(
-      results[0].Name == 'Test Station',
-      'should return the order with Test Station'
-    );
+    System.assertEquals(2, results.size(), 'Should return two unique stations');
+    Set<String> names = new Set<String>{ results[0].Name, results[1].Name };
+    System.assert(names.contains('StationA'), 'Should contain StationA');
+    System.assert(names.contains('StationB'), 'Should contain StationB');
   }
 
   @isTest
@@ -28,15 +34,12 @@ private class SearchRepairStationTest {
       Name = 'Test Order',
       ncf_body_repair_station__c = 'Test Station'
     );
-
     insert newOrder;
-
     Test.startTest();
     List<FilterDataController.LookupResult> results = FilterDataController.searchRepairStation(
       'Something'
     );
     Test.stopTest();
-
-    System.assert(results.size() == 0, 'Should return no results');
+    System.assertEquals(0, results.size(), 'Should return no results');
   }
 }
