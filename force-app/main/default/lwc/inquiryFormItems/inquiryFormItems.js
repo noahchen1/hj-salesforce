@@ -1,4 +1,5 @@
 import { LightningElement, api } from "lwc";
+import getParentByVendorNum from "@salesforce/apex/DataService.getParentByVendorNum";
 
 export default class InquiryFormItems extends LightningElement {
   @api sectionTitle = "Watch Fields";
@@ -16,13 +17,25 @@ export default class InquiryFormItems extends LightningElement {
   isNameRequired = false;
   isLinkRequired = false;
 
+  rows = [
+    {
+      item: "",
+      displayName: "",
+      specialOrderItem: "",
+      specialOrderVendorNum: "",
+      quantity: "1",
+      rate: "",
+      amount: "",
+      quotedPrice: ""
+    }
+  ];
+
   @api
   get toggleFields() {
     return this.areFieldsVisible;
   }
 
   set toggleFields(value) {
-    console.log(value);
     this.areFieldsVisible = value;
   }
 
@@ -51,6 +64,33 @@ export default class InquiryFormItems extends LightningElement {
 
   set toggleRequireLink(value) {
     this.isLinkRequired = value;
+  }
+
+  @api
+  async getFields() {
+    const itemResult = await getParentByVendorNum({ vendorNum: this.model });
+
+    const rows = [
+      {
+        item: "213841",
+        displayName: itemResult.displayName ?? "",
+        specialOrderItem: itemResult.name ?? "",
+        specialOrderVendorNum: this.model,
+        quantity: "1",
+        rate: itemResult.basePrice ?? "",
+        amount: itemResult.basePrice ?? "",
+        quotedPrice: itemResult.basePrice ?? ""
+      }
+    ];
+
+    return {
+      model: this.model,
+      name: this.name,
+      link: this.link,
+      isPriority: this.isPriority,
+      isOpenDial: this.isOpenDial,
+      rows: rows
+    };
   }
 
   handleInputChange(e) {

@@ -209,4 +209,34 @@ public with sharing class DataService {
 
     return fieldValues;
   }
+
+  @AuraEnabled
+  public static Map<String, String> getParentByVendorNum(String vendorNum) {
+    if (String.isBlank(vendorNum)) {
+      return new Map<String, String>();
+    }
+
+    String normalizedVendorNum = vendorNum.trim();
+
+    List<breadwinner_ns__BW_Item__c> items = [
+      SELECT Name, Base_Price__c, breadwinner_ns__DisplayName__c
+      FROM breadwinner_ns__BW_Item__c
+      WHERE
+        breadwinner_ns__VendorName__c = :normalizedVendorNum
+        AND breadwinner_ns__Parent__c = NULL
+        AND ncf_item_groupcode__c NOT IN ('WRTRD', 'WRCPO')
+      LIMIT 1
+    ];
+
+    if (items.isEmpty())
+      return new Map<String, String>();
+
+    breadwinner_ns__BW_Item__c item = items[0];
+
+    return new Map<String, String>{
+      'name' => item.Name,
+      'basePrice' => String.valueOf(item.Base_Price__c),
+      'displayName' => item.breadwinner_ns__DisplayName__c
+    };
+  }
 }
