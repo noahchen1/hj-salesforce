@@ -1,6 +1,14 @@
 <template>
-  <div class="section-title" onclick={handleHeaderClick}>{sectionTitle}</div>
-  <template if:true={showFieldsToggle}>
+  <div class="section-title" onclick={handleHeaderClick}>
+    <lightning-icon
+      icon-name={toggleIcon}
+      size="x-small"
+      alternative-text={toggleText}
+      class="toggle-icon"
+    ></lightning-icon>
+    <span>{sectionTitle}</span>
+  </div>
+  <template if:true={areFieldsVisible}>
     <div class="form-body">
       <lightning-input
         label={modelLabel}

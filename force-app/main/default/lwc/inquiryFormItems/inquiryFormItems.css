@@ -15,6 +15,22 @@
   background-color: #dfe4eb;
   font-size: 15px;
   font-weight: bold;
-  padding: 8px;
+  padding: 8px 10px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-icon {
+  --sds-c-icon-color-foreground-default: #16325c;
+}
+
+.toggle-text {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5c5c5c;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }

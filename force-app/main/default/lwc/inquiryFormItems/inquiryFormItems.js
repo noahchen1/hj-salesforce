@@ -3,33 +3,55 @@ import { LightningElement, api } from "lwc";
 export default class InquiryFormItems extends LightningElement {
   @api sectionTitle = "Watch Fields";
   @api modelLabel;
-  @api isModelRequired;
   @api nameLabel;
-  @api isNameRequired;
   @api linkLabel;
-  @api isLinkRequired;
 
   model = "";
   name = "";
   link = "";
   isPriority = false;
   isOpenDial = false;
-  showFieldsToggle = false;
+  areFieldsVisible = false;
+  isModelRequired = false;
+  isNameRequired = false;
+  isLinkRequired = false;
 
   @api
-  get toggleFieldsVisible() {
-    return this.showFieldsToggle;
+  get toggleFields() {
+    return this.areFieldsVisible;
   }
 
-  set toggleFieldsVisible(value) {
-    this.showFieldsToggle = value;
+  set toggleFields(value) {
+    console.log(value);
+    this.areFieldsVisible = value;
   }
 
-  // renderedCallback() {
-  //   console.log(JSON.stringify(this.showFieldsToggle));
-  //   console.log("getter below:");
-  //   console.log(JSON.stringify(this.areFieldsVisisble));
-  // }
+  @api
+  get toggleRequireModel() {
+    return this.isModelRequired;
+  }
+
+  set toggleRequireModel(value) {
+    this.isModelRequired = value;
+  }
+
+  @api
+  get toggleRequireName() {
+    return this.isNameRequired;
+  }
+
+  set toggleRequireName(value) {
+    this.isNameRequired = value;
+  }
+
+  @api
+  get toggleRequireLink() {
+    return this.isLinkRequired;
+  }
+
+  set toggleRequireLink(value) {
+    this.isLinkRequired = value;
+  }
 
   handleInputChange(e) {
     const type = e.target.dataset.type;
@@ -39,6 +61,12 @@ export default class InquiryFormItems extends LightningElement {
   }
 
   handleHeaderClick() {
-    this.showFieldsToggle = !this.showFieldsToggle;
+    this.areFieldsVisible = !this.areFieldsVisible;
+  }
+
+  get toggleIcon() {
+    return this.areFieldsVisible
+      ? "utility:chevrondown"
+      : "utility:chevronright";
   }
 }
