@@ -1,1 +1,43 @@
-<template> </template>
+<template>
+  <div class="section-title" onclick={handleHeaderClick}>{sectionTitle}</div>
+  <template if:true={showFieldsToggle}>
+    <div class="form-body">
+      <lightning-input
+        label={modelLabel}
+        data-type="model"
+        type="text"
+        value={model}
+        onchange={handleInputChange}
+        required={isModelRequired}
+      ></lightning-input>
+      <lightning-input
+        label={nameLabel}
+        data-type="name"
+        type="text"
+        value={name}
+        onchange={handleInputChange}
+        required={isNameRequired}
+      ></lightning-input>
+      <lightning-input
+        label={linkLabel}
+        data-type="link"
+        type="text"
+        value={link}
+        onchange={handleInputChange}
+        required={isLinkRequired}
+      ></lightning-input>
+      <lightning-input
+        data-type="isPriority"
+        type="checkbox"
+        label="Priority"
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-input
+        data-type="isOpenDial"
+        type="checkbox"
+        label="Open Dial"
+        onchange={handleInputChange}
+      ></lightning-input>
+    </div>
+  </template>
+</template>

@@ -1,1 +1,58 @@
-<template> </template>
+<template>
+  <div class="section-title">Intake Form</div>
+  <div class="form-body">
+    <c-lookup-input
+      data-type="customer"
+      label="Customer"
+      placeholder="Enter Name"
+      onsearch={handleLookupSearch}
+      onselect={handleLookupSelect}
+      required
+    ></c-lookup-input>
+    <lightning-input
+      label="Date"
+      data-type="date"
+      type="date"
+      value={date}
+      onchange={handleInputChange}
+      required
+    ></lightning-input>
+    <c-lookup-input
+      data-type="salesRep1"
+      label="Sales Rep"
+      placeholder="Enter Name"
+      onsearch={handleLookupSearch}
+      onselect={handleLookupSelect}
+      required
+    ></c-lookup-input>
+    <c-lookup-input
+      data-type="salesRep2"
+      label="Sales Rep 2"
+      placeholder="Enter Name"
+      onsearch={handleLookupSearch}
+      onselect={handleLookupSelect}
+    ></c-lookup-input>
+    <lightning-combobox
+      name="location"
+      label="Location"
+      value={location}
+      placeholder="Select a location"
+      options={locationOptions}
+      onchange={handleComboboxChange}
+      required
+    ></lightning-combobox>
+    <lightning-textarea
+      label="Email Personalization"
+      data-type="personalization"
+      value={personalization}
+      onchange={handleInputChange}
+      required
+    ></lightning-textarea>
+    <lightning-textarea
+      label="Comments"
+      data-type="comments"
+      value={comments}
+      onchange={handleInputChange}
+    ></lightning-textarea>
+  </div>
+</template>
