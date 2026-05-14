@@ -1,4 +1,7 @@
 public with sharing class DataService {
+  @TestVisible
+  private static Map<Id, EmployeeResult> testEmployeeResultsByUserId;
+
   public class EmployeeResult {
     @AuraEnabled
     public String employeeId;
@@ -94,6 +97,14 @@ public with sharing class DataService {
   public static EmployeeResult getEmployeeData(Id userId) {
     if (userId == null) {
       throw new AuraHandledException('User Id is required.');
+    }
+
+    if (
+      Test.isRunningTest() &&
+      testEmployeeResultsByUserId != null &&
+      testEmployeeResultsByUserId.containsKey(userId)
+    ) {
+      return testEmployeeResultsByUserId.get(userId);
     }
 
     try {
