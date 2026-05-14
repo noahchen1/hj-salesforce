@@ -73,4 +73,37 @@ private class HelpersTest {
     System.assertNotEquals(null, invalidResult);
     System.assertEquals(0, invalidResult.size());
   }
+
+  @isTest
+  static void testToDateOnlyFromUnixSeconds() {
+    System.assertEquals(null, Helpers.toDateOnlyFromUnixSeconds(null));
+    System.assertEquals('1970-01-01', Helpers.toDateOnlyFromUnixSeconds(0L));
+    System.assertEquals(
+      '1970-01-02',
+      Helpers.toDateOnlyFromUnixSeconds(86400L)
+    );
+  }
+
+  @isTest
+  static void testToUnixSeconds() {
+    Date sourceDate = Date.newInstance(2024, 6, 15);
+    Long expected =
+      DateTime.newInstance(sourceDate, Time.newInstance(0, 0, 0, 0)).getTime() /
+      1000;
+
+    System.assertEquals(expected, Helpers.toUnixSeconds(sourceDate));
+  }
+
+  @isTest
+  static void testToUnixSecondsNullThrows() {
+    Boolean didThrow = false;
+
+    try {
+      Helpers.toUnixSeconds(null);
+    } catch (Exception e) {
+      didThrow = true;
+    }
+
+    System.assertEquals(true, didThrow);
+  }
 }
