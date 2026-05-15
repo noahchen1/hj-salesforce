@@ -20,14 +20,20 @@ public with sharing class SalesOrderService {
     String specialOrderMemoOrSold,
     String shippingAddressJson,
     String billingAddressJson,
+    String inquiryId,
     String inquiryModel,
     String inquiryName,
     String inquiryLink,
+    String inquiryPersonalMsg,
     Boolean inquiryIsPrority,
     Boolean inquiryIsOpenDial,
     String lineItemsJson
   ) {
     try {
+      SalesOrderTypeContext orderTypeContext = SalesOrderTypeContext.fromOrderType(
+        orderType
+      );
+
       SalesOrderValidator.validateParams(
         orderType,
         custNsInternalId,
@@ -40,6 +46,7 @@ public with sharing class SalesOrderService {
         specialOrderItemType,
         specialOrderVendor,
         specialOrderMemoOrSold,
+        inquiryId,
         inquiryModel,
         inquiryName,
         inquiryLink,
@@ -48,6 +55,11 @@ public with sharing class SalesOrderService {
       );
 
       Boolean isUpdate = String.isNotBlank(soNsInternalId);
+      String inquiryTranNumber;
+
+      if (orderTypeContext.isInquiryOrder) {
+        inquiryTranNumber = buildNextInquiryTranNumber(custNsInternalId);
+      }
 
       List<SalesOrderDataModel.LineItem> lineItems = SalesOrderMapper.deserializeLineItems(
         lineItemsJson
@@ -83,8 +95,11 @@ public with sharing class SalesOrderService {
         inquiryModel,
         inquiryName,
         inquiryLink,
+        inquiryPersonalMsg,
         inquiryIsPrority,
         inquiryIsOpenDial,
+        inquiryTranNumber,
+        inquiryId,
         shippingAddress,
         billingAddress,
         lineItems,
@@ -234,5 +249,87 @@ public with sharing class SalesOrderService {
     }
 
     notification.send(new Set<String>{ UserInfo.getUserId() });
+  }
+
+  private static String buildNextInquiryTranNumber(String custNsInternalId) {
+    String startingNum = 'SOR' + custNsInternalId;
+    String likePattern = startingNum + '%';
+
+    List<breadwinner_ns__BW_Sales_Order__c> existingOrders = [
+      SELECT Name
+      FROM breadwinner_ns__BW_Sales_Order__c
+      WHERE Name LIKE :likePattern
+      ORDER BY Name DESC
+    ];
+
+    if (existingOrders.isEmpty()) {
+      return startingNum + '1';
+    }
+
+    Integer maxNum = 0;
+    for (breadwinner_ns__BW_Sales_Order__c order : existingOrders) {
+      String suffix = order.Name.removeStart(startingNum);
+      if (suffix.isNumeric()) {
+        Integer num = Integer.valueOf(suffix);
+
+        if (num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+    return startingNum + (maxNum + 1);
+  }
+
+  public static String getInquiryId(String custNsInternalId) {
+    if (String.isBlank(custNsInternalId)) {
+      return null;
+    }
+
+    Integer maxNumericSuffix = -1;
+    String latestInquiryId;
+
+    for (breadwinner_ns__BW_Sales_Order__c existingOrder : [
+      SELECT ncf_body_inquiry_id__c
+      FROM breadwinner_ns__BW_Sales_Order__c
+      WHERE
+        breadwinner_ns__Salesforce_Account__r.NetSuiteInternalId__c = :custNsInternalId
+        AND ncf_body_inquiry_id__c != NULL
+      ORDER BY ncf_body_inquiry_id__c DESC
+    ]) {
+      String inquiryId = existingOrder.ncf_body_inquiry_id__c;
+      Integer underscoreIndex = inquiryId.indexOf('_');
+      String numericPart = underscoreIndex >= 0
+        ? inquiryId.substring(underscoreIndex + 1)
+        : inquiryId;
+
+      if (numericPart.isNumeric()) {
+        Integer numericValue = Integer.valueOf(numericPart);
+        if (numericValue > maxNumericSuffix) {
+          maxNumericSuffix = numericValue;
+          latestInquiryId = inquiryId;
+        }
+      }
+    }
+
+    if (String.isBlank(latestInquiryId)) {
+      return custNsInternalId + '_1';
+    }
+
+    Integer underscoreIndex = latestInquiryId.indexOf('_');
+    if (
+      underscoreIndex < 0 ||
+      underscoreIndex == latestInquiryId.length() - 1
+    ) {
+      return latestInquiryId;
+    }
+
+    String prefix = latestInquiryId.substring(0, underscoreIndex);
+    String numericPart = latestInquiryId.substring(underscoreIndex + 1);
+    if (!numericPart.isNumeric()) {
+      return latestInquiryId;
+    }
+
+    Integer nextNumericValue = Integer.valueOf(numericPart) + 1;
+    return prefix + '_' + String.valueOf(nextNumericValue);
   }
 }

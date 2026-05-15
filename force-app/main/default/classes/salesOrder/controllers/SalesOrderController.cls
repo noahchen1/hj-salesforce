@@ -21,9 +21,11 @@ public with sharing class SalesOrderController {
     String specialOrderMemoOrSold,
     String shippingAddressJson,
     String billingAddressJson,
+    String inquiryId,
     String inquiryModel,
     String inquiryName,
     String inquiryLink,
+    String inquiryPersonalMsg,
     Boolean inquiryIsPrority,
     Boolean inquiryIsOpenDial,
     String lineItemsJson
@@ -49,9 +51,11 @@ public with sharing class SalesOrderController {
       specialOrderMemoOrSold,
       shippingAddressJson,
       billingAddressJson,
+      inquiryId,
       inquiryModel,
       inquiryName,
       inquiryLink,
+      inquiryPersonalMsg,
       inquiryIsPrority,
       inquiryIsOpenDial,
       lineItemsJson
@@ -93,5 +97,10 @@ public with sharing class SalesOrderController {
   @AuraEnabled(cacheable=false)
   public static Map<String, Object> getNsCompanyFromAccount(Id accountId) {
     return SalesOrderService.getNsCompanyFromAccount(accountId);
+  }
+
+  @AuraEnabled
+  public static String getInquiryId(String custNsInternalId) {
+    return SalesOrderService.getInquiryId(custNsInternalId);
   }
 }

@@ -1,5 +1,6 @@
 import { LightningElement } from "lwc";
 import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder";
+import getInquiryId from "@salesforce/apex/SalesOrderController.getInquiryId";
 
 export default class InquiryForm extends LightningElement {
   get body() {
@@ -30,6 +31,11 @@ export default class InquiryForm extends LightningElement {
         [...this.watches].map((watch) => watch.getFields())
       );
 
+      const inquiryId = await getInquiryId({
+        custNsInternalId: bodyFields.customer
+      });
+
+
       for (const modelFields of modelFieldsList) {
         const isValidModel =
           modelFields.model?.trim() &&
@@ -37,12 +43,13 @@ export default class InquiryForm extends LightningElement {
           modelFields.link?.trim();
 
         if (isValidModel) {
-          const payload = this.buildPayload(bodyFields, modelFields);
+          const payload = this.buildPayload(inquiryId, bodyFields, modelFields);
 
-          console.log(JSON.stringify(payload));
           const soNsInternalId = await saveSalesOrder(payload);
 
-          console.log(soNsInternalId);
+          console.log(JSON.stringify(payload));
+          console.log(JSON.stringify(soNsInternalId));
+          // const soNsInternalId = await saveSalesOrder(payload);
         }
       }
     } catch (error) {
@@ -53,7 +60,7 @@ export default class InquiryForm extends LightningElement {
     }
   }
 
-  buildPayload(bodyFields, modelFields) {
+  buildPayload(inquiryId, bodyFields, modelFields) {
     const payload = {
       orderType: "inquiry",
       custNsInternalId: bodyFields.customer,
@@ -73,11 +80,13 @@ export default class InquiryForm extends LightningElement {
       specialDate: bodyFields.date,
       needByDate: bodyFields.needByDate,
 
+      inquiryId: inquiryId,
       inquiryModel: modelFields.model,
       inquiryName: modelFields.name,
       inquiryLink: modelFields.link,
       inquiryIsPrority: modelFields.isPriority,
       inquiryIsOpenDial: modelFields.isOpenDial,
+      inquiryPersonalMsg: bodyFields.personalization,
       lineItemsJson: JSON.stringify(modelFields.rows ?? [])
     };
 

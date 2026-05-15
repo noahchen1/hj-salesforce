@@ -38,6 +38,7 @@ private class SalesOrderValidatorTest {
       null,
       null,
       null,
+      null,
       buildLineItemsJson('186466', null, '20', '20', null)
     );
 
@@ -57,6 +58,7 @@ private class SalesOrderValidatorTest {
         'LOC-1',
         Date.today(),
         Date.today(),
+        null,
         null,
         null,
         null,
@@ -95,6 +97,7 @@ private class SalesOrderValidatorTest {
         null,
         null,
         null,
+        null,
         buildLineItemsJson('item', '2', '20', '40', null)
       );
       Test.stopTest();
@@ -121,6 +124,7 @@ private class SalesOrderValidatorTest {
       null,
       null,
       null,
+      'INQ-1',
       'Daytona',
       'Black Dial',
       'https://example.com/daytona',
@@ -143,6 +147,7 @@ private class SalesOrderValidatorTest {
         'LOC-1',
         Date.today(),
         Date.today(),
+        null,
         null,
         null,
         null,
@@ -181,6 +186,7 @@ private class SalesOrderValidatorTest {
         null,
         null,
         null,
+        null,
         JSON.serialize(new List<Object>())
       );
       Test.stopTest();
@@ -208,6 +214,7 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
         null,
         null,
         null,
@@ -243,6 +250,7 @@ private class SalesOrderValidatorTest {
         null,
         null,
         null,
+        null,
         buildLineItemsJson('item1', '2', null, null, null)
       );
       Test.stopTest();
@@ -270,6 +278,7 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
         null,
         null,
         null,
@@ -305,6 +314,7 @@ private class SalesOrderValidatorTest {
         null,
         null,
         null,
+        null,
         buildLineItemsJson('item1', null, '20', '20', null)
       );
       Test.stopTest();
@@ -335,6 +345,7 @@ private class SalesOrderValidatorTest {
       null,
       null,
       null,
+      null,
       buildLineItemsJson('186466', null, '20', '20', null)
     );
     Test.stopTest();
@@ -356,6 +367,7 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
         null,
         null,
         null,

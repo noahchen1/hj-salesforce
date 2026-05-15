@@ -23,6 +23,7 @@ public with sharing class SalesOrderValidator {
     String specialOrderItemType,
     String specialOrderVendor,
     String specialOrderMemoOrSold,
+    String inquiryId,
     String inquiryModel,
     String inquiryName,
     String inquiryLink,
@@ -64,7 +65,8 @@ public with sharing class SalesOrderValidator {
 
     if (
       orderTypeContext.isInquiryOrder &&
-      (String.isBlank(inquiryModel) ||
+      (String.isBlank(inquiryId) ||
+      String.isBlank(inquiryModel) ||
       String.isBlank(inquiryName) ||
       String.isBlank(inquiryLink))
     ) {

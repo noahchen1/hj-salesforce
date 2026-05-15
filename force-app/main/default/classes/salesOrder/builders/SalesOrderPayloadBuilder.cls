@@ -21,8 +21,11 @@ public with sharing class SalesOrderPayloadBuilder {
     String inquiryModel,
     String inquiryName,
     String inquiryLink,
+    String inquiryPersonalMsg,
     Boolean inquiryIsPrority,
     Boolean inquiryIsOpenDial,
+    String inquiryTranNumber,
+    String inquiryId,
     SalesOrderDataModel.Address shippingAddress,
     SalesOrderDataModel.Address billingAddress,
     List<SalesOrderDataModel.LineItem> lineItems,
@@ -38,6 +41,10 @@ public with sharing class SalesOrderPayloadBuilder {
       requestMap.put('customForm', lookupByInternalId('275'));
     } else {
       requestMap.put('customForm', lookupByInternalId('115'));
+    }
+
+    if (orderTypeContext.isInquiryOrder) {
+      requestMap.put('tranid', inquiryTranNumber);
     }
 
     requestMap.put('entity', lookupByInternalId(custNsInternalId));
@@ -88,8 +95,10 @@ public with sharing class SalesOrderPayloadBuilder {
           inquiryModel,
           inquiryName,
           inquiryLink,
+          inquiryPersonalMsg,
           inquiryIsPrority,
-          inquiryIsOpenDial
+          inquiryIsOpenDial,
+          inquiryId
         )
       }
     );
@@ -176,8 +185,10 @@ public with sharing class SalesOrderPayloadBuilder {
     String inquiryModel,
     String inquiryName,
     String inquiryLink,
+    String inquiryPersonalMsg,
     Boolean inquiryIsPrority,
-    Boolean inquiryIsOpenDial
+    Boolean inquiryIsOpenDial,
+    String inquiryId
   ) {
     List<Object> customFields = new List<Object>();
 
@@ -300,7 +311,7 @@ public with sharing class SalesOrderPayloadBuilder {
         customFields.add(
           new Map<String, Object>{
             'fieldType' => 'string',
-            'scriptId' => 'custbody_inquiry_name',
+            'scriptId' => 'custbody_inquiry_description',
             'value' => inquiryName
           }
         );
@@ -335,6 +346,42 @@ public with sharing class SalesOrderPayloadBuilder {
           }
         );
       }
+
+      if (String.isNotBlank(inquiryPersonalMsg)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_inquiry_personalization',
+            'value' => inquiryPersonalMsg
+          }
+        );
+      }
+
+      if (String.isNotBlank(inquiryId)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_inquiry_id',
+            'value' => inquiryId
+          }
+        );
+      }
+
+      customFields.add(
+        new Map<String, Object>{
+          'fieldType' => 'boolean',
+          'scriptId' => 'custbody_is_inquiry_ckbox',
+          'value' => true
+        }
+      );
+
+      customFields.add(
+        new Map<String, Object>{
+          'fieldType' => 'boolean',
+          'scriptId' => 'custbody_initial_email_check',
+          'value' => true
+        }
+      );
     }
 
     return customFields;
