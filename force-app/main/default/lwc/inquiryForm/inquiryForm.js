@@ -1,4 +1,5 @@
 import { LightningElement } from "lwc";
+import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder";
 
 export default class InquiryForm extends LightningElement {
   get body() {
@@ -22,34 +23,45 @@ export default class InquiryForm extends LightningElement {
   }
 
   async createOrders() {
-    const modelFieldsList = await Promise.all(
-      [...this.watches].map((watch) => watch.getFields())
-    );
+    try {
+      const bodyFields = this.body?.getFields();
 
-    modelFieldsList.forEach((modelFields) => {
-      const isValidModel =
-        !!modelFields.model?.trim() &&
-        !!modelFields.name?.trim() &&
-        !!modelFields.link?.trim();
+      const modelFieldsList = await Promise.all(
+        [...this.watches].map((watch) => watch.getFields())
+      );
 
-      if (isValidModel) {
-        console.log(JSON.stringify(modelFields));
+      for (const modelFields of modelFieldsList) {
+        const isValidModel =
+          modelFields.model?.trim() &&
+          modelFields.name?.trim() &&
+          modelFields.link?.trim();
 
-        // const bodyFields = this.body.getFields();
-        // const payload = this.buildPayload(bodyFields, modelFields);
+        if (isValidModel) {
+          const payload = this.buildPayload(bodyFields, modelFields);
+
+          console.log(JSON.stringify(payload));
+          const soNsInternalId = await saveSalesOrder(payload);
+
+          console.log(soNsInternalId);
+        }
       }
-    });
+    } catch (error) {
+      console.error(error);
+      console.error(error.name);
+      console.error(error.message);
+      console.error(error.stack);
+    }
   }
 
   buildPayload(bodyFields, modelFields) {
     const payload = {
-      orderType: "special",
+      orderType: "inquiry",
       custNsInternalId: bodyFields.customer,
       orderDate: bodyFields.date,
       salesRep1: bodyFields.salesRep1,
       salesRep2: bodyFields.salesRep2,
-      subsidiary: "28",
-      location: bodyFields.location,
+      subsidiary: "30",
+      location: "28",
       termsNsInternalId: "2",
       specialOrderItemType: "6",
 
@@ -61,9 +73,12 @@ export default class InquiryForm extends LightningElement {
       specialDate: bodyFields.date,
       needByDate: bodyFields.needByDate,
 
+      inquiryModel: modelFields.model,
+      inquiryName: modelFields.name,
+      inquiryLink: modelFields.link,
+      inquiryIsPrority: modelFields.isPriority,
+      inquiryIsOpenDial: modelFields.isOpenDial,
       lineItemsJson: JSON.stringify(modelFields.rows ?? [])
-
-      // orderNum
     };
 
     return payload;

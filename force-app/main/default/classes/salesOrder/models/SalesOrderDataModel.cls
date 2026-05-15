@@ -51,6 +51,16 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String specialOrderMemoOrSold;
     @AuraEnabled
+    public String inquiryModel;
+    @AuraEnabled
+    public String inquiryName;
+    @AuraEnabled
+    public String inquiryLink;
+    @AuraEnabled
+    public Boolean inquiryIsPrority;
+    @AuraEnabled
+    public Boolean inquiryIsOpenDial;
+    @AuraEnabled
     public Address shippingAddress;
     @AuraEnabled
     public Address billingAddress;

@@ -34,6 +34,10 @@ private class SalesOrderValidatorTest {
       null,
       null,
       null,
+      null,
+      null,
+      null,
+      null,
       buildLineItemsJson('186466', null, '20', '20', null)
     );
 
@@ -42,20 +46,86 @@ private class SalesOrderValidatorTest {
 
   @isTest
   static void validateParams_invalidOrderType() {
+    try {
+      Test.startTest();
+      SalesOrderValidator.validateParams(
+        'other',
+        null,
+        Date.today(),
+        'REP-1',
+        'SUB-1',
+        'LOC-1',
+        Date.today(),
+        Date.today(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      );
+      Test.stopTest();
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage().contains('Unsupported orderType:'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void validateParams_inquiryMissingParams() {
+    try {
+      Test.startTest();
+      SalesOrderValidator.validateParams(
+        'inquiry',
+        '12345',
+        Date.today(),
+        'REP-1',
+        'SUB-1',
+        'LOC-1',
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        buildLineItemsJson('item', '2', '20', '40', null)
+      );
+      Test.stopTest();
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage().contains('Missing required inquiry parameters.'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void validateParams_inquiryPasses() {
     Test.startTest();
     SalesOrderValidator.validateParams(
-      'other',
-      null,
+      'inquiry',
+      '12345',
       Date.today(),
       'REP-1',
       'SUB-1',
       'LOC-1',
-      Date.today(),
-      Date.today(),
       null,
       null,
       null,
-      null
+      null,
+      null,
+      'Daytona',
+      'Black Dial',
+      'https://example.com/daytona',
+      true,
+      buildLineItemsJson('item', '1', '20', '20', null)
     );
     Test.stopTest();
   }
@@ -73,6 +143,10 @@ private class SalesOrderValidatorTest {
         'LOC-1',
         Date.today(),
         Date.today(),
+        null,
+        null,
+        null,
+        null,
         null,
         null,
         null,
@@ -103,6 +177,10 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
+        null,
+        null,
+        null,
         JSON.serialize(new List<Object>())
       );
       Test.stopTest();
@@ -130,6 +208,10 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
+        null,
+        null,
+        null,
         buildLineItemsJson('', '2', null, null, null)
       );
       Test.stopTest();
@@ -157,6 +239,10 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
+        null,
+        null,
+        null,
         buildLineItemsJson('item1', '2', null, null, null)
       );
       Test.stopTest();
@@ -184,6 +270,10 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
+        null,
+        null,
+        null,
         buildLineItemsJson('item1', '2', '20', null, null)
       );
       Test.stopTest();
@@ -211,6 +301,10 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
+        null,
+        null,
+        null,
         buildLineItemsJson('item1', null, '20', '20', null)
       );
       Test.stopTest();
@@ -237,6 +331,10 @@ private class SalesOrderValidatorTest {
       'Watch',
       'Rolex',
       '2',
+      null,
+      null,
+      null,
+      null,
       buildLineItemsJson('186466', null, '20', '20', null)
     );
     Test.stopTest();
@@ -258,6 +356,10 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
+        null,
+        null,
+        null,
         buildLineItemsJson('Special Order Item', '2', '20', '20', null)
       );
       Test.stopTest();

@@ -21,6 +21,11 @@ public with sharing class SalesOrderController {
     String specialOrderMemoOrSold,
     String shippingAddressJson,
     String billingAddressJson,
+    String inquiryModel,
+    String inquiryName,
+    String inquiryLink,
+    Boolean inquiryIsPrority,
+    Boolean inquiryIsOpenDial,
     String lineItemsJson
   ) {
     return SalesOrderService.saveSalesOrder(
@@ -44,6 +49,11 @@ public with sharing class SalesOrderController {
       specialOrderMemoOrSold,
       shippingAddressJson,
       billingAddressJson,
+      inquiryModel,
+      inquiryName,
+      inquiryLink,
+      inquiryIsPrority,
+      inquiryIsOpenDial,
       lineItemsJson
     );
   }

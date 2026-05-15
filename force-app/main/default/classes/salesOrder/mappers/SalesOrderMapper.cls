@@ -125,8 +125,40 @@ public with sharing class SalesOrderMapper {
       if (cf.scriptId == 'custbody_is_special_order') {
         Boolean isSpecialOrder = Boolean.valueOf(cf.value);
 
-        result.orderType = isSpecialOrder ? 'special' : 'sales';
+        result.orderType = isSpecialOrder
+          ? String.valueOf(SalesOrderType.special)
+          : String.valueOf(SalesOrderType.sales);
 
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_inquiry_model') {
+        result.inquiryModel = cf.value;
+        result.orderType = String.valueOf(SalesOrderType.inquiry);
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_inquiry_name') {
+        result.inquiryName = cf.value;
+        result.orderType = String.valueOf(SalesOrderType.inquiry);
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_inquiry_link') {
+        result.inquiryLink = cf.value;
+        result.orderType = String.valueOf(SalesOrderType.inquiry);
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_inquiry_is_priority') {
+        result.inquiryIsPrority = Boolean.valueOf(cf.value);
+        result.orderType = String.valueOf(SalesOrderType.inquiry);
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_inquiry_is_open_dial') {
+        result.inquiryIsOpenDial = Boolean.valueOf(cf.value);
+        result.orderType = String.valueOf(SalesOrderType.inquiry);
         continue;
       }
 

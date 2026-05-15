@@ -18,6 +18,11 @@ public with sharing class SalesOrderPayloadBuilder {
     String specialOrderComments,
     String specialOrderNotes,
     String specialOrderMemoOrSold,
+    String inquiryModel,
+    String inquiryName,
+    String inquiryLink,
+    Boolean inquiryIsPrority,
+    Boolean inquiryIsOpenDial,
     SalesOrderDataModel.Address shippingAddress,
     SalesOrderDataModel.Address billingAddress,
     List<SalesOrderDataModel.LineItem> lineItems,
@@ -25,7 +30,10 @@ public with sharing class SalesOrderPayloadBuilder {
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
 
-    if (orderType == 'special') {
+    SalesOrderTypeContext orderTypeContext =
+      SalesOrderTypeContext.fromOrderType(orderType);
+
+    if (orderTypeContext.isSpecialOrder || orderTypeContext.isInquiryOrder) {
       requestMap.put('customForm', lookupByInternalId('275'));
     } else {
       requestMap.put('customForm', lookupByInternalId('115'));
@@ -75,7 +83,12 @@ public with sharing class SalesOrderPayloadBuilder {
           specialOrderRequestedVendor,
           specialOrderComments,
           specialOrderNotes,
-          specialOrderMemoOrSold
+          specialOrderMemoOrSold,
+          inquiryModel,
+          inquiryName,
+          inquiryLink,
+          inquiryIsPrority,
+          inquiryIsOpenDial
         )
       }
     );
@@ -158,9 +171,17 @@ public with sharing class SalesOrderPayloadBuilder {
     String specialOrderRequestedVendor,
     String specialOrderComments,
     String specialOrderNotes,
-    String specialOrderMemoOrSold
+    String specialOrderMemoOrSold,
+    String inquiryModel,
+    String inquiryName,
+    String inquiryLink,
+    Boolean inquiryIsPrority,
+    Boolean inquiryIsOpenDial
   ) {
     List<Object> customFields = new List<Object>();
+
+    SalesOrderTypeContext orderTypeContext =
+      SalesOrderTypeContext.fromOrderType(orderType);
 
     customFields.add(
       new Map<String, Object>{
@@ -180,7 +201,7 @@ public with sharing class SalesOrderPayloadBuilder {
       );
     }
 
-    if (orderType == 'special') {
+    if (orderTypeContext.isSpecialOrder || orderTypeContext.isInquiryOrder) {
       if (specialOrderDate != null) {
         customFields.add(
           new Map<String, Object>{
@@ -262,6 +283,58 @@ public with sharing class SalesOrderPayloadBuilder {
       }
     }
 
+    if (orderTypeContext.isInquiryOrder) {
+      if (String.isNotBlank(inquiryModel)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_inquiry_model',
+            'value' => inquiryModel
+          }
+        );
+      }
+
+      if (String.isNotBlank(inquiryName)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_inquiry_name',
+            'value' => inquiryName
+          }
+        );
+      }
+
+      if (String.isNotBlank(inquiryLink)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_inquiry_link',
+            'value' => inquiryLink
+          }
+        );
+      }
+
+      if (inquiryIsPrority != null) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'boolean',
+            'scriptId' => 'custbody_inquiry_is_priority',
+            'value' => inquiryIsPrority
+          }
+        );
+      }
+
+      if (inquiryIsOpenDial != null) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'boolean',
+            'scriptId' => 'custbody_inquiry_is_open_dial',
+            'value' => inquiryIsOpenDial
+          }
+        );
+      }
+    }
+
     return customFields;
   }
 
@@ -271,6 +344,9 @@ public with sharing class SalesOrderPayloadBuilder {
     String location
   ) {
     List<Object> items = new List<Object>();
+
+    SalesOrderTypeContext orderTypeContext =
+      SalesOrderTypeContext.fromOrderType(orderType);
 
     for (SalesOrderDataModel.LineItem lineItem : lineItems) {
       if (lineItem == null || String.isBlank(lineItem.item)) {
@@ -292,7 +368,7 @@ public with sharing class SalesOrderPayloadBuilder {
         itemMap.put('line', lineItem.line);
       }
 
-      if (orderType == 'special') {
+      if (orderTypeContext.isSpecialOrder || orderTypeContext.isInquiryOrder) {
         List<Object> customFields = new List<Object>();
 
         if (String.isNotBlank(lineItem.specialOrderItem)) {

@@ -20,6 +20,11 @@ public with sharing class SalesOrderService {
     String specialOrderMemoOrSold,
     String shippingAddressJson,
     String billingAddressJson,
+    String inquiryModel,
+    String inquiryName,
+    String inquiryLink,
+    Boolean inquiryIsPrority,
+    Boolean inquiryIsOpenDial,
     String lineItemsJson
   ) {
     try {
@@ -35,6 +40,10 @@ public with sharing class SalesOrderService {
         specialOrderItemType,
         specialOrderVendor,
         specialOrderMemoOrSold,
+        inquiryModel,
+        inquiryName,
+        inquiryLink,
+        inquiryIsPrority,
         lineItemsJson
       );
 
@@ -71,6 +80,11 @@ public with sharing class SalesOrderService {
         specialOrderComments,
         specialOrderNotes,
         specialOrderMemoOrSold,
+        inquiryModel,
+        inquiryName,
+        inquiryLink,
+        inquiryIsPrority,
+        inquiryIsOpenDial,
         shippingAddress,
         billingAddress,
         lineItems,

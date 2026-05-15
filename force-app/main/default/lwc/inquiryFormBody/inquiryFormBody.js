@@ -38,12 +38,13 @@ export default class InquiryFormBody extends LightningElement {
   getFields() {
     return {
       customer: this.customer,
-      data: this.date,
+      date: this.date,
       salesRep1: this.salesRep1,
       salesRep2: this.salesRep2,
       location: this.location,
       personalization: this.personalization,
-      comments: this.comments
+      comments: this.comments,
+      needByDate: this.date
     };
   }
 

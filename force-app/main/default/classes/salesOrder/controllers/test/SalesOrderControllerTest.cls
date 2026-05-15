@@ -56,6 +56,11 @@ private class SalesOrderControllerTest {
       null,
       null,
       null,
+      null,
+      null,
+      null,
+      null,
+      null,
       JSON.serialize(new List<SalesOrderDataModel.LineItem>{ item })
     );
     Test.stopTest();

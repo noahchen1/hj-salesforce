@@ -75,7 +75,6 @@ public with sharing class Helpers {
       Integer.valueOf(String.valueOf(unixSeconds))
     );
 
-    // Matches lightning-input type="date" expected format
     return asUtc.formatGmt('yyyy-MM-dd');
   }
 
@@ -86,5 +85,15 @@ public with sharing class Helpers {
     );
 
     return asDateTime.getTime() / 1000;
+  }
+
+  public static AuraHandledException buildAuraException(String message) {
+    AuraHandledException e = new AuraHandledException(message);
+    e.setMessage(message);
+    return e;
+  }
+
+  public static String normalizeString(String str) {
+    return String.isBlank(str) ? null : str.trim().toLowerCase();
   }
 }
