@@ -1,8 +1,11 @@
-import { LightningElement } from "lwc";
+import { LightningElement, api } from "lwc";
 import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder";
 import getInquiryId from "@salesforce/apex/SalesOrderController.getInquiryId";
+import notifyOrderSaveStatus from "@salesforce/apex/SalesOrderController.notifyOrderSaveStatus";
 
 export default class InquiryForm extends LightningElement {
+  @api recordId;
+
   get body() {
     return this.template.querySelector("c-inquiry-form-body");
   }
@@ -35,7 +38,6 @@ export default class InquiryForm extends LightningElement {
         custNsInternalId: bodyFields.customer
       });
 
-
       for (const modelFields of modelFieldsList) {
         const isValidModel =
           modelFields.model?.trim() &&
@@ -49,7 +51,6 @@ export default class InquiryForm extends LightningElement {
 
           console.log(JSON.stringify(payload));
           console.log(JSON.stringify(soNsInternalId));
-          // const soNsInternalId = await saveSalesOrder(payload);
         }
       }
     } catch (error) {
@@ -58,6 +59,10 @@ export default class InquiryForm extends LightningElement {
       console.error(error.message);
       console.error(error.stack);
     }
+  }
+
+  handleBodyLoaded() {
+    console.log("loaded!");
   }
 
   buildPayload(inquiryId, bodyFields, modelFields) {

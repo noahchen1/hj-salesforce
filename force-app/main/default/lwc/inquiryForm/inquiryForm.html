@@ -19,7 +19,10 @@
         ></lightning-button>
       </div>
 
-      <c-inquiry-form-body></c-inquiry-form-body>
+      <c-inquiry-form-body
+        account-id={recordId}
+        onloaded={handleBodyLoaded}
+      ></c-inquiry-form-body>
 
       <c-inquiry-form-items
         section-title="Model 1"

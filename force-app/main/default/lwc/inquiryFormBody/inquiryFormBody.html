@@ -33,6 +33,15 @@
       onselect={handleLookupSelect}
     ></c-lookup-input>
     <lightning-combobox
+      name="subsidiary"
+      label="Subsidiary"
+      value={subsidiary}
+      placeholder="Select a subsidiary"
+      options={subsidiaryOptions}
+      onchange={handleComboboxChange}
+      required
+    ></lightning-combobox>
+    <lightning-combobox
       name="location"
       label="Location"
       value={location}

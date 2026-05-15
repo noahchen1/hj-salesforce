@@ -1,37 +1,103 @@
 import { LightningElement, wire, api } from "lwc";
-import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
 import searchCustomer from "@salesforce/apex/FilterDataController.searchCustomer";
 import searchSalesRep from "@salesforce/apex/FilterDataController.searchSalesRep";
+import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNsCompanyFromAccount";
 import { processPicklistData } from "c/salesOrderUtils";
+import getEmployeeData from "@salesforce/apex/DataService.getEmployeeData";
+import getSubsidiaries from "@salesforce/apex/DropdownDataController.getSubsidiaries";
+import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
+import USER_ID from "@salesforce/user/Id";
 
 export default class InquiryFormBody extends LightningElement {
+  @api accountId;
+
   customer = "";
   date = new Date().toISOString();
   salesRep1 = "";
   salesRep2 = "";
   location = "";
+  subsidiary = "";
   locationOptions = [];
   personalization = "";
   comments = "";
 
   isLoaded = false;
   isLocationLoaded = false;
+  isFormInit = false;
 
-  @wire(getLocations)
+  @wire(getSubsidiaryLocations, { subsidiary: "$subsidiary" })
   handleLocations({ data, error }) {
     if (error) {
-      console.error("Error fetching location options: ", error);
-
+      console.error("Error fetching locationOptions:", error);
       this.locationOptions = [{ label: "Select", value: "" }];
       this.isLocationLoaded = true;
       this.checkLoadingState();
       return;
     }
-
     const { options } = processPicklistData(data);
     this.locationOptions = options;
     this.isLocationLoaded = true;
     this.checkLoadingState();
+  }
+
+  async connectedCallback() {
+    try {
+      const [subsidiaries, emp] = await Promise.all([
+        getSubsidiaries(),
+        getEmployeeData({ userId: USER_ID })
+      ]);
+
+      const { options: subOptions } = processPicklistData(subsidiaries);
+      this.subsidiaryOptions = subOptions;
+
+      if (emp !== null) {
+        this.salesRep1 = emp.employeeId;
+        this.subsidiary = emp.subsidiaryId;
+        this.location = emp.locationId;
+
+        this.setLookupValue("salesRep1", emp.employeeName);
+      }
+
+      if (this.subsidiary) {
+        const locations = await getSubsidiaryLocations({
+          subsidiary: this.subsidiary
+        });
+
+        const { options: locOptions } = processPicklistData(locations);
+        this.locationOptions = locOptions;
+
+        if (!this.locationOptions.some((opt) => opt.value === this.location)) {
+          this.location = "";
+        }
+      }
+    } catch (error) {
+      console.error("Init failed:", error);
+    } finally {
+      this.isFormInit = true;
+      this.checkLoadingState();
+    }
+  }
+
+  async renderedCallback() {
+    if (!this.accountId) return;
+
+    try {
+      const nsCompany = await getNsCompanyFromAccount({
+        accountId: this.accountId
+      });
+
+      if (nsCompany != null) {
+        const { name, companyId, internalId } = nsCompany;
+
+        if (internalId) this.customer = internalId;
+
+        if (name) {
+          this.setLookupValue("customer", name);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @api
@@ -41,6 +107,7 @@ export default class InquiryFormBody extends LightningElement {
       date: this.date,
       salesRep1: this.salesRep1,
       salesRep2: this.salesRep2,
+      subsidiary: this.subsidiary,
       location: this.location,
       personalization: this.personalization,
       comments: this.comments,
@@ -100,8 +167,20 @@ export default class InquiryFormBody extends LightningElement {
   }
 
   checkLoadingState() {
-    if (this.isLocationLoaded) {
-      this.isLoading = false;
+    if (this.isLocationLoaded && this.isFormInit) {
+      this.isLoaded = true;
+      this.dispatchEvent(new CustomEvent('loaded', {
+        bubbles: true,
+        composed: true
+      }));
     }
+  }
+
+  setLookupValue(type, name) {
+    const lookup = this.template.querySelector(
+      `c-lookup-input[data-type="${type}"]`
+    );
+
+    if (lookup) lookup.setSelected(name);
   }
 }
