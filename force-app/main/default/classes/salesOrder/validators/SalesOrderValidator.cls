@@ -29,8 +29,9 @@ public with sharing class SalesOrderValidator {
     Boolean inquiryIsPrority,
     String lineItemsJson
   ) {
-    SalesOrderTypeContext orderTypeContext =
-      SalesOrderTypeContext.fromOrderType(orderType);
+    SalesOrderTypeContext orderTypeContext = SalesOrderTypeContext.fromOrderType(
+      orderType
+    );
 
     if (!orderTypeContext.isSupported()) {
       throw Helpers.buildAuraException('Unsupported orderType: ' + orderType);

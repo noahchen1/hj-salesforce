@@ -30,8 +30,9 @@ public with sharing class SalesOrderPayloadBuilder {
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
 
-    SalesOrderTypeContext orderTypeContext =
-      SalesOrderTypeContext.fromOrderType(orderType);
+    SalesOrderTypeContext orderTypeContext = SalesOrderTypeContext.fromOrderType(
+      orderType
+    );
 
     if (orderTypeContext.isSpecialOrder || orderTypeContext.isInquiryOrder) {
       requestMap.put('customForm', lookupByInternalId('275'));
@@ -180,8 +181,9 @@ public with sharing class SalesOrderPayloadBuilder {
   ) {
     List<Object> customFields = new List<Object>();
 
-    SalesOrderTypeContext orderTypeContext =
-      SalesOrderTypeContext.fromOrderType(orderType);
+    SalesOrderTypeContext orderTypeContext = SalesOrderTypeContext.fromOrderType(
+      orderType
+    );
 
     customFields.add(
       new Map<String, Object>{
@@ -345,8 +347,9 @@ public with sharing class SalesOrderPayloadBuilder {
   ) {
     List<Object> items = new List<Object>();
 
-    SalesOrderTypeContext orderTypeContext =
-      SalesOrderTypeContext.fromOrderType(orderType);
+    SalesOrderTypeContext orderTypeContext = SalesOrderTypeContext.fromOrderType(
+      orderType
+    );
 
     for (SalesOrderDataModel.LineItem lineItem : lineItems) {
       if (lineItem == null || String.isBlank(lineItem.item)) {
