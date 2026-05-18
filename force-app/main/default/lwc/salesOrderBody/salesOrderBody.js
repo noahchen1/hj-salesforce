@@ -56,6 +56,7 @@ export default class SalesOrderBody extends LightningElement {
     ];
   }
 
+  @api
   get paymentTermOptions() {
     return [
       { label: "NET 10", value: "87" },

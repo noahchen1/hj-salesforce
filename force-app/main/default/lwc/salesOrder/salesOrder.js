@@ -12,6 +12,7 @@ import LightningConfirm from "lightning/confirm";
 import getEmployeeData from "@salesforce/apex/DataService.getEmployeeData";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import COMPANY_NAME from "@salesforce/schema/breadwinner_ns__BW_Company__c.Name";
+import PAYMENT_TERM from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__TermsName__c";
 import getObjectName from "@salesforce/apex/SalesOrderController.getObjectName";
 import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNsCompanyFromAccount";
 import getCustomerAddresses from "@salesforce/apex/DropdownDataController.getCustomerAddresses";
@@ -58,6 +59,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   isLocationLoaded = false;
   isOrderLoaded = false;
   isNsCompanyIdLoaded = false;
+  isCustomerDataLoaded = false;
 
   get header() {
     return this.template.querySelector("c-sales-order-body");
@@ -135,20 +137,40 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     }
   }
 
-  @wire(getRecord, { recordId: "$selectedNsCompanyId", fields: [COMPANY_NAME] })
+  @wire(getRecord, {
+    recordId: "$selectedNsCompanyId",
+    fields: [COMPANY_NAME, PAYMENT_TERM]
+  })
   wiredCustomerData({ data, error }) {
     if (data && this.selectedNsCompanyId != null) {
       const companyName = getFieldValue(data, COMPANY_NAME);
+      const paymentTermText = getFieldValue(data, PAYMENT_TERM);
 
       if (companyName) {
         this.header?.setLookupValue("customer", companyName);
       }
+
+      if (paymentTermText) {
+        const options = this.header?.paymentTermOptions;
+        const paymentTermObj = options.filter(
+          ({ label }) => label === paymentTermText
+        );
+
+        if (paymentTermObj.length > 0) {
+          this.paymentTerm = paymentTermObj[0].value;
+        }
+      }
+
+      this.isCustomerDataLoaded = true;
+      this.checkLoadingState();
 
       this.fetchCustomerAddresses({ nsCompanyId: this.selectedNsCompanyId });
     } else {
       // this._addressSection?.reset();
 
       if (error) console.error("Error fetching customer data", error);
+      this.isCustomerDataLoaded = true;
+      this.checkLoadingState();
     }
   }
 
@@ -576,7 +598,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this.isAddressLoaded &&
       this.isLocationLoaded &&
       this.isOrderLoaded &&
-      this.isNsCompanyIdLoaded
+      this.isNsCompanyIdLoaded &&
+      this.isCustomerDataLoaded
     ) {
       this.isLoading = false;
     }
@@ -606,6 +629,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     } catch (error) {
       this.addressOptions = [{ label: "Select", value: "" }];
       console.error("Error fetching addressOptions:", error);
+
+      this.isAddressLoaded = true;
+      this.checkLoadingState();
     } finally {
       this.isAddressLoaded = true;
       this.checkLoadingState();
