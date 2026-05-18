@@ -402,4 +402,61 @@ private class DataServiceTest {
       'Result should be null when no record matches the Id'
     );
   }
+
+  @isTest
+  static void getParentByVendorNum_returnsEmptyMapWhenVendorNumIsBlank() {
+    Test.startTest();
+    Map<String, String> result = DataService.getParentByVendorNum('   ');
+    Test.stopTest();
+
+    System.assertNotEquals(null, result, 'Result should not be null');
+    System.assertEquals(true, result.isEmpty(), 'Result should be empty');
+  }
+
+  @isTest
+  static void getParentByVendorNum_returnsEmptyMapWhenNoParentItemFound() {
+    Test.startTest();
+    Map<String, String> result = DataService.getParentByVendorNum('VENDOR-MISS');
+    Test.stopTest();
+
+    System.assertNotEquals(null, result, 'Result should not be null');
+    System.assertEquals(
+      true,
+      result.isEmpty(),
+      'Result should be empty when no matching parent item exists'
+    );
+  }
+
+  @isTest
+  static void getParentByVendorNum_returnsParentItemDataWhenMatchFound() {
+    breadwinner_ns__BW_Item__c parentItem = new breadwinner_ns__BW_Item__c(
+      Name = 'PARENT-ITEM-001',
+      breadwinner_ns__VendorName__c = 'VENDOR-OK',
+      ncf_item_groupcode__c = 'INCLUDE',
+      Base_Price__c = 125.5,
+      breadwinner_ns__DisplayName__c = 'Parent Display Name'
+    );
+    insert parentItem;
+
+    Test.startTest();
+    Map<String, String> result = DataService.getParentByVendorNum('  VENDOR-OK  ');
+    Test.stopTest();
+
+    System.assertNotEquals(null, result, 'Result should not be null');
+    System.assertEquals(
+      'PARENT-ITEM-001',
+      result.get('name'),
+      'name should come from the matched parent item'
+    );
+    System.assertEquals(
+      '125.50',
+      result.get('basePrice'),
+      'basePrice should be returned as a string'
+    );
+    System.assertEquals(
+      'Parent Display Name',
+      result.get('displayName'),
+      'displayName should match the item display name'
+    );
+  }
 }
