@@ -106,4 +106,23 @@ private class HelpersTest {
 
     System.assertEquals(true, didThrow);
   }
+
+  @isTest
+  static void testBuildAuraException() {
+    String message = 'Custom error message';
+
+    AuraHandledException ex = Helpers.buildAuraException(message);
+
+    System.assertNotEquals(null, ex, 'Exception should be returned');
+    System.assertEquals(message, ex.getMessage(), 'Exception message should match input');
+  }
+
+  @isTest
+  static void testNormalizeString() {
+    System.assertEquals(null, Helpers.normalizeString(null));
+    System.assertEquals(null, Helpers.normalizeString(''));
+    System.assertEquals(null, Helpers.normalizeString('   '));
+    System.assertEquals('hello world', Helpers.normalizeString('  HeLLo WoRLD  '));
+    System.assertEquals('abc123', Helpers.normalizeString('ABC123'));
+  }
 }
