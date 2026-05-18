@@ -53,6 +53,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   subsidiaryOptions = [];
 
   isOrderTypeDisabled = false;
+  isSubsidiaryDisbaled = false;
 
   isFormInit = false;
   isAddressLoaded = false;
@@ -128,6 +129,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       } else {
         this.isNsCompanyIdLoaded = true;
         this.isOrderTypeDisabled = true;
+        this.isSubsidiaryDisbaled = true;
         this.loadOrder();
       }
 
