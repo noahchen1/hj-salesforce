@@ -115,6 +115,28 @@ export default class InquiryFormBody extends LightningElement {
     };
   }
 
+  @api
+  validateFields() {
+    const inputs = [
+      ...this.template.querySelectorAll("lightning-input"),
+      ...this.template.querySelectorAll("lightning-combobox"),
+      ...this.template.querySelectorAll("lightning-textarea"),
+      ...this.template.querySelectorAll("c-lookup-input")
+    ];
+
+    let isValid = true;
+
+    inputs.forEach((field) => {
+      const fieldIsValid = field.reportValidity();
+
+      if (!fieldIsValid) {
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  }
+
   async handleLookupSearch(e) {
     const type = e.target.dataset.type;
     const searchKey = e.detail.searchKey;
@@ -169,10 +191,7 @@ export default class InquiryFormBody extends LightningElement {
   checkLoadingState() {
     if (this.isLocationLoaded && this.isFormInit) {
       this.isLoaded = true;
-      this.dispatchEvent(new CustomEvent('loaded', {
-        bubbles: true,
-        composed: true
-      }));
+      this.dispatchEvent(new CustomEvent("loaded"));
     }
   }
 

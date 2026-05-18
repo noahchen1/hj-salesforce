@@ -1,10 +1,16 @@
 import { LightningElement, api } from "lwc";
 import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder";
 import getInquiryId from "@salesforce/apex/SalesOrderController.getInquiryId";
+import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
+import { NavigationMixin } from "lightning/navigation";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import LightningAlert from "lightning/alert";
 import notifyOrderSaveStatus from "@salesforce/apex/SalesOrderController.notifyOrderSaveStatus";
 
-export default class InquiryForm extends LightningElement {
+export default class InquiryForm extends NavigationMixin(LightningElement) {
   @api recordId;
+  isLoading = true;
+  navigationTimeoutId;
 
   get body() {
     return this.template.querySelector("c-inquiry-form-body");
@@ -27,16 +33,50 @@ export default class InquiryForm extends LightningElement {
   }
 
   async createOrders() {
+    if (this.isLoading) return;
+
+    this.isLoading = true;
+
+    try {
+      this.validateFields();
+    } catch (error) {
+      await LightningAlert.open({
+        label: "Validation Error",
+        message: error?.message || "Order validation failed.",
+        theme: "error"
+      });
+
+      this.isLoading = false;
+
+      return;
+    }
+
     try {
       const bodyFields = this.body?.getFields();
 
-      const modelFieldsList = await Promise.all(
-        [...this.watches].map((watch) => watch.getFields())
+      const [modelFieldsList, inquiryId] = await Promise.all([
+        Promise.all([...this.watches].map((watch) => watch.getFields())),
+
+        getInquiryId({ custNsInternalId: bodyFields.customer })
+      ]);
+
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Inquiry Creation In Progress",
+          message: "You will get a notification when processing completes!",
+          variant: "info"
+        })
       );
 
-      const inquiryId = await getInquiryId({
-        custNsInternalId: bodyFields.customer
-      });
+      this.navigationTimeoutId = setTimeout(() => {
+        this[NavigationMixin.Navigate]({
+          type: "standard__recordPage",
+          attributes: {
+            recordId: this.recordId,
+            actionName: "view"
+          }
+        });
+      }, 2000);
 
       for (const modelFields of modelFieldsList) {
         const isValidModel =
@@ -47,10 +87,25 @@ export default class InquiryForm extends LightningElement {
         if (isValidModel) {
           const payload = this.buildPayload(inquiryId, bodyFields, modelFields);
 
-          const soNsInternalId = await saveSalesOrder(payload);
+          try {
+            const { soNsInternalId, orderRecordId } =
+              await this.executeSave(payload);
 
-          console.log(JSON.stringify(payload));
-          console.log(JSON.stringify(soNsInternalId));
+            await notifyOrderSaveStatus({
+              isSuccess: true,
+              soNsInternalId,
+              orderRecordId,
+              errorMessage: null
+            });
+          } catch (error) {
+            await notifyOrderSaveStatus({
+              isSuccess: false,
+              soNsInternalId: null,
+              orderRecordId: this.recordId,
+              errorMessage:
+                error?.body?.message || error?.message || "Unknown error"
+            });
+          }
         }
       }
     } catch (error) {
@@ -58,11 +113,42 @@ export default class InquiryForm extends LightningElement {
       console.error(error.name);
       console.error(error.message);
       console.error(error.stack);
+      this.isLoading = false;
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async executeSave(payload) {
+    try {
+      const soNsInternalId = await saveSalesOrder(payload);
+
+      this.soNsInternalId = soNsInternalId;
+
+      const orderRecordId = await getOrder({ soNsInternalId });
+
+      return { soNsInternalId, orderRecordId };
+    } catch (err) {
+      console.error("Failed to create inquiry.");
+      console.error(err.name);
+      console.error(err.message);
+      console.error(err.stack);
+
+      throw err;
     }
   }
 
   handleBodyLoaded() {
-    console.log("loaded!");
+    this.isLoading = false;
+  }
+
+  disconnectedCallback() {
+    if (this.navigationTimeoutId) {
+
+      clearTimeout(this.navigationTimeoutId);
+      
+      this.navigationTimeoutId = null;
+    }
   }
 
   buildPayload(inquiryId, bodyFields, modelFields) {
@@ -96,5 +182,14 @@ export default class InquiryForm extends LightningElement {
     };
 
     return payload;
+  }
+
+  validateFields() {
+    const isBodyValid = this.body?.validateFields();
+    const isFirstWatchValid = this.firstModel?.validateFields();
+
+    if (!isBodyValid || !isFirstWatchValid) {
+      throw new Error("Please fill in all required fields.");
+    }
   }
 }

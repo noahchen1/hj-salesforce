@@ -93,6 +93,23 @@ export default class InquiryFormItems extends LightningElement {
     };
   }
 
+  @api
+  validateFields() {
+    const inputs = this.template.querySelectorAll("lightning-input");
+
+    let isValid = true;
+
+    inputs.forEach((field) => {
+      const fieldIsValid = field.reportValidity();
+
+      if (!fieldIsValid) {
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  }
+
   handleInputChange(e) {
     const type = e.target.dataset.type;
     const value = e.target.value;
