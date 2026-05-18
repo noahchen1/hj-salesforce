@@ -92,13 +92,13 @@ public with sharing class SalesOrderValidator {
         );
       }
 
-      if (String.isBlank(item.rate)) {
+      if (!orderTypeContext.isInquiryOrder && String.isBlank(item.rate)) {
         throw Helpers.buildAuraException(
           'Line item ' + (i + 1) + ': rate is required.'
         );
       }
 
-      if (String.isBlank(item.amount)) {
+      if (!orderTypeContext.isInquiryOrder && String.isBlank(item.amount)) {
         throw Helpers.buildAuraException(
           'Line item ' + (i + 1) + ': amount is required.'
         );
@@ -112,7 +112,7 @@ public with sharing class SalesOrderValidator {
 
       if (
         !isStoreDiscount &&
-        (orderTypeContext.isSpecialOrder || orderTypeContext.isInquiryOrder) &&
+        orderTypeContext.isSpecialOrder &&
         String.isBlank(item.quotedPrice)
       ) {
         throw Helpers.buildAuraException(

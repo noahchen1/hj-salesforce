@@ -40,6 +40,7 @@
       options={subsidiaryOptions}
       onchange={handleComboboxChange}
       required
+      disabled
     ></lightning-combobox>
     <lightning-combobox
       name="location"
@@ -49,6 +50,7 @@
       options={locationOptions}
       onchange={handleComboboxChange}
       required
+      disabled
     ></lightning-combobox>
     <lightning-textarea
       label="Email Personalization"
@@ -63,5 +65,12 @@
       value={comments}
       onchange={handleInputChange}
     ></lightning-textarea>
+    <lightning-input
+      data-type="isSendEmail"
+      type="checkbox"
+      label="Send Initial Email"
+      checked={isSendEmail}
+      onchange={handleInputChange}
+    ></lightning-input>
   </div>
 </template>

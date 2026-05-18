@@ -22,6 +22,7 @@ public with sharing class SalesOrderPayloadBuilder {
     String inquiryName,
     String inquiryLink,
     String inquiryPersonalMsg,
+    Boolean inquiryIsSendEmail,
     Boolean inquiryIsPrority,
     Boolean inquiryIsOpenDial,
     String inquiryTranNumber,
@@ -96,6 +97,7 @@ public with sharing class SalesOrderPayloadBuilder {
           inquiryName,
           inquiryLink,
           inquiryPersonalMsg,
+          inquiryIsSendEmail,
           inquiryIsPrority,
           inquiryIsOpenDial,
           inquiryId
@@ -186,6 +188,7 @@ public with sharing class SalesOrderPayloadBuilder {
     String inquiryName,
     String inquiryLink,
     String inquiryPersonalMsg,
+    Boolean inquiryIsSendEmail,
     Boolean inquiryIsPrority,
     Boolean inquiryIsOpenDial,
     String inquiryId
@@ -331,7 +334,7 @@ public with sharing class SalesOrderPayloadBuilder {
         customFields.add(
           new Map<String, Object>{
             'fieldType' => 'boolean',
-            'scriptId' => 'custbody_inquiry_is_priority',
+            'scriptId' => 'custbody_inquiry_priority_ckbox',
             'value' => inquiryIsPrority
           }
         );
@@ -341,7 +344,7 @@ public with sharing class SalesOrderPayloadBuilder {
         customFields.add(
           new Map<String, Object>{
             'fieldType' => 'boolean',
-            'scriptId' => 'custbody_inquiry_is_open_dial',
+            'scriptId' => 'custbody_rolex_open_dial_ckbox',
             'value' => inquiryIsOpenDial
           }
         );
@@ -375,13 +378,15 @@ public with sharing class SalesOrderPayloadBuilder {
         }
       );
 
-      customFields.add(
-        new Map<String, Object>{
-          'fieldType' => 'boolean',
-          'scriptId' => 'custbody_initial_email_check',
-          'value' => true
-        }
-      );
+      if (inquiryIsSendEmail != null) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'boolean',
+            'scriptId' => 'custbody_initial_email_check',
+            'value' => inquiryIsSendEmail
+          }
+        );
+      }
     }
 
     return customFields;
@@ -407,7 +412,7 @@ public with sharing class SalesOrderPayloadBuilder {
         'item' => lookupByInternalId(lineItem.item),
         'location' => lookupByInternalId(location),
         'price' => lookupByInternalId('-1'),
-        'rate' => lineItem.rate
+        'rate' => String.isBlank(lineItem.rate) ? '0' : lineItem.rate
       };
 
       if (!String.isBlank(lineItem.quantity)) {

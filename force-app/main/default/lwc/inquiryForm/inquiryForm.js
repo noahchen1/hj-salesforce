@@ -87,6 +87,8 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
         if (isValidModel) {
           const payload = this.buildPayload(inquiryId, bodyFields, modelFields);
 
+          console.log(JSON.stringify(payload));
+
           try {
             const { soNsInternalId, orderRecordId } =
               await this.executeSave(payload);
@@ -144,9 +146,8 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
 
   disconnectedCallback() {
     if (this.navigationTimeoutId) {
-
       clearTimeout(this.navigationTimeoutId);
-      
+
       this.navigationTimeoutId = null;
     }
   }
@@ -175,6 +176,7 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
       inquiryModel: modelFields.model,
       inquiryName: modelFields.name,
       inquiryLink: modelFields.link,
+      inquiryIsSendEmail: bodyFields.isSendEmail,
       inquiryIsPrority: modelFields.isPriority,
       inquiryIsOpenDial: modelFields.isOpenDial,
       inquiryPersonalMsg: bodyFields.personalization,

@@ -19,10 +19,12 @@ export default class InquiryFormBody extends LightningElement {
   subsidiary = "";
   locationOptions = [];
   personalization = "";
+  isSendEmail = true;
   comments = "";
 
   isLoaded = false;
   isLocationLoaded = false;
+  isCustomerLoaded = false;
   isFormInit = false;
 
   @wire(getSubsidiaryLocations, { subsidiary: "$subsidiary" })
@@ -72,6 +74,8 @@ export default class InquiryFormBody extends LightningElement {
       }
     } catch (error) {
       console.error("Init failed:", error);
+      this.isFormInit = true;
+      this.checkLoadingState();
     } finally {
       this.isFormInit = true;
       this.checkLoadingState();
@@ -82,6 +86,7 @@ export default class InquiryFormBody extends LightningElement {
     if (!this.accountId) return;
 
     try {
+      this.isCustomerLoaded = false;
       const nsCompany = await getNsCompanyFromAccount({
         accountId: this.accountId
       });
@@ -97,6 +102,11 @@ export default class InquiryFormBody extends LightningElement {
       }
     } catch (error) {
       console.error(error);
+      this.isCustomerLoaded = true;
+      this.checkLoadingState();
+    } finally {
+      this.isCustomerLoaded = true;
+      this.checkLoadingState();
     }
   }
 
@@ -110,6 +120,7 @@ export default class InquiryFormBody extends LightningElement {
       subsidiary: this.subsidiary,
       location: this.location,
       personalization: this.personalization,
+      isSendEmail: this.isSendEmail,
       comments: this.comments,
       needByDate: this.date
     };
@@ -182,14 +193,15 @@ export default class InquiryFormBody extends LightningElement {
   }
 
   handleInputChange(e) {
+    const isCheckBox = e.target.type === "checkbox";
     const type = e.target.dataset.type;
-    const value = e.target.value;
+    const value = isCheckBox ? e.target.checked : e.target.value;
 
     this[type] = value;
   }
 
   checkLoadingState() {
-    if (this.isLocationLoaded && this.isFormInit) {
+    if (this.isLocationLoaded && this.isFormInit && this.isCustomerLoaded) {
       this.isLoaded = true;
       this.dispatchEvent(new CustomEvent("loaded"));
     }

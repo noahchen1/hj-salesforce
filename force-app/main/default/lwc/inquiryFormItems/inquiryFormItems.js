@@ -111,8 +111,9 @@ export default class InquiryFormItems extends LightningElement {
   }
 
   handleInputChange(e) {
+    const isCheckBox = e.target.type === "checkbox";
     const type = e.target.dataset.type;
-    const value = e.target.value;
+    const value = isCheckBox ? e.target.checked : e.target.value;
 
     this[type] = value;
   }

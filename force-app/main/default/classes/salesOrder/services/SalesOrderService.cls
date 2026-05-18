@@ -25,6 +25,7 @@ public with sharing class SalesOrderService {
     String inquiryName,
     String inquiryLink,
     String inquiryPersonalMsg,
+    Boolean inquiryIsSendEmail,
     Boolean inquiryIsPrority,
     Boolean inquiryIsOpenDial,
     String lineItemsJson
@@ -96,6 +97,7 @@ public with sharing class SalesOrderService {
         inquiryName,
         inquiryLink,
         inquiryPersonalMsg,
+        inquiryIsSendEmail,
         inquiryIsPrority,
         inquiryIsOpenDial,
         inquiryTranNumber,
