@@ -313,6 +313,10 @@ public with sharing class SalesOrderMapper {
       if (cf.scriptId == 'custcol_itemdisname') {
         target.displayName = cf.value;
       }
+
+      if (cf.scriptId == 'custcol_itemtypee') {
+        target.itemType = cf.value;
+      }
     }
   }
 

@@ -23,9 +23,9 @@
             <tr>
               <th scope="col">Item</th>
               <th scope="col">Display Name</th>
+              <th scope="col">Image</th>
               <th scope="col">Quantity Available</th>
               <th scope="col">Quantity Back-ordered</th>
-              <th scope="col">Image</th>
               <th scope="col">Quantity</th>
               <th scope="col">Rate</th>
               <th scope="col">Amount</th>
@@ -60,6 +60,9 @@
                   ></lightning-input>
                 </td>
                 <td>
+                  <img src={row.imageUrl} alt="" class="item-image" />
+                </td>
+                <td>
                   <lightning-input
                     data-index={index}
                     data-field="quantityAvailable"
@@ -81,9 +84,7 @@
                     readonly
                   ></lightning-input>
                 </td>
-                <td>
-                  <img src={row.imageUrl} alt="" class="item-image" />
-                </td>
+
                 <td>
                   <lightning-input
                     data-index={index}

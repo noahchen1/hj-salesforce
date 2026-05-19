@@ -97,6 +97,8 @@ public with sharing class SalesOrderDataModel {
     public String quantityBackOrdered;
     @AuraEnabled
     public String displayName;
+    @AuraEnabled
+    public String itemType;
   }
 
   public class Address {

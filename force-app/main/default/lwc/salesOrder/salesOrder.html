@@ -2,10 +2,13 @@
   <lightning-card>
     <div class="main-container">
       <div if:true={isLoading} class="spinner-container">
-        <lightning-spinner
-          alternative-text="Loading..."
-          size="medium"
-        ></lightning-spinner>
+        <div class="spinner-content">
+          <lightning-spinner
+            alternative-text="Loading sales order..."
+            size="medium"
+          ></lightning-spinner>
+          <p class="spinner-message">Loading sales order data...</p>
+        </div>
       </div>
 
       <Template if:false={isSpecialOrder}>

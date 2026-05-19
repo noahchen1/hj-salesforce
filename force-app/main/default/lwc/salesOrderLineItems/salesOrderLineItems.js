@@ -12,6 +12,7 @@ import getItemQuantities from "@salesforce/apex/DataService.getItemQuantities";
 import BASE_PRICE from "@salesforce/schema/breadwinner_ns__BW_Item__c.Base_Price__c";
 import IMAGE_ID from "@salesforce/schema/breadwinner_ns__BW_Item__c.imageId__c";
 import DISPLAY_NAME from "@salesforce/schema/breadwinner_ns__BW_Item__c.breadwinner_ns__DisplayName__c";
+import ITEM_TYPE from "@salesforce/schema/breadwinner_ns__BW_Item__c.breadwinner_ns__Item_Type__c";
 import { SELLABLE_SPECIAL_ALLOWED_STATUSES } from "c/salesOrderUtils";
 
 const BASE_ROW = Object.freeze({
@@ -28,7 +29,8 @@ const BASE_ROW = Object.freeze({
   amount: "",
   quotedPrice: "",
   line: "",
-  isDiscount: false
+  isDiscount: false,
+  itemType: ""
 });
 
 export default class SalesOrderLineItems extends LightningElement {
@@ -174,6 +176,7 @@ export default class SalesOrderLineItems extends LightningElement {
           specialOrderItem: line.specialOrderItem ?? "",
           specialOrderVendorNum: line.specialOrderVendorNum ?? "",
           imageUrl: line.imageUrl ?? "",
+          itemType: line.itemType ?? "",
           quantity: isDiscount ? "" : qty,
           rate,
           amount,
@@ -195,8 +198,8 @@ export default class SalesOrderLineItems extends LightningElement {
         item: itemId,
         itemName,
         quantity: 1,
-        showAction: false,
-        disableRemove: false
+        showAction: true,
+        disableRemove: true
       }
     });
 
@@ -266,9 +269,9 @@ export default class SalesOrderLineItems extends LightningElement {
 
   @wire(getRecord, {
     recordId: "$selectedItemId",
-    fields: [BASE_PRICE, IMAGE_ID, DISPLAY_NAME]
+    fields: [BASE_PRICE, IMAGE_ID, DISPLAY_NAME, ITEM_TYPE]
   })
-  wiredItemRecord({ data, error }) {
+  async wiredItemRecord({ data, error }) {
     if (data && this.selectedItemRowIndex !== null) {
       const row = this.rows[this.selectedItemRowIndex];
 
@@ -277,6 +280,7 @@ export default class SalesOrderLineItems extends LightningElement {
       const basePrice = getFieldValue(data, BASE_PRICE);
       const imageId = getFieldValue(data, IMAGE_ID);
       const displayName = getFieldValue(data, DISPLAY_NAME);
+      const itemType = getFieldValue(data, ITEM_TYPE);
       const imageUrl = imageId
         ? "/sfc/servlet.shepherd/document/download/" + imageId
         : "";
@@ -289,6 +293,7 @@ export default class SalesOrderLineItems extends LightningElement {
         updatedRows[this.selectedItemRowIndex].rate = basePrice ?? "";
         updatedRows[this.selectedItemRowIndex].amount = basePrice ?? "";
         updatedRows[this.selectedItemRowIndex].displayName = displayName ?? "";
+        updatedRows[this.selectedItemRowIndex].itemType = itemType ?? "";
 
         if (updatedRows[this.selectedItemRowIndex + 1]?.isDiscount) {
           updatedRows[this.selectedItemRowIndex + 1].amount =
@@ -296,6 +301,24 @@ export default class SalesOrderLineItems extends LightningElement {
         }
 
         this.rows = updatedRows;
+      }
+
+      if (
+        itemType === "Inventory Item" &&
+        (!this.isSpecialOrder || this.isSellableAllowed)
+      ) {
+        const itemIsAvailable = await checkOnHand({
+          itemName: row.itemName,
+          nsLocationId: this.location
+        });
+
+        if (!itemIsAvailable) {
+          await LightningAlert.open({
+            label: "Warning!",
+            message: "This item is not available at the selected location",
+            theme: "warning"
+          });
+        }
       }
     } else if (error) {
       console.error("Error fetching item base price", error);
@@ -422,22 +445,6 @@ export default class SalesOrderLineItems extends LightningElement {
       }
     }
 
-    if (!isDiscount && (!this.isSpecialOrder || this.isSellableAllowed)) {
-      const itemIsAvailable = await checkOnHand({
-        itemName: selectedName,
-        nsLocationId: this.location,
-        qtyRequested: 1
-      });
-
-      if (!itemIsAvailable) {
-        await LightningAlert.open({
-          label: "Warning!",
-          message: "This item is not available at the selected location",
-          theme: "warning"
-        });
-      }
-    }
-
     if (this.isSpecialOrder && index > 0 && !isDiscount) {
       const firstItem = this.rows[0];
 
@@ -467,6 +474,7 @@ export default class SalesOrderLineItems extends LightningElement {
       updatedRows[index].item = selectedNsId;
       updatedRows[index].itemName = selectedName;
       updatedRows[index].isDiscount = isDiscount;
+      updatedRows[index].itemType = "";
       updatedRows[index].imageUrl = "";
       updatedRows[index].quantityAvailable = results.quantityAvailable ?? "";
       updatedRows[index].quantityBackordered =
@@ -551,8 +559,9 @@ export default class SalesOrderLineItems extends LightningElement {
     const value = e.target.value;
     const updatedRows = [...this.rows];
     const row = updatedRows[index];
+    const isInventoryItem = row.itemType === "Inventory Item";
 
-    if (field === "quantity" && !this.isSpecialOrder) {
+    if (field === "quantity" && isInventoryItem && !this.isSpecialOrder) {
       if (!row.isDiscount) {
         const itemIsAvailable = await checkOnHand({
           itemName: row.itemName,
@@ -667,6 +676,7 @@ export default class SalesOrderLineItems extends LightningElement {
         specialOrderItem: "",
         specialOrderVendorNum: "",
         imageUrl: "",
+        itemType: "",
         quantity: "",
         rate: "",
         amount: "",

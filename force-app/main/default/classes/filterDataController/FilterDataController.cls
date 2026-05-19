@@ -181,7 +181,7 @@ public with sharing class FilterDataController {
       for (breadwinner_ns__BW_Item__c item : [
         SELECT Id, Name, breadwinner_ns__InternalId__c
         FROM breadwinner_ns__BW_Item__c
-        WHERE Name LIKE :input + '%'
+        WHERE Name LIKE :input + '%' AND breadwinner_ns__IsInactive__c = FALSE
       ]) {
         items.add(
           new LookupResult(
@@ -211,6 +211,7 @@ public with sharing class FilterDataController {
           AND (ncf_item_serialized_item_type__c = FALSE
           OR (ncf_item_serialized_item_type__c = TRUE
           AND breadwinner_ns__Parent__c = NULL))
+          AND breadwinner_ns__IsInactive__c = FALSE
       ]) {
         items.add(
           new LookupResult(
@@ -240,6 +241,7 @@ public with sharing class FilterDataController {
           AND (ncf_item_serialized_item_type__c = FALSE
           OR (ncf_item_serialized_item_type__c = TRUE
           AND breadwinner_ns__Parent__c != NULL))
+          AND breadwinner_ns__IsInactive__c = FALSE
       ]) {
         items.add(
           new LookupResult(

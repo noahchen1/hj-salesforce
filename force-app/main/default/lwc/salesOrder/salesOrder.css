@@ -1,6 +1,14 @@
 .main-container {
   min-height: 900px;
+  max-width: 900px;
   position: relative;
+  margin: 0 auto;
+}
+
+lightning-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .title {
@@ -10,16 +18,29 @@
 }
 
 .spinner-container {
-  position: absolute;
+  position: fixed;
   background: rgba(255, 255, 255, 0.65);
   z-index: 5;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 1rem;
+}
+
+.spinner-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.spinner-message {
+  margin-top: 0.75rem;
+  font-size: 15px;
+  font-weight: bold;
+  color: #000000;
 }
 
 .btn-container {
   margin: 30px;
 }
-

@@ -13,6 +13,7 @@ import getEmployeeData from "@salesforce/apex/DataService.getEmployeeData";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import COMPANY_NAME from "@salesforce/schema/breadwinner_ns__BW_Company__c.Name";
 import PAYMENT_TERM from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__TermsName__c";
+import ACCOUNT_ID from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__Salesforce_Account__c";
 import getObjectName from "@salesforce/apex/SalesOrderController.getObjectName";
 import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNsCompanyFromAccount";
 import getCustomerAddresses from "@salesforce/apex/DropdownDataController.getCustomerAddresses";
@@ -78,6 +79,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     return this.orderType === "special";
   }
 
+  get parentRecordId() {
+    return this.accountId || this.recordId;
+  }
+
   get showTableOverlay() {
     if (this.orderType === "sales") {
       return !(
@@ -141,12 +146,13 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   @wire(getRecord, {
     recordId: "$selectedNsCompanyId",
-    fields: [COMPANY_NAME, PAYMENT_TERM]
+    fields: [COMPANY_NAME, PAYMENT_TERM, ACCOUNT_ID]
   })
   wiredCustomerData({ data, error }) {
     if (data && this.selectedNsCompanyId != null) {
       const companyName = getFieldValue(data, COMPANY_NAME);
       const paymentTermText = getFieldValue(data, PAYMENT_TERM);
+      const accountId = getFieldValue(data, ACCOUNT_ID);
 
       if (companyName) {
         this.header?.setLookupValue("customer", companyName);
@@ -163,6 +169,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         }
       }
 
+      if (accountId) this.accountId = accountId;
+
       this.isCustomerDataLoaded = true;
       this.checkLoadingState();
 
@@ -178,6 +186,19 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   async connectedCallback() {
     await this.initForm();
+
+    if (!this.recordId) {
+      this.initializeStandaloneState();
+    }
+  }
+
+  initializeStandaloneState() {
+    this.addressOptions = [{ label: "Select", value: "" }];
+    this.isAddressLoaded = true;
+    this.isOrderLoaded = true;
+    this.isNsCompanyIdLoaded = true;
+    this.isCustomerDataLoaded = true;
+    this.checkLoadingState();
   }
 
   async initForm() {
@@ -221,6 +242,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   handleCustomerSelect(e) {
     this.selectedNsCompanyId = e.detail.id;
     this.custNsInternalId = e.detail.nsId;
+    this.accountId = "";
   }
 
   handleSalesRepSelect(e) {
@@ -239,6 +261,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     const field = e.detail.field;
     if (field === "customer") {
       this.custNsInternalId = "";
+      this.accountId = "";
     } else {
       this[field] = "";
     }
@@ -324,6 +347,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.subsidiary = "";
     this.specialDate = "";
     this.needByDate = "";
+    this.accountId = this.recordId || "";
     this.custNsInternalId = "";
     this.selectedNsCompanyId = undefined;
     this.locationOptions = [];
@@ -335,10 +359,16 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.header?.setLookupValue("salesRep1", "");
     this.header?.setLookupValue("salesRep2", "");
 
-    await Promise.all([
-      this.initForm(),
-      this.fetchNsCompanyId(this.accountId || this.recordId)
-    ]);
+    if (this.parentRecordId) {
+      await Promise.all([
+        this.initForm(),
+        this.fetchNsCompanyId(this.parentRecordId)
+      ]);
+      return;
+    }
+
+    await this.initForm();
+    this.initializeStandaloneState();
   }
 
   async saveOrder() {
@@ -360,12 +390,16 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       return;
     }
 
-    const navigateAway = await LightningConfirm.open({
-      label: "Save Order",
-      message:
-        "Would you like to go back to the account while the order saves in the background?",
-      theme: "default"
-    });
+    let navigateAway = false;
+
+    if (this.parentRecordId) {
+      navigateAway = await LightningConfirm.open({
+        label: "Save Order",
+        message:
+          "Would you like to go back to the account while the order saves in the background?",
+        theme: "default"
+      });
+    }
 
     this.isLoading = true;
     const savePromise = this.executeSave(payload);
@@ -376,7 +410,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this[NavigationMixin.Navigate]({
         type: "standard__recordPage",
         attributes: {
-          recordId: this.accountId || this.recordId,
+          recordId: this.parentRecordId,
           actionName: "view"
         }
       });
@@ -399,7 +433,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         await notifyOrderSaveStatus({
           isSuccess: false,
           soNsInternalId: null,
-          orderRecordId: this.accountId || this.recordId,
+          orderRecordId: this.parentRecordId,
           errorMessage:
             error?.body?.message || error?.message || "Unknown error"
         });
