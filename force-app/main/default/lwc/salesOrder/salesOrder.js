@@ -63,6 +63,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   isNsCompanyIdLoaded = false;
   isCustomerDataLoaded = false;
 
+  loadingMessage = "";
+
   get header() {
     return this.template.querySelector("c-sales-order-body");
   }
@@ -81,6 +83,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   get parentRecordId() {
     return this.accountId || this.recordId;
+  }
+
+  get showLoadingMessage() {
+    return this.loadingMessage !== "";
   }
 
   get showTableOverlay() {
@@ -402,6 +408,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     }
 
     this.isLoading = true;
+    this.loadingMessage = "Order is being saved";
     const savePromise = this.executeSave(payload);
 
     if (navigateAway) {

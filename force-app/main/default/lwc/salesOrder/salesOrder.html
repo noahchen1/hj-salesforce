@@ -7,17 +7,19 @@
             alternative-text="Loading sales order..."
             size="medium"
           ></lightning-spinner>
-          <p class="spinner-message">Loading sales order data...</p>
+          <template if:true={showLoadingMessage}>
+            <p class="spinner-message">{loadingMessage}</p>
+          </template>
         </div>
       </div>
 
-      <Template if:false={isSpecialOrder}>
+      <template if:false={isSpecialOrder}>
         <div class="title">Sales Order Form</div>
-      </Template>
+      </template>
 
-      <Template if:true={isSpecialOrder}>
+      <template if:true={isSpecialOrder}>
         <div class="title">Special Order Form</div>
-      </Template>
+      </template>
 
       <div class="btn-container">
         <lightning-button
