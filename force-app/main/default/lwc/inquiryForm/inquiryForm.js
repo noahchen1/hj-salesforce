@@ -159,8 +159,8 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
       orderDate: bodyFields.date,
       salesRep1: bodyFields.salesRep1,
       salesRep2: bodyFields.salesRep2,
-      subsidiary: "30",
-      location: "28",
+      subsidiary: bodyFields.subsidiary,
+      location: bodyFields.location,
       termsNsInternalId: "2",
       specialOrderItemType: "6",
 

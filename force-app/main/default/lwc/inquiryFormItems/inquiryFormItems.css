@@ -5,9 +5,17 @@
   margin: 0 30px;
 }
 
-.form-body * {
+.form-body > * {
   flex: 1 1 40%;
   box-sizing: border-box;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 6px;
+  padding-top: 6px;
 }
 
 .section-title {

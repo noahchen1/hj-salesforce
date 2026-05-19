@@ -50,7 +50,9 @@ export default class InquiryFormBody extends LightningElement {
       ]);
 
       const { options: subOptions } = processPicklistData(subsidiaries);
-      this.subsidiaryOptions = subOptions;
+      this.subsidiaryOptions = subOptions.filter(({ label, value }) =>
+        ["", "10", "30"].includes(value)
+      );
 
       if (emp !== null) {
         this.salesRep1 = emp.employeeId;
@@ -74,6 +76,7 @@ export default class InquiryFormBody extends LightningElement {
       }
     } catch (error) {
       console.error("Init failed:", error);
+      console.error(error.message);
       this.isFormInit = true;
       this.checkLoadingState();
     } finally {
