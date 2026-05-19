@@ -142,25 +142,25 @@
                   ></lightning-input>
                 </td>
               </tr>
-              <template if:true={row.showAction}>
-                <tr key={row.actionKey} class="row-action-row">
-                  <td colspan="8">
-                    <div class="row-action-container">
-                      <lightning-button
-                        label="Add Row"
-                        data-index={index}
-                        onclick={addRow}
-                      ></lightning-button>
-                      <lightning-button
-                        label="Remove Row"
-                        data-index={index}
-                        onclick={removeRow}
-                        disabled={row.disableRemove}
-                      ></lightning-button>
-                    </div>
-                  </td>
-                </tr>
-              </template>
+            </template>
+            <template if:true={hasRows}>
+              <tr class="row-action-row">
+                <td colspan="8">
+                  <div class="row-action-container">
+                    <lightning-button
+                      label="Add Row"
+                      data-index={activeRowIndex}
+                      onclick={addRow}
+                    ></lightning-button>
+                    <lightning-button
+                      label="Remove Row"
+                      data-index={activeRowIndex}
+                      onclick={removeRow}
+                      disabled={isActiveRowRemoveDisabled}
+                    ></lightning-button>
+                  </div>
+                </td>
+              </tr>
             </template>
           </tbody>
         </table>
@@ -347,25 +347,25 @@
                   ></lightning-input>
                 </td>
               </tr>
-              <template if:true={row.showAction}>
-                <tr key={row.actionKey} class="row-action-row">
-                  <td colspan="10">
-                    <div class="row-action-container">
-                      <lightning-button
-                        label="Add Row"
-                        data-index={index}
-                        onclick={addRow}
-                      ></lightning-button>
-                      <lightning-button
-                        label="Remove Row"
-                        data-index={index}
-                        onclick={removeRow}
-                        disabled={row.disableRemove}
-                      ></lightning-button>
-                    </div>
-                  </td>
-                </tr>
-              </template>
+            </template>
+            <template if:true={hasRows}>
+              <tr class="row-action-row">
+                <td colspan="10">
+                  <div class="row-action-container">
+                    <lightning-button
+                      label="Add Row"
+                      data-index={activeRowIndex}
+                      onclick={addRow}
+                    ></lightning-button>
+                    <lightning-button
+                      label="Remove Row"
+                      data-index={activeRowIndex}
+                      onclick={removeRow}
+                      disabled={isActiveRowRemoveDisabled}
+                    ></lightning-button>
+                  </div>
+                </td>
+              </tr>
             </template>
           </tbody>
         </table>

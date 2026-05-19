@@ -66,6 +66,19 @@ export default class SalesOrderLineItems extends LightningElement {
     return SELLABLE_SPECIAL_ALLOWED_STATUSES.has(this.specialOrderStatus);
   }
 
+  get hasRows() {
+    return this.rows.length > 0;
+  }
+
+  get activeRowIndex() {
+    const activeIndex = this.rows.findIndex((row) => row.showAction);
+    return activeIndex === -1 ? 0 : activeIndex;
+  }
+
+  get isActiveRowRemoveDisabled() {
+    return this.rows.length <= 1 || this.activeRowIndex === 0;
+  }
+
   createRow({
     id,
     showAction = false,
@@ -309,7 +322,8 @@ export default class SalesOrderLineItems extends LightningElement {
       ) {
         const itemIsAvailable = await checkOnHand({
           itemName: row.itemName,
-          nsLocationId: this.location
+          nsLocationId: this.location,
+          qtyRequested: row.quantity
         });
 
         if (!itemIsAvailable) {
@@ -323,6 +337,8 @@ export default class SalesOrderLineItems extends LightningElement {
     } else if (error) {
       console.error("Error fetching item base price", error);
     }
+
+    this.selectedItemId = null;
   }
 
   async handleLookupSearch(e) {
@@ -560,8 +576,8 @@ export default class SalesOrderLineItems extends LightningElement {
     const updatedRows = [...this.rows];
     const row = updatedRows[index];
     const isInventoryItem = row.itemType === "Inventory Item";
-
     if (field === "quantity" && isInventoryItem && !this.isSpecialOrder) {
+
       if (!row.isDiscount) {
         const itemIsAvailable = await checkOnHand({
           itemName: row.itemName,
@@ -630,6 +646,9 @@ export default class SalesOrderLineItems extends LightningElement {
 
       const updatedRows = [...this.rows];
       updatedRows.splice(index + 1, 0, newRow);
+      updatedRows.forEach((row, idx) => {
+        row.showAction = idx === index + 1;
+      });
       this.rows = updatedRows;
     } catch (error) {
       console.error(`Error adding row at index ${index}`, error);
@@ -640,6 +659,12 @@ export default class SalesOrderLineItems extends LightningElement {
     const index = Number(e.target.dataset.index);
     const updatedRows = [...this.rows];
     updatedRows.splice(index, 1);
+
+    const nextActiveIndex = Math.max(0, index - 1);
+    updatedRows.forEach((row, idx) => {
+      row.showAction = idx === nextActiveIndex;
+    });
+
     this.rows = updatedRows;
   }
 
