@@ -340,6 +340,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   async reset() {
     this.isLoading = true;
+    this.loadingMessage = "";
     this.isFormInit = false;
     this.isAddressLoaded = false;
     this.isNsCompanyIdLoaded = false;
@@ -412,12 +413,14 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     const savePromise = this.executeSave(payload);
 
     if (navigateAway) {
+      const targetRecordId = this.parentRecordId;
       this.isLoading = false;
+      this.reset();
 
       this[NavigationMixin.Navigate]({
         type: "standard__recordPage",
         attributes: {
-          recordId: this.parentRecordId,
+          recordId: targetRecordId,
           actionName: "view"
         }
       });
@@ -440,7 +443,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         await notifyOrderSaveStatus({
           isSuccess: false,
           soNsInternalId: null,
-          orderRecordId: this.parentRecordId,
+          orderRecordId: targetRecordId,
           errorMessage:
             error?.body?.message || error?.message || "Unknown error"
         });
@@ -466,6 +469,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
           attributes: { recordId: orderRecordId, actionName: "view" }
         });
       }
+
+      this.reset();
     } catch (err) {
       console.error("saveOrder failed");
       console.error(err.name);
