@@ -180,7 +180,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this.isCustomerDataLoaded = true;
       this.checkLoadingState();
 
-      this.fetchCustomerAddresses({ nsCompanyId: this.selectedNsCompanyId });
+      this.fetchCustomerAddresses({
+        nsCompanyId: this.selectedNsCompanyId,
+        location: this.location
+      });
     } else {
       // this._addressSection?.reset();
 
@@ -594,6 +597,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       await this.fetchCustomerAddresses({
         nsCompanyId: data.nsCompanyId,
+        location: this.location,
         skipSelection: true
       });
 
@@ -653,7 +657,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     }
   }
 
-  async fetchCustomerAddresses({ nsCompanyId, skipSelection }) {
+  async fetchCustomerAddresses({ nsCompanyId, location, skipSelection }) {
     if (!nsCompanyId) {
       this.addressOptions = [{ label: "Select", value: "" }];
       this.isAddressLoaded = true;
@@ -663,7 +667,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     }
 
     try {
-      const addresses = await getCustomerAddresses({ nsCompanyId });
+      const addresses = await getCustomerAddresses({
+        nsCompanyId,
+        nsLocationId: location
+      });
       const { options, defaultShipping, defaultBilling } = processPicklistData(
         addresses || [],
         true

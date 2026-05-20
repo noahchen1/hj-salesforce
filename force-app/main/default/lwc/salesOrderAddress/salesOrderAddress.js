@@ -1,6 +1,7 @@
 import { LightningElement, api, wire } from "lwc";
 import { getRecord, getFieldValue } from "lightning/uiRecordApi";
 import { formatAddress, toCountryEnum } from "c/utils";
+import getLocationAddress from "@salesforce/apex/DataService.getLocationAddress";
 
 import ADDRESS_INTERNAL_ID from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__InternalId__c";
 import ADDRESS_TEXT from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__AddrText__c";
@@ -69,15 +70,132 @@ function formatFromRecord(data) {
   });
 }
 
+function buildStateFromLocation(data) {
+  return {
+    ...EMPTY_ADDRESS,
+    addressee: data?.addressee || "",
+    addr1: data?.address_1 || "",
+    city: data?.city || "",
+    state: data?.state || "",
+    zip: data?.zip || "",
+    country: toCountryEnum(data?.country)
+  };
+}
+
+function formatFromLocation(data) {
+  return (
+    data?.addressText ||
+    formatAddress({
+      contact: data?.addressee,
+      addr1: data?.address_1,
+      city: data?.city,
+      state: data?.state,
+      zip: data?.zip,
+      country: data?.country
+    })
+  );
+}
+
 export default class SalesOrderAddress extends LightningElement {
   @api addressOptions = [];
+  @api orderType = [];
+  location = null;
 
+  isInStorePickup = false;
   selectedShippingAddress = "";
   selectedBillingAddress = "";
   shippingAddress = "";
   billingAddress = "";
   shippingAddressState = { ...EMPTY_ADDRESS };
   billingAddressState = { ...EMPTY_ADDRESS };
+  previousAddressSnapshot = null;
+  isInStorePickupDisabled = false;
+
+  get hasPreviousAddressSnapshot() {
+    return !!this.previousAddressSnapshot;
+  }
+
+  get isAddressSelectorDisabled() {
+    return this.isInStorePickup;
+  }
+
+  get isSpecialOrder() {
+    return this.orderType === "special";
+  }
+
+  @api
+  get selectedLocation() {
+    return this.location;
+  }
+
+  set selectedLocation(value) {
+    this.location = value;
+
+    if (this.isInStorePickup && value) {
+      this.applyInStorePickupAddress();
+    }
+  }
+
+  cacheCurrentAddressSnapshot() {
+    this.previousAddressSnapshot = {
+      selectedShippingAddress: this.selectedShippingAddress,
+      selectedBillingAddress: this.selectedBillingAddress,
+      shippingAddress: this.shippingAddress,
+      billingAddress: this.billingAddress,
+      shippingAddressState: { ...this.shippingAddressState },
+      billingAddressState: { ...this.billingAddressState }
+    };
+  }
+
+  restorePreviousAddressSnapshot() {
+    if (!this.hasPreviousAddressSnapshot) {
+      return;
+    }
+
+    this.selectedShippingAddress =
+      this.previousAddressSnapshot.selectedShippingAddress;
+    this.selectedBillingAddress =
+      this.previousAddressSnapshot.selectedBillingAddress;
+    this.shippingAddress = this.previousAddressSnapshot.shippingAddress;
+    this.billingAddress = this.previousAddressSnapshot.billingAddress;
+    this.shippingAddressState = {
+      ...this.previousAddressSnapshot.shippingAddressState
+    };
+    this.billingAddressState = {
+      ...this.previousAddressSnapshot.billingAddressState
+    };
+    this.previousAddressSnapshot = null;
+  }
+
+  async applyInStorePickupAddress() {
+    if (!this.location) {
+      return;
+    }
+
+    if (!this.hasPreviousAddressSnapshot) {
+      this.cacheCurrentAddressSnapshot();
+    }
+
+    try {
+      const results = await getLocationAddress({ nsLocationId: this.location });
+
+      if (!this.isInStorePickup) {
+        return;
+      }
+
+      const locationState = buildStateFromLocation(results);
+      const locationText = formatFromLocation(results);
+
+      this.selectedShippingAddress = "";
+      this.selectedBillingAddress = "";
+      this.shippingAddressState = { ...locationState };
+      this.billingAddressState = { ...locationState };
+      this.shippingAddress = locationText;
+      this.billingAddress = locationText;
+    } catch (error) {
+      console.error("Error fetching in-store pickup address", error);
+    }
+  }
 
   @api
   applyDefaults(defaultShipping, defaultBilling) {
@@ -131,12 +249,14 @@ export default class SalesOrderAddress extends LightningElement {
 
   @api
   reset() {
+    this.isInStorePickup = false;
     this.selectedShippingAddress = "";
     this.selectedBillingAddress = "";
     this.shippingAddress = "";
     this.billingAddress = "";
     this.shippingAddressState = { ...EMPTY_ADDRESS };
     this.billingAddressState = { ...EMPTY_ADDRESS };
+    this.previousAddressSnapshot = null;
   }
 
   @wire(getRecord, {
@@ -144,6 +264,10 @@ export default class SalesOrderAddress extends LightningElement {
     fields: ADDRESS_FIELDS
   })
   wiredShippingAddressData({ data, error }) {
+    if (this.isInStorePickup) {
+      return;
+    }
+
     if (data) {
       this.shippingAddressState = buildStateFromRecord(data);
       this.shippingAddress = formatFromRecord(data);
@@ -162,6 +286,10 @@ export default class SalesOrderAddress extends LightningElement {
     fields: ADDRESS_FIELDS
   })
   wiredBillingAddressData({ data, error }) {
+    if (this.isInStorePickup) {
+      return;
+    }
+
     if (data) {
       this.billingAddressState = buildStateFromRecord(data);
       this.billingAddress = formatFromRecord(data);
@@ -176,6 +304,33 @@ export default class SalesOrderAddress extends LightningElement {
   }
 
   handleComboboxChange(e) {
+    if (this.isInStorePickup) {
+      return;
+    }
+
     this[e.target.name] = e.target.value;
+  }
+
+  async handleInputChange(e) {
+    const isCheckBox = e.target.type === "checkbox";
+    const type = e.target.dataset.type;
+    const value = isCheckBox ? e.target.checked : e.target.value;
+
+    this[type] = value;
+
+    if (type !== "isInStorePickup") {
+      return;
+    }
+
+    if (value) {
+      console.log(JSON.stringify(value));
+      this.isInStorePickupDisabled = true;
+      await this.applyInStorePickupAddress();
+
+      this.isInStorePickupDisabled = false;
+      return;
+    }
+
+    this.restorePreviousAddressSnapshot();
   }
 }

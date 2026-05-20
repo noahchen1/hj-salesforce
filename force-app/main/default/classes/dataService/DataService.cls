@@ -17,6 +17,56 @@ public with sharing class DataService {
     public String locationName;
   }
 
+  public class LocationAddress {
+    @AuraEnabled
+    public String addressText;
+    @AuraEnabled
+    public String addressee;
+    @AuraEnabled
+    public String address_1;
+    @AuraEnabled
+    public String address_2;
+    @AuraEnabled
+    public String address_3;
+    @AuraEnabled
+    public String attention;
+    @AuraEnabled
+    public String city;
+    @AuraEnabled
+    public String state;
+    @AuraEnabled
+    public String zip;
+    @AuraEnabled
+    public String country;
+
+    public LocationAddress() {
+    }
+
+    public LocationAddress(
+      String addressText,
+      String addressee,
+      String address_1,
+      String address_2,
+      String address_3,
+      String attention,
+      String city,
+      String state,
+      String zip,
+      String country
+    ) {
+      this.addressText = addressText;
+      this.addressee = addressee;
+      this.address_1 = address_1;
+      this.address_2 = address_2;
+      this.address_3 = address_3;
+      this.attention = attention;
+      this.city = city;
+      this.state = state;
+      this.zip = zip;
+      this.country = country;
+    }
+  }
+
   @AuraEnabled(cacheable=true)
   public static Boolean checkOnHand(
     String itemName,
@@ -238,5 +288,284 @@ public with sharing class DataService {
       'basePrice' => String.valueOf(item.Base_Price__c),
       'displayName' => item.breadwinner_ns__DisplayName__c
     };
+  }
+
+  @AuraEnabled
+  public static LocationAddress getLocationAddress(String nsLocationId) {
+    if (String.isBlank(nsLocationId)) {
+      return new LocationAddress();
+    }
+
+    switch on nsLocationId {
+      when '18' {
+        return new LocationAddress(
+          'H1912\n104 Nassau Street\nPrinceton NJ 08542\nUnited States',
+          'H1912',
+          '104 Nassau Street',
+          null,
+          null,
+          null,
+          'Princeton',
+          'NJ',
+          '08542',
+          'United States'
+        );
+      }
+      when '21' {
+        return new LocationAddress(
+          'H1912 Web Sales\n104 Nassau Street\nPrinceton NJ 08542\nUnited States',
+          'H1912 Web Sales',
+          '104 Nassau Street',
+          null,
+          null,
+          null,
+          'Princeton',
+          'NJ',
+          '08542',
+          'United States'
+        );
+      }
+      when '22' {
+        return new LocationAddress(
+          'Hamilton Home\n33 Witherspoon Street\nPrinceton NJ 08542\nUnited States',
+          'Hamilton Home',
+          '33 Witherspoon Street',
+          null,
+          null,
+          null,
+          'Princeton',
+          'NJ',
+          '08542',
+          'United States'
+        );
+      }
+      when '25' {
+        return new LocationAddress(
+          'Hamilton Jewelers\n215 Worth Ave\nPalm Beach FL 33480\nUnited States',
+          'Hamilton Jewelers',
+          '215 Worth Ave',
+          null,
+          null,
+          null,
+          'Palm Beach',
+          'FL',
+          '33480',
+          'United States'
+        );
+      }
+      when '26' {
+        return new LocationAddress(
+          'Hamilton Jewelers\n3101 PGA BLVD\nPalm Beach Gardens FL 33410\nUnited States',
+          'Hamilton Jewelers',
+          '3101 PGA BLVD',
+          null,
+          null,
+          null,
+          'Palm Beach Gardens',
+          'FL',
+          '33410',
+          'United States'
+        );
+      }
+      when '28' {
+        return new LocationAddress(
+          'Hamilton Jewelers\n92 Nassau Street\nPrinceton NJ 08542\nUnited States',
+          'Hamilton Jewelers',
+          '92 Nassau Street',
+          null,
+          null,
+          null,
+          'Princeton',
+          'NJ',
+          '08542',
+          'United States'
+        );
+      }
+      when '29' {
+        return new LocationAddress(
+          'Hamilton Jewelers\n14 S Tulane Street\nPrinceton NJ 08542\nUnited States',
+          'Hamilton Jewelers',
+          '14 S Tulane Street',
+          null,
+          null,
+          null,
+          'Princeton',
+          'NJ',
+          '08542',
+          'United States'
+        );
+      }
+      when '30' {
+        return new LocationAddress(
+          'Hamilton Jewelers\n14 S Tulane Street\nPrinceton NJ 08542\nUnited States',
+          'Hamilton Jewelers',
+          '14 S Tulane Street',
+          null,
+          null,
+          null,
+          'Princeton',
+          'NJ',
+          '08542',
+          'United States'
+        );
+      }
+      when '31' {
+        return new LocationAddress(
+          'Corp Gifts (Historical)\n14 S. Tulane\nPrinceton NJ 08542\nUnited States',
+          'Corp Gifts (Historical)',
+          '14 S. Tulane',
+          null,
+          null,
+          null,
+          'Princeton',
+          'NJ',
+          '08542',
+          'United States'
+        );
+      }
+      when '32' {
+        return new LocationAddress(
+          'Corporate Gifts\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
+          'Corporate Gifts',
+          '930 TOWN CENTER DR G-50',
+          null,
+          null,
+          null,
+          'Langhorne',
+          'PA',
+          '19047',
+          'United States'
+        );
+      }
+      when '33' {
+        return new LocationAddress(
+          'Corporate Gifts Web Sales\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
+          'Corporate Gifts Web Sales',
+          '930 TOWN CENTER DR G-50',
+          null,
+          null,
+          null,
+          'Langhorne',
+          'PA',
+          '19047',
+          'United States'
+        );
+      }
+      when '34' {
+        return new LocationAddress(
+          'Red Bank\nUnited States',
+          'Red Bank',
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          'United States'
+        );
+      }
+      when '35' {
+        return new LocationAddress(
+          'Websales\n14 S. Tulane\nPrinceton NJ 08542\nUnited States',
+          'Websales',
+          '14 S. Tulane',
+          null,
+          null,
+          null,
+          'Princeton',
+          'NJ',
+          '08542',
+          'United States'
+        );
+      }
+      when '36' {
+        return new LocationAddress(
+          'Insignia Web Sales\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
+          'Insignia Web Sales',
+          '930 TOWN CENTER DR G-50',
+          null,
+          null,
+          null,
+          'Langhorne',
+          'PA',
+          '19047',
+          'United States'
+        );
+      }
+      when '37' {
+        return new LocationAddress(
+          'Insignia\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
+          'Insignia',
+          '930 TOWN CENTER DR G-50',
+          null,
+          null,
+          null,
+          'Langhorne',
+          'PA',
+          '19047',
+          'United States'
+        );
+      }
+      when '38' {
+        return new LocationAddress(
+          'Marketing\nUnited States',
+          'Marketing',
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          'United States'
+        );
+      }
+      when '39' {
+        return new LocationAddress(
+          'Work In Progress\nUnited States',
+          'Work In Progress',
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          'United States'
+        );
+      }
+      when '41' {
+        return new LocationAddress(
+          'Hamilton Elimination Location\nUnited States',
+          'Hamilton Elimination Location',
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          'United States'
+        );
+      }
+      when '42' {
+        return new LocationAddress(
+          'Retail Elimination Location\nUnited States',
+          'Retail Elimination Location',
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          'United States'
+        );
+      }
+      when else {
+        return new LocationAddress();
+      }
+    }
   }
 }

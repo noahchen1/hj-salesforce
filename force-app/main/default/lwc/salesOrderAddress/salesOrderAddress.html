@@ -2,6 +2,16 @@
   <div>
     <div class="section-title">Address:</div>
     <div class="form-body">
+      <lightning-input
+        data-type="isInStorePickup"
+        type="checkbox"
+        label="In Store Pickup?"
+        checked={isInStorePickup}
+        onchange={handleInputChange}
+        disabled={isInStorePickupDisabled}
+      ></lightning-input>
+    </div>
+    <div class="form-body">
       <lightning-combobox
         name="selectedShippingAddress"
         label="Shipping Address"
@@ -9,6 +19,7 @@
         placeholder="Select an address"
         options={addressOptions}
         onchange={handleComboboxChange}
+        disabled={isAddressSelectorDisabled}
       ></lightning-combobox>
       <lightning-combobox
         name="selectedBillingAddress"
@@ -17,6 +28,7 @@
         placeholder="Select an address"
         options={addressOptions}
         onchange={handleComboboxChange}
+        disabled={isAddressSelectorDisabled}
       ></lightning-combobox>
     </div>
     <div class="form-body">
