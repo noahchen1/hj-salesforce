@@ -24,11 +24,11 @@
               <th scope="col">Item</th>
               <th scope="col">Display Name</th>
               <th scope="col">Image</th>
-              <th scope="col">Quantity Available</th>
-              <th scope="col">Quantity Back-ordered</th>
               <th scope="col">Quantity</th>
               <th scope="col">Rate</th>
               <th scope="col">Amount</th>
+              <th scope="col">Quantity Available</th>
+              <th scope="col">Quantity Back-ordered</th>
             </tr>
           </thead>
           <tbody>
@@ -62,29 +62,6 @@
                 <td>
                   <img src={row.imageUrl} alt="" class="item-image" />
                 </td>
-                <td>
-                  <lightning-input
-                    data-index={index}
-                    data-field="quantityAvailable"
-                    value={row.quantityAvailable}
-                    variant="label-hidden"
-                    type="number"
-                    placeholder=""
-                    readonly
-                  ></lightning-input>
-                </td>
-                <td>
-                  <lightning-input
-                    data-index={index}
-                    data-field="quantityBackordered"
-                    value={row.quantityBackordered}
-                    variant="label-hidden"
-                    type="number"
-                    placeholder=""
-                    readonly
-                  ></lightning-input>
-                </td>
-
                 <td>
                   <lightning-input
                     data-index={index}
@@ -141,6 +118,28 @@
                     readonly
                   ></lightning-input>
                 </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="quantityAvailable"
+                    value={row.quantityAvailable}
+                    variant="label-hidden"
+                    type="number"
+                    placeholder=""
+                    readonly
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="quantityBackordered"
+                    value={row.quantityBackordered}
+                    variant="label-hidden"
+                    type="number"
+                    placeholder=""
+                    readonly
+                  ></lightning-input>
+                </td>
               </tr>
             </template>
             <template if:true={hasRows}>
@@ -187,13 +186,13 @@
               <th scope="col">Item</th>
               <th scope="col">HJ SKU</th>
               <th scope="col">Vendor Item Number</th>
-              <th scope="col">Display Name</th>
-              <th scope="col">Quantity Available</th>
-              <th scope="col">Quantity Back-ordered</th>
               <th scope="col">Quantity</th>
               <th scope="col">Quoted Price</th>
               <th scope="col">Rate</th>
               <th scope="col">Amount</th>
+              <th scope="col">Display Name</th>
+              <th scope="col">Quantity Available</th>
+              <th scope="col">Quantity Back-ordered</th>
             </tr>
           </thead>
           <tbody>
@@ -238,41 +237,6 @@
                       onfocus={handleFocus}
                     ></c-lookup-input>
                   </template>
-                </td>
-                <td>
-                  <lightning-input
-                    data-index={index}
-                    data-field="displayName"
-                    value={row.displayName}
-                    variant="label-hidden"
-                    type="text"
-                    placeholder=""
-                    onchange={handleRowChange}
-                    onfocus={handleFocus}
-                    readonly
-                  ></lightning-input>
-                </td>
-                <td>
-                  <lightning-input
-                    data-index={index}
-                    data-field="quantityAvailable"
-                    value={row.quantityAvailable}
-                    variant="label-hidden"
-                    type="number"
-                    placeholder=""
-                    readonly
-                  ></lightning-input>
-                </td>
-                <td>
-                  <lightning-input
-                    data-index={index}
-                    data-field="quantityBackordered"
-                    value={row.quantityBackordered}
-                    variant="label-hidden"
-                    type="number"
-                    placeholder=""
-                    readonly
-                  ></lightning-input>
                 </td>
                 <td>
                   <lightning-input
@@ -342,6 +306,41 @@
                     type="number"
                     formatter="currency"
                     step="0.01"
+                    placeholder=""
+                    readonly
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="displayName"
+                    value={row.displayName}
+                    variant="label-hidden"
+                    type="text"
+                    placeholder=""
+                    onchange={handleRowChange}
+                    onfocus={handleFocus}
+                    readonly
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="quantityAvailable"
+                    value={row.quantityAvailable}
+                    variant="label-hidden"
+                    type="number"
+                    placeholder=""
+                    readonly
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="quantityBackordered"
+                    value={row.quantityBackordered}
+                    variant="label-hidden"
+                    type="number"
                     placeholder=""
                     readonly
                   ></lightning-input>
