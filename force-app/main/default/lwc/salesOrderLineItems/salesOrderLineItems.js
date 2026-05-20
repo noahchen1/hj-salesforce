@@ -658,7 +658,8 @@ export default class SalesOrderLineItems extends LightningElement {
   removeRow(e) {
     const index = Number(e.target.dataset.index);
     const updatedRows = [...this.rows];
-    updatedRows.splice(index, 1);
+    const removeCount = updatedRows[index + 1]?.isDiscount ? 2 : 1;
+    updatedRows.splice(index, removeCount);
 
     const nextActiveIndex = Math.max(0, index - 1);
     updatedRows.forEach((row, idx) => {

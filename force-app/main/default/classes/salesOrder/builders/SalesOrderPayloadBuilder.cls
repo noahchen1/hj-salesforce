@@ -53,7 +53,7 @@ public with sharing class SalesOrderPayloadBuilder {
     requestMap.put('subsidiary', lookupByInternalId(subsidiary));
     requestMap.put('location', lookupByInternalId(location));
     requestMap.put('terms', lookupByInternalId(termsNsInternalId));
-    requestMap.put('tranDate', Helpers.toUnixSeconds(orderDate));
+    requestMap.put('tranDate', Helpers.toUnixSeconds(Date.today()));
 
     if (String.isNotBlank(soNsInternalId)) {
       requestMap.put('internalId', soNsInternalId);
