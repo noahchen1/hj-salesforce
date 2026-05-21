@@ -681,6 +681,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       if (!skipSelection) {
         this.addressSection?.applyDefaults(defaultShipping, defaultBilling);
       }
+
+      this.addressSection?.setDefaults(defaultShipping, defaultBilling);
     } catch (error) {
       this.addressOptions = [{ label: "Select", value: "" }];
       console.error("Error fetching addressOptions:", error);

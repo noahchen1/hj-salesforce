@@ -281,6 +281,10 @@ export function toCountryEnum(countryValue) {
   );
 }
 
+export function isBlank(value) {
+  return value === null || value === undefined || String(value).trim() === "";
+}
+
 export function formatAddress({
   contact,
   addr1,

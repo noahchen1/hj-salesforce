@@ -1,6 +1,6 @@
 import { LightningElement, api, wire } from "lwc";
 import { getRecord, getFieldValue } from "lightning/uiRecordApi";
-import { formatAddress, toCountryEnum } from "c/utils";
+import { formatAddress, toCountryEnum, isBlank } from "c/utils";
 import getLocationAddress from "@salesforce/apex/DataService.getLocationAddress";
 
 import ADDRESS_INTERNAL_ID from "@salesforce/schema/breadwinner_ns__BW_Address__c.breadwinner_ns__InternalId__c";
@@ -41,6 +41,37 @@ const EMPTY_ADDRESS = Object.freeze({
   zip: "",
   country: ""
 });
+
+function isAddressStateEmpty(state) {
+  if (!state) {
+    return true;
+  }
+
+  return Object.values(EMPTY_ADDRESS).every((_, keyIndex) => {
+    const fieldName = Object.keys(EMPTY_ADDRESS)[keyIndex];
+
+    return isBlank(state[fieldName]);
+  });
+}
+
+function isAddressSnapshotEmpty(snapshot) {
+  if (!snapshot) {
+    return true;
+  }
+
+  const hasHeaderSelection =
+    !isBlank(snapshot.selectedShippingAddress) ||
+    !isBlank(snapshot.selectedBillingAddress);
+
+  const hasFormattedAddress =
+    !isBlank(snapshot.shippingAddress) || !isBlank(snapshot.billingAddress);
+
+  const hasAddressState =
+    !isAddressStateEmpty(snapshot.shippingAddressState) ||
+    !isAddressStateEmpty(snapshot.billingAddressState);
+
+  return !(hasHeaderSelection || hasFormattedAddress || hasAddressState);
+}
 
 function buildStateFromRecord(data) {
   return {
@@ -104,6 +135,8 @@ export default class SalesOrderAddress extends LightningElement {
   isInStorePickup = false;
   selectedShippingAddress = "";
   selectedBillingAddress = "";
+  defaultShippingAddress = "";
+  defaultBillingAddress = "";
   shippingAddress = "";
   billingAddress = "";
   shippingAddressState = { ...EMPTY_ADDRESS };
@@ -112,7 +145,7 @@ export default class SalesOrderAddress extends LightningElement {
   isInStorePickupDisabled = false;
 
   get hasPreviousAddressSnapshot() {
-    return !!this.previousAddressSnapshot;
+    return !isAddressSnapshotEmpty(this.previousAddressSnapshot);
   }
 
   get isAddressSelectorDisabled() {
@@ -131,7 +164,8 @@ export default class SalesOrderAddress extends LightningElement {
   set selectedLocation(value) {
     this.location = value;
 
-    if (this.isInStorePickup && value) {
+    if (this.isSpecialOrder && value) {
+      this.isInStorePickup = true;
       this.applyInStorePickupAddress();
     }
   }
@@ -149,6 +183,26 @@ export default class SalesOrderAddress extends LightningElement {
 
   restorePreviousAddressSnapshot() {
     if (!this.hasPreviousAddressSnapshot) {
+      console.log("called!");
+      const hasDefaultShipping = !isBlank(this.defaultShippingAddress);
+      const hasDefaultBilling = !isBlank(this.defaultBillingAddress);
+
+      if (!hasDefaultShipping) {
+        this.selectedShippingAddress = "";
+        this.shippingAddress = "";
+        this.shippingAddressState = { ...EMPTY_ADDRESS };
+      } else {
+        this.selectedShippingAddress = this.defaultShippingAddress;
+      }
+
+      if (!hasDefaultBilling) {
+        this.selectedBillingAddress = "";
+        this.billingAddress = "";
+        this.billingAddressState = { ...EMPTY_ADDRESS };
+      } else {
+        this.selectedBillingAddress = this.defaultBillingAddress;
+      }
+
       return;
     }
 
@@ -204,6 +258,12 @@ export default class SalesOrderAddress extends LightningElement {
   }
 
   @api
+  setDefaults(defaultShipping, defaultBilling) {
+    this.defaultBillingAddress = defaultBilling || "";
+    this.defaultShippingAddress = defaultShipping || "";
+  }
+
+  @api
   loadFromOrderData(data) {
     this.shippingAddressState = {
       ...EMPTY_ADDRESS,
@@ -254,6 +314,8 @@ export default class SalesOrderAddress extends LightningElement {
     this.selectedBillingAddress = "";
     this.shippingAddress = "";
     this.billingAddress = "";
+    this.defaultBillingAddress = null;
+    this.defaultShippingAddress = null;
     this.shippingAddressState = { ...EMPTY_ADDRESS };
     this.billingAddressState = { ...EMPTY_ADDRESS };
     this.previousAddressSnapshot = null;
@@ -264,9 +326,13 @@ export default class SalesOrderAddress extends LightningElement {
     fields: ADDRESS_FIELDS
   })
   wiredShippingAddressData({ data, error }) {
+    console.log(JSON.stringify(this.isInStorePickup));
+    console.log(JSON.stringify(this.selectedShippingAddress));
     if (this.isInStorePickup) {
       return;
     }
+
+    console.log("wire method called!");
 
     if (data) {
       this.shippingAddressState = buildStateFromRecord(data);
@@ -323,7 +389,6 @@ export default class SalesOrderAddress extends LightningElement {
     }
 
     if (value) {
-      console.log(JSON.stringify(value));
       this.isInStorePickupDisabled = true;
       await this.applyInStorePickupAddress();
 
