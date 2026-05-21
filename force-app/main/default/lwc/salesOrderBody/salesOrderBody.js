@@ -33,7 +33,7 @@ export default class SalesOrderBody extends LightningElement {
     return [
       { label: "Sales Order", value: "sales" },
       { label: "Special Order", value: "special" },
-      { label: "Repair Order", value: "repair" }
+      // { label: "Repair Order", value: "repair" }
     ];
   }
 
