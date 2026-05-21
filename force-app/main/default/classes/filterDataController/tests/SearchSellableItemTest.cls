@@ -8,10 +8,16 @@ private class SearchSellableItemTest {
     );
     insert nonSerialized;
 
+    breadwinner_ns__BW_Item__c parent = new breadwinner_ns__BW_Item__c(
+      Name = 'SellableSerialized',
+      ncf_item_serialized_item_type__c = true
+    );
+    insert parent;
+
     breadwinner_ns__BW_Item__c serializedWithParent = new breadwinner_ns__BW_Item__c(
       Name = 'SellableSerialized',
       ncf_item_serialized_item_type__c = true,
-      breadwinner_ns__Parent__c = 'a0WWJ0000016gkB2AQ'
+      breadwinner_ns__Parent__c = parent.Id
     );
     insert serializedWithParent;
 

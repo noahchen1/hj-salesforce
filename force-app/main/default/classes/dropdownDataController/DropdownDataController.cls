@@ -110,10 +110,7 @@ public with sharing class DropdownDataController {
   }
 
   @AuraEnabled(cacheable=true)
-  public static List<AddressOption> getCustomerAddresses(
-    Id nsCompanyId,
-    String nsLocationId
-  ) {
+  public static List<AddressOption> getCustomerAddresses(Id nsCompanyId) {
     List<AddressOption> options = new List<AddressOption>();
 
     try {
@@ -138,50 +135,10 @@ public with sharing class DropdownDataController {
         );
       }
 
-      Map<String, String> hardcodedAddressesByLocationId = getHardcodedAddressesByLocationId();
-      if (
-        String.isNotBlank(nsLocationId)
-        && hardcodedAddressesByLocationId.containsKey(nsLocationId)
-      ) {
-        options.add(
-          new AddressOption(
-            hardcodedAddressesByLocationId.get(nsLocationId),
-            nsLocationId,
-            false,
-            false,
-            nsLocationId
-          )
-        );
-      }
-
       return options;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
-  }
-
-  private static Map<String, String> getHardcodedAddressesByLocationId() {
-    return new Map<String, String>{
-      '18' => 'H1912\n104 Nassau Street\nPrinceton NJ 08542\nUnited States',
-      '21' => 'H1912 Web Sales\n104 Nassau Street\nPrinceton NJ 08542\nUnited States',
-      '22' => 'Hamilton Home\n33 Witherspoon Street\nPrinceton NJ 08542\nUnited States',
-      '25' => 'Hamilton Jewelers\n215 Worth Ave\nPalm Beach FL 33480\nUnited States',
-      '26' => 'Hamilton Jewelers\n3101 PGA BLVD\nPalm Beach Gardens FL 33410\nUnited States',
-      '28' => 'Hamilton Jewelers\n92 Nassau Street\nPrinceton NJ 08542\nUnited States',
-      '29' => 'Hamilton Jewelers\n14 S Tulane Street\nPrinceton NJ 08542\nUnited States',
-      '30' => 'Hamilton Jewelers\n14 S Tulane Street\nPrinceton NJ 08542\nUnited States',
-      '31' => 'Corp Gifts (Historical)\n14 S. Tulane\nPrinceton NJ 08542\nUnited States',
-      '32' => 'Corporate Gifts\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
-      '33' => 'Corporate Gifts Web Sales\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
-      '34' => 'Red Bank\nUnited States',
-      '35' => 'Websales\n14 S. Tulane\nPrinceton NJ 08542\nUnited States',
-      '36' => 'Insignia Web Sales\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
-      '37' => 'Insignia\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
-      '38' => 'Marketing\nUnited States',
-      '39' => 'Work In Progress\nUnited States',
-      '41' => 'Hamilton Elimination Location\nUnited States',
-      '42' => 'Retail Elimination Location\nUnited States'
-    };
   }
 
   @AuraEnabled(cacheable=true)
