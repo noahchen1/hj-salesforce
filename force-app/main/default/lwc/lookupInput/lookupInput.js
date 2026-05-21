@@ -28,6 +28,13 @@ export default class LookupInput extends LightningElement {
     this.searchKey = value || "";
     this.showResults = false;
     this.results = [];
+
+    Promise.resolve().then(() => {
+      const input = this.inputElement;
+      if (!input) return;
+
+      input.reportValidity();
+    });
   }
 
   get inputElement() {
