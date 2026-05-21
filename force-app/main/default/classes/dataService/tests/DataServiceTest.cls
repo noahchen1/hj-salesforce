@@ -503,6 +503,231 @@ private class DataServiceTest {
   }
 
   @isTest
+  static void getLocationAddress_returnsMappedAddressForAllConfiguredLocations() {
+    Map<String, List<String>> expectedByLocationId = new Map<String, List<String>>{
+      '18' => new List<String>{
+        'H1912\n104 Nassau Street\nPrinceton NJ 08542\nUnited States',
+        'H1912',
+        '104 Nassau Street',
+        'Princeton',
+        'NJ',
+        '08542',
+        'United States'
+      },
+      '21' => new List<String>{
+        'H1912 Web Sales\n104 Nassau Street\nPrinceton NJ 08542\nUnited States',
+        'H1912 Web Sales',
+        '104 Nassau Street',
+        'Princeton',
+        'NJ',
+        '08542',
+        'United States'
+      },
+      '22' => new List<String>{
+        'Hamilton Home\n33 Witherspoon Street\nPrinceton NJ 08542\nUnited States',
+        'Hamilton Home',
+        '33 Witherspoon Street',
+        'Princeton',
+        'NJ',
+        '08542',
+        'United States'
+      },
+      '25' => new List<String>{
+        'Hamilton Jewelers\n215 Worth Ave\nPalm Beach FL 33480\nUnited States',
+        'Hamilton Jewelers',
+        '215 Worth Ave',
+        'Palm Beach',
+        'FL',
+        '33480',
+        'United States'
+      },
+      '26' => new List<String>{
+        'Hamilton Jewelers\n3101 PGA BLVD\nPalm Beach Gardens FL 33410\nUnited States',
+        'Hamilton Jewelers',
+        '3101 PGA BLVD',
+        'Palm Beach Gardens',
+        'FL',
+        '33410',
+        'United States'
+      },
+      '28' => new List<String>{
+        'Hamilton Jewelers\n92 Nassau Street\nPrinceton NJ 08542\nUnited States',
+        'Hamilton Jewelers',
+        '92 Nassau Street',
+        'Princeton',
+        'NJ',
+        '08542',
+        'United States'
+      },
+      '29' => new List<String>{
+        'Hamilton Jewelers\n14 S Tulane Street\nPrinceton NJ 08542\nUnited States',
+        'Hamilton Jewelers',
+        '14 S Tulane Street',
+        'Princeton',
+        'NJ',
+        '08542',
+        'United States'
+      },
+      '30' => new List<String>{
+        'Hamilton Jewelers\n14 S Tulane Street\nPrinceton NJ 08542\nUnited States',
+        'Hamilton Jewelers',
+        '14 S Tulane Street',
+        'Princeton',
+        'NJ',
+        '08542',
+        'United States'
+      },
+      '31' => new List<String>{
+        'Corp Gifts (Historical)\n14 S. Tulane\nPrinceton NJ 08542\nUnited States',
+        'Corp Gifts (Historical)',
+        '14 S. Tulane',
+        'Princeton',
+        'NJ',
+        '08542',
+        'United States'
+      },
+      '32' => new List<String>{
+        'Corporate Gifts\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
+        'Corporate Gifts',
+        '930 TOWN CENTER DR G-50',
+        'Langhorne',
+        'PA',
+        '19047',
+        'United States'
+      },
+      '33' => new List<String>{
+        'Corporate Gifts Web Sales\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
+        'Corporate Gifts Web Sales',
+        '930 TOWN CENTER DR G-50',
+        'Langhorne',
+        'PA',
+        '19047',
+        'United States'
+      },
+      '34' => new List<String>{
+        'Red Bank\nUnited States',
+        'Red Bank',
+        null,
+        null,
+        null,
+        null,
+        'United States'
+      },
+      '35' => new List<String>{
+        'Websales\n14 S. Tulane\nPrinceton NJ 08542\nUnited States',
+        'Websales',
+        '14 S. Tulane',
+        'Princeton',
+        'NJ',
+        '08542',
+        'United States'
+      },
+      '36' => new List<String>{
+        'Insignia Web Sales\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
+        'Insignia Web Sales',
+        '930 TOWN CENTER DR G-50',
+        'Langhorne',
+        'PA',
+        '19047',
+        'United States'
+      },
+      '37' => new List<String>{
+        'Insignia\n930 TOWN CENTER DR G-50\nLanghorne PA 19047\nUnited States',
+        'Insignia',
+        '930 TOWN CENTER DR G-50',
+        'Langhorne',
+        'PA',
+        '19047',
+        'United States'
+      },
+      '38' => new List<String>{
+        'Marketing\nUnited States',
+        'Marketing',
+        null,
+        null,
+        null,
+        null,
+        'United States'
+      },
+      '39' => new List<String>{
+        'Work In Progress\nUnited States',
+        'Work In Progress',
+        null,
+        null,
+        null,
+        null,
+        'United States'
+      },
+      '41' => new List<String>{
+        'Hamilton Elimination Location\nUnited States',
+        'Hamilton Elimination Location',
+        null,
+        null,
+        null,
+        null,
+        'United States'
+      },
+      '42' => new List<String>{
+        'Retail Elimination Location\nUnited States',
+        'Retail Elimination Location',
+        null,
+        null,
+        null,
+        null,
+        'United States'
+      }
+    };
+
+    Test.startTest();
+    for (String locationId : expectedByLocationId.keySet()) {
+      List<String> expected = expectedByLocationId.get(locationId);
+      DataService.LocationAddress result = DataService.getLocationAddress(locationId);
+
+      System.assertNotEquals(
+        null,
+        result,
+        'Result should not be null for locationId=' + locationId
+      );
+      System.assertEquals(
+        expected[0],
+        result.addressText,
+        'addressText should match for locationId=' + locationId
+      );
+      System.assertEquals(
+        expected[1],
+        result.addressee,
+        'addressee should match for locationId=' + locationId
+      );
+      System.assertEquals(
+        expected[2],
+        result.address_1,
+        'address_1 should match for locationId=' + locationId
+      );
+      System.assertEquals(
+        expected[3],
+        result.city,
+        'city should match for locationId=' + locationId
+      );
+      System.assertEquals(
+        expected[4],
+        result.state,
+        'state should match for locationId=' + locationId
+      );
+      System.assertEquals(
+        expected[5],
+        result.zip,
+        'zip should match for locationId=' + locationId
+      );
+      System.assertEquals(
+        expected[6],
+        result.country,
+        'country should match for locationId=' + locationId
+      );
+    }
+    Test.stopTest();
+  }
+
+  @isTest
   static void getLocationAddress_returnsEmptyAddressWhenLocationIdIsUnknown() {
     Test.startTest();
     DataService.LocationAddress result = DataService.getLocationAddress('999');
