@@ -183,7 +183,6 @@ export default class SalesOrderAddress extends LightningElement {
 
   restorePreviousAddressSnapshot() {
     if (!this.hasPreviousAddressSnapshot) {
-      console.log("called!");
       const hasDefaultShipping = !isBlank(this.defaultShippingAddress);
       const hasDefaultBilling = !isBlank(this.defaultBillingAddress);
 
@@ -192,6 +191,7 @@ export default class SalesOrderAddress extends LightningElement {
         this.shippingAddress = "";
         this.shippingAddressState = { ...EMPTY_ADDRESS };
       } else {
+        this.selectedShippingAddress = "";
         this.selectedShippingAddress = this.defaultShippingAddress;
       }
 
@@ -200,6 +200,7 @@ export default class SalesOrderAddress extends LightningElement {
         this.billingAddress = "";
         this.billingAddressState = { ...EMPTY_ADDRESS };
       } else {
+        this.selectedBillingAddress = "";
         this.selectedBillingAddress = this.defaultBillingAddress;
       }
 
@@ -326,13 +327,9 @@ export default class SalesOrderAddress extends LightningElement {
     fields: ADDRESS_FIELDS
   })
   wiredShippingAddressData({ data, error }) {
-    console.log(JSON.stringify(this.isInStorePickup));
-    console.log(JSON.stringify(this.selectedShippingAddress));
     if (this.isInStorePickup) {
       return;
     }
-
-    console.log("wire method called!");
 
     if (data) {
       this.shippingAddressState = buildStateFromRecord(data);
