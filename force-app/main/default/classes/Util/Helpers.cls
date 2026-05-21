@@ -12,13 +12,20 @@ public with sharing class Helpers {
   }
 
   public static void writeLog(String title, String details) {
-    Script_Log__c newLog = new Script_Log__c(
-      Title__c = title,
-      Details__c = details,
-      Timestamp__c = Datetime.now()
-    );
+    try {
+      Script_Log__c newLog = new Script_Log__c(
+        Title__c = title,
+        Details__c = details,
+        Timestamp__c = Datetime.now()
+      );
 
-    insert newLog;
+      insert newLog;
+    } catch (Exception logErr) {
+      System.debug(
+        LoggingLevel.WARN,
+        'Helpers.writeLog failed: ' + logErr.getMessage()
+      );
+    }
   }
 
   public static Boolean valuesEqual(Object a, Object b) {

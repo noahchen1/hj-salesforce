@@ -459,4 +459,65 @@ private class DataServiceTest {
       'displayName should match the item display name'
     );
   }
+
+  @isTest
+  static void getLocationAddress_returnsEmptyAddressWhenLocationIdIsBlank() {
+    Test.startTest();
+    DataService.LocationAddress result = DataService.getLocationAddress('   ');
+    Test.stopTest();
+
+    System.assertNotEquals(null, result, 'Result should not be null');
+    System.assertEquals(
+      null,
+      result.addressText,
+      'addressText should be null for blank input'
+    );
+    System.assertEquals(
+      null,
+      result.country,
+      'country should be null for blank input'
+    );
+  }
+
+  @isTest
+  static void getLocationAddress_returnsMappedAddressWhenLocationIdExists() {
+    Test.startTest();
+    DataService.LocationAddress result = DataService.getLocationAddress('18');
+    Test.stopTest();
+
+    System.assertNotEquals(null, result, 'Result should not be null');
+    System.assertEquals('H1912', result.addressee, 'addressee should match');
+    System.assertEquals(
+      '104 Nassau Street',
+      result.address_1,
+      'address_1 should match configured location address'
+    );
+    System.assertEquals('Princeton', result.city, 'city should match');
+    System.assertEquals('NJ', result.state, 'state should match');
+    System.assertEquals('08542', result.zip, 'zip should match');
+    System.assertEquals(
+      'United States',
+      result.country,
+      'country should match'
+    );
+  }
+
+  @isTest
+  static void getLocationAddress_returnsEmptyAddressWhenLocationIdIsUnknown() {
+    Test.startTest();
+    DataService.LocationAddress result = DataService.getLocationAddress('999');
+    Test.stopTest();
+
+    System.assertNotEquals(null, result, 'Result should not be null');
+    System.assertEquals(
+      null,
+      result.addressText,
+      'addressText should be null for unknown location'
+    );
+    System.assertEquals(
+      null,
+      result.addressee,
+      'addressee should be null for unknown location'
+    );
+  }
 }
