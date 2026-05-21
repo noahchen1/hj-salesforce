@@ -1,9 +1,10 @@
-import { LightningElement, api } from "lwc";
+import { LightningElement, api, wire } from "lwc";
 import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder";
 import getInquiryId from "@salesforce/apex/SalesOrderController.getInquiryId";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
 import { NavigationMixin } from "lightning/navigation";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { CurrentPageReference } from "lightning/navigation";
 import LightningAlert from "lightning/alert";
 import notifyOrderSaveStatus from "@salesforce/apex/SalesOrderController.notifyOrderSaveStatus";
 
@@ -30,6 +31,11 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
 
   get watches() {
     return this.template.querySelectorAll("c-inquiry-form-items");
+  }
+
+  @wire(CurrentPageReference)
+  parseParam(pageRef) {
+    console.log(JSON.stringify(pageRef.attributes.apiName));
   }
 
   async createOrders() {
