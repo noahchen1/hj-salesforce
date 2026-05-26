@@ -20,6 +20,9 @@ export default class InquiryFormBody extends LightningElement {
   locationOptions = [];
   personalization = "";
   isSendEmail = true;
+  isEmailPreferred = false;
+  isCallPreferred = false;
+  isMessagePreferred = false;
   comments = "";
 
   isLoaded = false;
@@ -95,9 +98,19 @@ export default class InquiryFormBody extends LightningElement {
       });
 
       if (nsCompany != null) {
-        const { name, companyId, internalId } = nsCompany;
+        const {
+          name,
+          companyId,
+          internalId,
+          isEmailPreferred,
+          isCallPreferred,
+          isMessagePreferred
+        } = nsCompany;
 
         if (internalId) this.customer = internalId;
+        if (isEmailPreferred) this.isEmailPreferred = isEmailPreferred;
+        if (isCallPreferred) this.isCallPreferred = isCallPreferred;
+        if (isMessagePreferred) this.isMessagePreferred = isMessagePreferred;
 
         if (name) {
           this.setLookupValue("customer", name);

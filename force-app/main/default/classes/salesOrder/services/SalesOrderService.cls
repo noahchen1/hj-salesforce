@@ -182,7 +182,13 @@ public with sharing class SalesOrderService {
 
   public static Map<String, Object> getNsCompanyFromAccount(Id accountId) {
     List<breadwinner_ns__BW_Company__c> companies = [
-      SELECT Name, Id, breadwinner_ns__InternalId__c
+      SELECT
+        Name,
+        Id,
+        breadwinner_ns__InternalId__c,
+        ncf_entity_call_perferred__c,
+        ncf_entity_email_perferred__c,
+        ncf_entity_text_msg_perferred__c
       FROM breadwinner_ns__BW_Company__c
       WHERE breadwinner_ns__Salesforce_Account__c = :accountId
       LIMIT 1
@@ -197,7 +203,10 @@ public with sharing class SalesOrderService {
     return new Map<String, Object>{
       'name' => nsCompany.Name,
       'companyId' => nsCompany.Id,
-      'internalId' => nsCompany.breadwinner_ns__InternalId__c
+      'internalId' => nsCompany.breadwinner_ns__InternalId__c,
+      'isEmailPreferred' => nsCompany.ncf_entity_email_perferred__c,
+      'isCallPreferred' => nsCompany.ncf_entity_call_perferred__c,
+      'isMessagePreferred' => nsCompany.ncf_entity_text_msg_perferred__c
     };
   }
 

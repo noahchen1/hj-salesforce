@@ -70,5 +70,28 @@
       checked={isSendEmail}
       onchange={handleInputChange}
     ></lightning-input>
+    <div>
+      <lightning-input
+        data-type="isEmailPreferred"
+        type="checkbox"
+        label="Email Preferred"
+        checked={isEmailPreferred}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-input
+        data-type="isCallPreferred"
+        type="checkbox"
+        label="Call Preferred"
+        checked={isCallPreferred}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-input
+        data-type="isMessagePreferred"
+        type="checkbox"
+        label="Text Message Preferred"
+        checked={isMessagePreferred}
+        onchange={handleInputChange}
+      ></lightning-input>
+    </div>
   </div>
 </template>
