@@ -1,6 +1,7 @@
 public with sharing class SalesOrderService {
   public static String saveSalesOrder(
     String orderType,
+    String inquiryType,
     String soNsInternalId,
     String custNsInternalId,
     Date orderDate,
@@ -37,6 +38,7 @@ public with sharing class SalesOrderService {
 
       SalesOrderValidator.validateParams(
         orderType,
+        inquiryType,
         custNsInternalId,
         orderDate,
         salesRep1,
@@ -59,7 +61,10 @@ public with sharing class SalesOrderService {
       String inquiryTranNumber;
 
       if (orderTypeContext.isInquiryOrder) {
-        inquiryTranNumber = buildNextInquiryTranNumber(custNsInternalId);
+        inquiryTranNumber = buildNextInquiryTranNumber(
+          custNsInternalId,
+          inquiryType
+        );
       }
 
       List<SalesOrderDataModel.LineItem> lineItems = SalesOrderMapper.deserializeLineItems(
@@ -263,8 +268,13 @@ public with sharing class SalesOrderService {
     notification.send(new Set<String>{ UserInfo.getUserId() });
   }
 
-  private static String buildNextInquiryTranNumber(String custNsInternalId) {
-    String startingNum = 'SOR' + custNsInternalId;
+  private static String buildNextInquiryTranNumber(
+    String custNsInternalId,
+    String inquiryTypeValue
+  ) {
+    Boolean isRolex = inquiryTypeValue == String.valueOf(InquiryType.ROLEX);
+    String prefix = isRolex ? 'SOR' : 'SOT';
+    String startingNum = prefix + custNsInternalId;
     String likePattern = startingNum + '%';
 
     List<breadwinner_ns__BW_Sales_Order__c> existingOrders = [

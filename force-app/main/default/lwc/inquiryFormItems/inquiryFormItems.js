@@ -3,6 +3,7 @@ import getParentByVendorNum from "@salesforce/apex/DataService.getParentByVendor
 
 export default class InquiryFormItems extends LightningElement {
   @api sectionTitle = "Watch Fields";
+  @api isRolex;
   @api modelLabel;
   @api nameLabel;
   @api linkLabel;
@@ -70,18 +71,31 @@ export default class InquiryFormItems extends LightningElement {
   async getFields() {
     const itemResult = await getParentByVendorNum({ vendorNum: this.model });
 
-    const rows = [
-      {
-        item: "213841",
-        displayName: itemResult.displayName ?? "",
-        specialOrderItem: itemResult.name ?? "",
-        specialOrderVendorNum: this.model,
-        quantity: "1",
-        rate: itemResult.basePrice ?? "",
-        amount: itemResult.basePrice ?? "",
-        quotedPrice: itemResult.basePrice ?? ""
-      }
-    ];
+    const rows = this.isRolex
+      ? [
+          {
+            item: "213841",
+            displayName: itemResult.displayName ?? "",
+            specialOrderItem: itemResult.name ?? "",
+            specialOrderVendorNum: this.model,
+            quantity: "1",
+            rate: itemResult.basePrice ?? "",
+            amount: itemResult.basePrice ?? "",
+            quotedPrice: itemResult.basePrice ?? ""
+          }
+        ]
+      : [
+          {
+            item: "213839",
+            displayName: itemResult.displayName ?? "",
+            specialOrderItem: itemResult.name ?? "",
+            specialOrderVendorNum: this.model,
+            quantity: "1",
+            rate: itemResult.basePrice ?? "",
+            amount: itemResult.basePrice ?? "",
+            quotedPrice: itemResult.basePrice ?? ""
+          }
+        ];
 
     return {
       model: this.model,

@@ -13,6 +13,7 @@ public with sharing class SalesOrderValidator {
 
   public static void validateParams(
     String orderType,
+    String inquiryType,
     String custNsInternalId,
     Date orderDate,
     String salesRep1,
@@ -68,7 +69,8 @@ public with sharing class SalesOrderValidator {
       (String.isBlank(inquiryId) ||
       String.isBlank(inquiryModel) ||
       String.isBlank(inquiryName) ||
-      String.isBlank(inquiryLink))
+      String.isBlank(inquiryLink) ||
+      String.isBlank(inquiryType))
     ) {
       throw Helpers.buildAuraException('Missing required inquiry parameters.');
     }

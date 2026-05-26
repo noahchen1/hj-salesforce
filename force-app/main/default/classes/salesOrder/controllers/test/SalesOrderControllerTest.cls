@@ -38,6 +38,7 @@ private class SalesOrderControllerTest {
     String soInternalId = SalesOrderController.saveSalesOrder(
       'sales',
       null,
+      null,
       '123456',
       Date.today(),
       'Sales Rep1',
@@ -216,6 +217,7 @@ private class SalesOrderControllerTest {
 
     String soInternalId = SalesOrderController.saveSalesOrder(
       'inquiry',
+      String.valueOf(InquiryType.ROLEX),
       null,
       '123456',
       Date.today(),
@@ -270,6 +272,7 @@ private class SalesOrderControllerTest {
 
     String soInternalId = SalesOrderController.saveSalesOrder(
       'inquiry',
+      String.valueOf(InquiryType.ROLEX),
       null,
       '123456',
       Date.today(),

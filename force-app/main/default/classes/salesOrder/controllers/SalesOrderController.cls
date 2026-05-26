@@ -2,6 +2,7 @@ public with sharing class SalesOrderController {
   @AuraEnabled
   public static String saveSalesOrder(
     String orderType,
+    String inquiryType,
     String soNsInternalId,
     String custNsInternalId,
     Date orderDate,
@@ -33,6 +34,7 @@ public with sharing class SalesOrderController {
   ) {
     return SalesOrderService.saveSalesOrder(
       orderType,
+      inquiryType,
       soNsInternalId,
       custNsInternalId,
       orderDate,

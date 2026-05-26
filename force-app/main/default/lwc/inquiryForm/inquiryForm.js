@@ -8,10 +8,16 @@ import { CurrentPageReference } from "lightning/navigation";
 import LightningAlert from "lightning/alert";
 import notifyOrderSaveStatus from "@salesforce/apex/SalesOrderController.notifyOrderSaveStatus";
 
+const Types = Object.freeze({
+  ROLEX: "ROLEX",
+  TUDOR: "TUDOR"
+});
+
 export default class InquiryForm extends NavigationMixin(LightningElement) {
   @api recordId;
   isLoading = true;
   navigationTimeoutId;
+  inquiryType = null;
 
   get body() {
     return this.template.querySelector("c-inquiry-form-body");
@@ -33,9 +39,28 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
     return this.template.querySelectorAll("c-inquiry-form-items");
   }
 
+  get isRolex() {
+    return this.inquiryType === Types.ROLEX;
+  }
+
   @wire(CurrentPageReference)
-  parseParam(pageRef) {
-    console.log(JSON.stringify(pageRef.attributes.apiName));
+  async parseParam(pageRef) {
+    const apiName = pageRef.attributes.apiName;
+
+    if (!apiName) {
+      await LightningAlert.open({
+        label: "Inquiry Type Error",
+        message: "Failed to get inquiry type, please contact your admin!",
+        theme: "error"
+      });
+
+      return;
+    }
+
+    const isRolex = apiName.includes("Rolex_Inquiry");
+    const isTudor = apiName.includes("Tudor_Inquiry");
+
+    this.inquiryType = isRolex ? Types.ROLEX : isTudor ? Types.TUDOR : null;
   }
 
   async createOrders() {
@@ -161,6 +186,7 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
   buildPayload(inquiryId, bodyFields, modelFields) {
     const payload = {
       orderType: "inquiry",
+      inquiryType: this.inquiryType,
       custNsInternalId: bodyFields.customer,
       orderDate: bodyFields.date,
       salesRep1: bodyFields.salesRep1,
@@ -168,9 +194,9 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
       subsidiary: bodyFields.subsidiary,
       location: bodyFields.location,
       termsNsInternalId: "2",
-      specialOrderItemType: "6",
+      specialOrderItemType: this.isRolex ? "6" : "4",
 
-      specialOrderVendor: "220",
+      specialOrderVendor: this.isRolex ? "220" : "313",
       specialOrderRequestedVendor: this.specialOrderRequestedVendor,
       specialOrderComments: bodyFields.comments,
       specialOrderNotes: this.specialOrderNotes,

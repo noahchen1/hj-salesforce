@@ -24,6 +24,7 @@ private class SalesOrderValidatorTest {
 
     SalesOrderValidator.validateParams(
       'sales',
+      null,
       '12345',
       Date.today(),
       'REP-1',
@@ -51,6 +52,7 @@ private class SalesOrderValidatorTest {
       Test.startTest();
       SalesOrderValidator.validateParams(
         'other',
+        null,
         null,
         Date.today(),
         'REP-1',
@@ -83,6 +85,7 @@ private class SalesOrderValidatorTest {
       Test.startTest();
       SalesOrderValidator.validateParams(
         'inquiry',
+        null,
         '12345',
         Date.today(),
         'REP-1',
@@ -114,6 +117,7 @@ private class SalesOrderValidatorTest {
     Test.startTest();
     SalesOrderValidator.validateParams(
       'inquiry',
+      String.valueOf(InquiryType.ROLEX),
       '12345',
       Date.today(),
       'REP-1',
@@ -140,6 +144,7 @@ private class SalesOrderValidatorTest {
       Test.startTest();
       SalesOrderValidator.validateParams(
         'sales',
+        null,
         null,
         Date.today(),
         'REP-1',
@@ -172,6 +177,7 @@ private class SalesOrderValidatorTest {
       Test.startTest();
       SalesOrderValidator.validateParams(
         'special',
+        null,
         '123565',
         Date.today(),
         'REP-1',
@@ -204,6 +210,7 @@ private class SalesOrderValidatorTest {
       Test.startTest();
       SalesOrderValidator.validateParams(
         'sales',
+        null,
         '123565',
         Date.today(),
         'REP-1',
@@ -236,6 +243,7 @@ private class SalesOrderValidatorTest {
       Test.startTest();
       SalesOrderValidator.validateParams(
         'sales',
+        null,
         '123565',
         Date.today(),
         'REP-1',
@@ -268,6 +276,7 @@ private class SalesOrderValidatorTest {
       Test.startTest();
       SalesOrderValidator.validateParams(
         'sales',
+        null,
         '123565',
         Date.today(),
         'REP-1',
@@ -300,6 +309,7 @@ private class SalesOrderValidatorTest {
       Test.startTest();
       SalesOrderValidator.validateParams(
         'sales',
+        null,
         '123565',
         Date.today(),
         'REP-1',
@@ -331,6 +341,7 @@ private class SalesOrderValidatorTest {
     Test.startTest();
     SalesOrderValidator.validateParams(
       'sales',
+      null,
       '123565',
       Date.today(),
       'REP-1',
@@ -357,6 +368,7 @@ private class SalesOrderValidatorTest {
       Test.startTest();
       SalesOrderValidator.validateParams(
         'special',
+        null,
         '123565',
         Date.today(),
         'REP-1',
