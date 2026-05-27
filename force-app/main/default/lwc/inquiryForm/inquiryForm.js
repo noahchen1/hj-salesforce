@@ -1,5 +1,6 @@
 import { LightningElement, api, wire } from "lwc";
 import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder";
+import saveCustomer from "@salesforce/apex/CustomerController.saveCustomer";
 import getInquiryId from "@salesforce/apex/SalesOrderController.getInquiryId";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
 import { NavigationMixin } from "lightning/navigation";
@@ -109,38 +110,15 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
         });
       }, 2000);
 
-      for (const modelFields of modelFieldsList) {
-        const isValidModel =
-          modelFields.model?.trim() &&
-          modelFields.name?.trim() &&
-          modelFields.link?.trim();
+      const ordersPromise = this.saveOrders(
+        modelFieldsList,
+        inquiryId,
+        bodyFields
+      );
 
-        if (isValidModel) {
-          const payload = this.buildPayload(inquiryId, bodyFields, modelFields);
+      const customerPromise = this.saveCustomerPreferrence(bodyFields);
 
-          console.log(JSON.stringify(payload));
-
-          try {
-            const { soNsInternalId, orderRecordId } =
-              await this.executeSave(payload);
-
-            await notifyOrderSaveStatus({
-              isSuccess: true,
-              soNsInternalId,
-              orderRecordId,
-              errorMessage: null
-            });
-          } catch (error) {
-            await notifyOrderSaveStatus({
-              isSuccess: false,
-              soNsInternalId: null,
-              orderRecordId: this.recordId,
-              errorMessage:
-                error?.body?.message || error?.message || "Unknown error"
-            });
-          }
-        }
-      }
+      await Promise.allSettled([ordersPromise, customerPromise]);
     } catch (error) {
       console.error(error);
       console.error(error.name);
@@ -168,6 +146,59 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
       console.error(err.stack);
 
       throw err;
+    }
+  }
+
+  async saveOrders(modelFieldsList, inquiryId, bodyFields) {
+    for (const modelFields of modelFieldsList) {
+      const isValidModel =
+        modelFields.model?.trim() &&
+        modelFields.name?.trim() &&
+        modelFields.link?.trim();
+
+      if (isValidModel) {
+        const payload = this.buildPayload(inquiryId, bodyFields, modelFields);
+
+        console.log(JSON.stringify(payload));
+
+        try {
+          const { soNsInternalId, orderRecordId } =
+            await this.executeSave(payload);
+
+          await notifyOrderSaveStatus({
+            isSuccess: true,
+            soNsInternalId,
+            orderRecordId,
+            errorMessage: null
+          });
+        } catch (error) {
+          await notifyOrderSaveStatus({
+            isSuccess: false,
+            soNsInternalId: null,
+            orderRecordId: this.recordId,
+            errorMessage:
+              error?.body?.message || error?.message || "Unknown error"
+          });
+        }
+      }
+    }
+  }
+
+  async saveCustomerPreferrence(bodyFields) {
+    try {
+      const soCustNsId = await saveCustomer({
+        custNsInternalId: bodyFields.customer,
+        isEmailPreferred: bodyFields.isEmailPreferred,
+        isPhonePreferred: bodyFields.isCallPreferred,
+        isMessagePreferred: bodyFields.isMessagePreferred
+      });
+
+      return { success: true, soCustNsId };
+    } catch (error) {
+      console.error("saveCustomer failed");
+      console.error(error);
+
+      return { success: false, error: JSON.stringify(error) };
     }
   }
 

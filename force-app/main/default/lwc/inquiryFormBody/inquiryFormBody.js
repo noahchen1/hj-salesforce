@@ -89,7 +89,7 @@ export default class InquiryFormBody extends LightningElement {
   }
 
   async renderedCallback() {
-    if (!this.accountId) return;
+    if (!this.accountId || this.isCustomerLoaded) return;
 
     try {
       this.isCustomerLoaded = false;
@@ -118,8 +118,6 @@ export default class InquiryFormBody extends LightningElement {
       }
     } catch (error) {
       console.error(error);
-      this.isCustomerLoaded = true;
-      this.checkLoadingState();
     } finally {
       this.isCustomerLoaded = true;
       this.checkLoadingState();
@@ -138,7 +136,10 @@ export default class InquiryFormBody extends LightningElement {
       personalization: this.personalization,
       isSendEmail: this.isSendEmail,
       comments: this.comments,
-      needByDate: this.date
+      needByDate: this.date,
+      isEmailPreferred: this.isEmailPreferred,
+      isCallPreferred: this.isCallPreferred,
+      isMessagePreferred: this.isMessagePreferred
     };
   }
 

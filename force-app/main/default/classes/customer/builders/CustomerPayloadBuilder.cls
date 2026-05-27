@@ -55,35 +55,29 @@ public with sharing class CustomerPayloadBuilder {
   ) {
     List<Object> customFields = new List<Object>();
 
-    if (isEmailPreferred == true) {
-      customFields.add(
-        new Map<String, Object>{
-          'fieldType' => 'boolean',
-          'scriptId' => 'custentity_email_perferred',
-          'value' => isEmailPreferred
-        }
-      );
-    }
+    customFields.add(
+      new Map<String, Object>{
+        'fieldType' => 'boolean',
+        'scriptId' => 'custentity_email_perferred',
+        'value' => isEmailPreferred
+      }
+    );
 
-    if (isPhonePreferred == true) {
-      customFields.add(
-        new Map<String, Object>{
-          'fieldType' => 'boolean',
-          'scriptId' => 'custentity_call_perferred',
-          'value' => isPhonePreferred
-        }
-      );
-    }
+    customFields.add(
+      new Map<String, Object>{
+        'fieldType' => 'boolean',
+        'scriptId' => 'custentity_call_perferred',
+        'value' => isPhonePreferred
+      }
+    );
 
-    if (isMessagePreferred == true) {
-      customFields.add(
-        new Map<String, Object>{
-          'fieldType' => 'boolean',
-          'scriptId' => 'custentity_text_msg_perferred',
-          'value' => isMessagePreferred
-        }
-      );
-    }
+    customFields.add(
+      new Map<String, Object>{
+        'fieldType' => 'boolean',
+        'scriptId' => 'custentity_text_msg_perferred',
+        'value' => isMessagePreferred
+      }
+    );
 
     return customFields;
   }
