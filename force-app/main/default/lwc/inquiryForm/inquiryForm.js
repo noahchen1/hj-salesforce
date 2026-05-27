@@ -69,8 +69,10 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
 
     this.isLoading = true;
 
+    const bodyFields = this.body?.getFields();
+
     try {
-      this.validateFields();
+      this.validateFields(bodyFields);
     } catch (error) {
       await LightningAlert.open({
         label: "Validation Error",
@@ -84,8 +86,6 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
     }
 
     try {
-      const bodyFields = this.body?.getFields();
-
       const [modelFieldsList, inquiryId] = await Promise.all([
         Promise.all([...this.watches].map((watch) => watch.getFields())),
 
@@ -249,12 +249,22 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
     return payload;
   }
 
-  validateFields() {
+  validateFields(bodyFields) {
     const isBodyValid = this.body?.validateFields();
     const isFirstWatchValid = this.firstModel?.validateFields();
 
     if (!isBodyValid || !isFirstWatchValid) {
       throw new Error("Please fill in all required fields.");
+    }
+
+    if (
+      !bodyFields.isEmailPreferred &&
+      !bodyFields.isCallPreferred &&
+      !bodyFields.isMessagePreferred
+    ) {
+      throw new Error(
+        "You must check at least one preferred method of contact！"
+      );
     }
   }
 }

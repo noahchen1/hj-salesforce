@@ -40,7 +40,9 @@ export default class InquiryFormBody extends LightningElement {
       return;
     }
     const { options } = processPicklistData(data);
-    this.locationOptions = options;
+    this.locationOptions = options.filter(({ label, value }) =>
+      ["", "26", "28"].includes(value)
+    );
     this.isLocationLoaded = true;
     this.checkLoadingState();
   }
@@ -71,7 +73,9 @@ export default class InquiryFormBody extends LightningElement {
         });
 
         const { options: locOptions } = processPicklistData(locations);
-        this.locationOptions = locOptions;
+        this.locationOptions = locOptions.filter(({ label, value }) =>
+          ["", "26", "28"].includes(value)
+        );
 
         if (!this.locationOptions.some((opt) => opt.value === this.location)) {
           this.location = "";
