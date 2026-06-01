@@ -11,7 +11,8 @@ private class CustomerControllerTest {
       '12345',
       true,
       true,
-      false
+      false,
+      null
     );
 
     System.assertEquals('12345', custNsInternalId);

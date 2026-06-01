@@ -4,7 +4,7 @@ public with sharing class CustomerPayloadBuilder {
     Boolean isEmailPreferred,
     Boolean isPhonePreferred,
     Boolean isMessagePreferred,
-    String addressJson
+    CustomerDataModel.Address address
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
 
@@ -21,7 +21,33 @@ public with sharing class CustomerPayloadBuilder {
       }
     );
 
+    if (address != null) {
+      requestMap.put(
+        'addressbookList',
+        new Map<String, Object>{
+          'addressbook' => buildAddress(address),
+          'replaceAll' => false
+        }
+      );
+    }
+
     return requestMap;
+  }
+
+  public static Map<String, Object> buildReadRequest(String custNsInternalId) {
+    Map<String, Object> filters = new Map<String, Object>{
+      'internalId' => custNsInternalId
+    };
+
+    Map<String, Object> filterMap = new Map<String, Object>{
+      'where' => new Map<String, Object>{ 'keyValueMap' => filters }
+    };
+
+    Map<String, Object> requestJSONMap = new Map<String, Object>{
+      'customParameters' => filterMap
+    };
+
+    return requestJSONMap;
   }
 
   public static Map<String, Object> buildSavePayload(
@@ -49,6 +75,16 @@ public with sharing class CustomerPayloadBuilder {
         };
   }
 
+  public static Map<String, Object> buildReadPayload(
+    Map<String, Object> request
+  ) {
+    return new Map<String, Object>{
+      'version' => '1.0',
+      'action' => 'readCustomer',
+      'requestJSON' => JSON.serialize(request)
+    };
+  }
+
   private static List<Object> buildCustomFields(
     Boolean isEmailPreferred,
     Boolean isPhonePreferred,
@@ -56,30 +92,83 @@ public with sharing class CustomerPayloadBuilder {
   ) {
     List<Object> customFields = new List<Object>();
 
-    customFields.add(
-      new Map<String, Object>{
-        'fieldType' => 'boolean',
-        'scriptId' => 'custentity_email_perferred',
-        'value' => isEmailPreferred
-      }
-    );
+    if (isEmailPreferred != null) {
+      customFields.add(
+        new Map<String, Object>{
+          'fieldType' => 'boolean',
+          'scriptId' => 'custentity_email_perferred',
+          'value' => isEmailPreferred
+        }
+      );
+    }
 
-    customFields.add(
-      new Map<String, Object>{
-        'fieldType' => 'boolean',
-        'scriptId' => 'custentity_call_perferred',
-        'value' => isPhonePreferred
-      }
-    );
+    if (isPhonePreferred != null) {
+      customFields.add(
+        new Map<String, Object>{
+          'fieldType' => 'boolean',
+          'scriptId' => 'custentity_call_perferred',
+          'value' => isPhonePreferred
+        }
+      );
+    }
 
-    customFields.add(
-      new Map<String, Object>{
-        'fieldType' => 'boolean',
-        'scriptId' => 'custentity_text_msg_perferred',
-        'value' => isMessagePreferred
-      }
-    );
+    if (isMessagePreferred != null) {
+      customFields.add(
+        new Map<String, Object>{
+          'fieldType' => 'boolean',
+          'scriptId' => 'custentity_text_msg_perferred',
+          'value' => isMessagePreferred
+        }
+      );
+    }
 
     return customFields;
+  }
+
+  private static List<Object> buildAddress(CustomerDataModel.Address address) {
+    List<Object> addressBookList = new List<Object>();
+    Map<String, Object> addressBook = new Map<String, Object>();
+    Map<String, Object> addressbookAddress = new Map<String, Object>();
+
+    if (String.isNotBlank(address.attention)) {
+      addressbookAddress.put('attention', address.attention);
+    }
+
+    if (String.isNotBlank(address.addressee)) {
+      addressbookAddress.put('addressee', address.addressee);
+    }
+
+    if (String.isNotBlank(address.addr1)) {
+      addressbookAddress.put('addr1', address.addr1);
+    }
+
+    if (String.isNotBlank(address.addr2)) {
+      addressbookAddress.put('addr2', address.addr2);
+    }
+
+    if (String.isNotBlank(address.city)) {
+      addressbookAddress.put('city', address.city);
+    }
+
+    if (String.isNotBlank(address.country)) {
+      addressbookAddress.put('country', address.country);
+    }
+
+    if (String.isNotBlank(address.zip)) {
+      addressbookAddress.put('zip', address.zip);
+    }
+
+    if (String.isNotBlank(address.state)) {
+      addressbookAddress.put('state', address.state);
+    }
+
+    if (String.isNotBlank(address.internalId)) {
+      addressBook.put('internalId', address.internalId);
+    }
+
+    addressBook.put('addressbookAddress', addressbookAddress);
+    addressBookList.add(addressBook);
+
+    return addressBookList;
   }
 }

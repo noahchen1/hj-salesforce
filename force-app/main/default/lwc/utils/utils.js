@@ -262,7 +262,7 @@ const COUNTRY_LABEL_TO_ENUM_MAP = Object.entries(COUNTRY_ENUM_MAP).reduce(
   {}
 );
 
-function formatCountry(countryEnum) {
+export function formatCountry(countryEnum) {
   return COUNTRY_ENUM_MAP[countryEnum] ?? countryEnum;
 }
 

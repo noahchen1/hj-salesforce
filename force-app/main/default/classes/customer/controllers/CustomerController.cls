@@ -15,4 +15,11 @@ public with sharing class CustomerController {
       addressJson
     );
   }
+
+  @AuraEnabled(cacheable=false)
+  public static CustomerDataModel.CustomerData getCustomerData(
+    String custNsInternalId
+  ) {
+    return CustomerService.getCustomerData(custNsInternalId);
+  }
 }
