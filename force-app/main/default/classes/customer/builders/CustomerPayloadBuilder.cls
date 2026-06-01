@@ -3,7 +3,8 @@ public with sharing class CustomerPayloadBuilder {
     String custNsInternalId,
     Boolean isEmailPreferred,
     Boolean isPhonePreferred,
-    Boolean isMessagePreferred
+    Boolean isMessagePreferred,
+    String addressJson
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
 

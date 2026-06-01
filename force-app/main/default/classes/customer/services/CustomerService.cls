@@ -3,13 +3,15 @@ public with sharing class CustomerService {
     String custNsInternalId,
     Boolean isEmailPreferred,
     Boolean isPhonePreferred,
-    Boolean isMessagePreferred
+    Boolean isMessagePreferred,
+    String addressJson
   ) {
     Map<String, Object> customerRequest = CustomerPayloadBuilder.buildSaveRequest(
       custNsInternalId,
       isEmailPreferred,
       isPhonePreferred,
-      isMessagePreferred
+      isMessagePreferred,
+      addressJson
     );
 
     Map<String, OBject> requestPayload = CustomerPayloadBuilder.buildSavePayload(

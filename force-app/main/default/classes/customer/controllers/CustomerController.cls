@@ -4,13 +4,15 @@ public with sharing class CustomerController {
     String custNsInternalId,
     Boolean isEmailPreferred,
     Boolean isPhonePreferred,
-    Boolean isMessagePreferred
+    Boolean isMessagePreferred,
+    String addressJson
   ) {
     return CustomerService.saveCustomer(
       custNsInternalId,
       isEmailPreferred,
       isPhonePreferred,
-      isMessagePreferred
+      isMessagePreferred,
+      addressJson
     );
   }
 }

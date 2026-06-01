@@ -1,0 +1,98 @@
+<template>
+  <lightning-card>
+    <div class="main-container">
+      <div if:true={isLoading} class="spinner-container">
+        <lightning-spinner
+          alternative-text="Loading..."
+          size="medium"
+        ></lightning-spinner>
+      </div>
+    </div>
+
+    <div class="title">Address</div>
+
+    <div class="btn-container">
+      <lightning-button
+        label="Save"
+        variant="brand"
+        onclick={saveAddress}
+        disabled={isLoading}
+      ></lightning-button>
+    </div>
+
+    <div class="form-body">
+      <lightning-combobox
+        name="country"
+        label="Country"
+        data-type="country"
+        value={country}
+        options={countryOptions}
+        onchange={handleComboboxChange}
+        required
+      ></lightning-combobox>
+      <lightning-input
+        label="Attention"
+        data-type="attention"
+        type="text"
+        value={attention}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-input
+        label="Addressee"
+        data-type="addressee"
+        type="text"
+        value={addressee}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-input
+        label="Zip"
+        data-type="zipcode"
+        type="text"
+        value={zipcode}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-input
+        label="City"
+        data-type="city"
+        type="text"
+        value={city}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <template if:true={isSelectableState}>
+        <lightning-combobox
+          name="state"
+          label="State"
+          value={state}
+          options={stateOptions}
+          onchange={handleComboboxChange}
+          disabled={isStateDisabled}
+        ></lightning-combobox>
+      </template>
+      <template if:false={isSelectableState}>
+        <lightning-input
+          label="State"
+          data-type="state"
+          type="text"
+          value={state}
+          onchange={handleInputChange}
+          disabled={isStateDisabled}
+        ></lightning-input>
+      </template>
+
+      <lightning-input
+        label="Address 1"
+        data-type="address1"
+        type="text"
+        value={address1}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-input
+        label="Address 2"
+        data-type="address2"
+        type="text"
+        value={address2}
+        onchange={handleInputChange}
+      ></lightning-input>
+    </div>
+  </lightning-card>
+</template>
