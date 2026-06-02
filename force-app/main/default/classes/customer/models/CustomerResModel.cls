@@ -53,8 +53,6 @@ public with sharing class CustomerResModel {
     @AuraEnabled
     public String state;
     @AuraEnabled
-    public String internalId;
-    @AuraEnabled
     public String country;
     @AuraEnabled
     public String city;

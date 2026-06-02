@@ -44,6 +44,20 @@
           onchange={handleInputChange}
         ></lightning-input>
         <lightning-input
+          label="Address 1"
+          data-type="address1"
+          type="text"
+          value={address1}
+          onchange={handleInputChange}
+        ></lightning-input>
+        <lightning-input
+          label="Address 2"
+          data-type="address2"
+          type="text"
+          value={address2}
+          onchange={handleInputChange}
+        ></lightning-input>
+        <lightning-input
           label="Zip"
           data-type="zipcode"
           type="text"
@@ -77,22 +91,6 @@
             disabled={isStateDisabled}
           ></lightning-input>
         </template>
-
-        <lightning-input
-          label="Address 1"
-          data-type="address1"
-          type="text"
-          value={address1}
-          onchange={handleInputChange}
-        ></lightning-input>
-        <lightning-input
-          label="Address 2"
-          data-type="address2"
-          type="text"
-          value={address2}
-          onchange={handleInputChange}
-        ></lightning-input>
-
         <lightning-input
           data-type="isDefaultBilling"
           type="checkbox"
@@ -100,7 +98,6 @@
           checked={isDefaultBilling}
           onchange={handleInputChange}
         ></lightning-input>
-
         <lightning-input
           data-type="isDefaultShipping"
           type="checkbox"
