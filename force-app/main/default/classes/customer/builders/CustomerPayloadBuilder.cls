@@ -166,6 +166,14 @@ public with sharing class CustomerPayloadBuilder {
       addressBook.put('internalId', address.internalId);
     }
 
+    if (address.defaultBilling != null) {
+      addressBook.put('defaultBilling', address.defaultBilling);
+    }
+
+    if (address.defaultShipping != null) {
+      addressBook.put('defaultShipping', address.defaultShipping);
+    }
+
     addressBook.put('addressbookAddress', addressbookAddress);
     addressBookList.add(addressBook);
 

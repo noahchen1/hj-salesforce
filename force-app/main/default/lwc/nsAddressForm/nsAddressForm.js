@@ -16,8 +16,8 @@ export default class NsAddressForm extends LightningElement {
   custNsInternalId = null;
   addressNsInternalId = null;
   isLoading = false;
-  country = null;
-  countryEnum = null;
+  country = "US";
+  countryEnum = "_unitedStates";
   attention = null;
   addressee = null;
   zipcode = null;
@@ -25,6 +25,8 @@ export default class NsAddressForm extends LightningElement {
   state = null;
   address1 = null;
   address2 = null;
+  isDefaultBilling = false;
+  isDefaultShipping = false;
 
   countryOptions = [];
   stateOptions = [];
@@ -62,7 +64,19 @@ export default class NsAddressForm extends LightningElement {
   async handleObjName({ data, error }) {
     if (data) {
       if (data === "Account") {
-        console.log("launching from account!");
+        try {
+          const results = await getValue({
+            recordName: "Account",
+            fieldNames: ["NetSuiteInternalId__c"],
+            recordId: this.recordId
+          });
+
+          if (results.NetSuiteInternalId__c) {
+            this.custNsInternalId = results.NetSuiteInternalId__c;
+          }
+        } catch (err) {
+          console.error(err);
+        }
       } else {
         try {
           const results = await getValue({
@@ -117,8 +131,9 @@ export default class NsAddressForm extends LightningElement {
   }
 
   handleInputChange(e) {
+    const isCheckBox = e.target.type === "checkbox";
     const type = e.target.dataset.type;
-    const value = e.target.value;
+    const value = isCheckBox ? e.target.checked : e.target.value;
 
     this[type] = value;
   }
@@ -133,6 +148,8 @@ export default class NsAddressForm extends LightningElement {
         (address) => address.internalId === this.addressNsInternalId
       );
 
+      console.log(JSON.stringify(selectedAddresses));
+
       if (selectedAddresses.length > 0) {
         const selectedAddress = selectedAddresses[0];
 
@@ -142,6 +159,8 @@ export default class NsAddressForm extends LightningElement {
         this.zipcode = selectedAddress.zip;
         this.city = selectedAddress.city;
         this.attention = selectedAddress.attention;
+        this.isDefaultBilling = selectedAddress.defaultBilling;
+        this.isDefaultShipping = selectedAddress.defaultShipping;
 
         this.setCountryAndState(selectedAddress.country, selectedAddress.state);
       }
@@ -161,7 +180,9 @@ export default class NsAddressForm extends LightningElement {
         city: this.city,
         state: this.state,
         addr1: this.address1,
-        addr2: this.address2
+        addr2: this.address2,
+        defaultBilling: this.isDefaultBilling,
+        defaultShipping: this.isDefaultShipping
       };
 
       console.log(JSON.stringify(addressPaylod));
@@ -216,7 +237,6 @@ export default class NsAddressForm extends LightningElement {
     }
 
     if (!isBlank(state)) {
-      console.log(JSON.stringify(this.stateOptions));
       if (!this.isSelectableState) {
         this.state = state;
 
