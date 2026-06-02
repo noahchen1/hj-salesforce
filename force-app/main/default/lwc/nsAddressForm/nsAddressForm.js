@@ -8,14 +8,18 @@ import saveCustomer from "@salesforce/apex/CustomerController.saveCustomer";
 import getObjectName from "@salesforce/apex/SalesOrderController.getObjectName";
 import getCustomerData from "@salesforce/apex/CustomerController.getCustomerData";
 import getValue from "@salesforce/apex/DataService.getValue";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { NavigationMixin } from "lightning/navigation";
+import LightningAlert from "lightning/alert";
+
 import { isBlank, formatCountry, toCountryEnum } from "c/utils";
 
-export default class NsAddressForm extends LightningElement {
+export default class NsAddressForm extends NavigationMixin(LightningElement) {
   @api recordId;
 
   custNsInternalId = null;
   addressNsInternalId = null;
-  isLoading = false;
+  isLoading = true;
   country = "US";
   countryEnum = "_unitedStates";
   attention = null;
@@ -33,6 +37,10 @@ export default class NsAddressForm extends LightningElement {
 
   allStateValues = [];
   stateControllerValues = {};
+
+  isCountryLoaded = false;
+  isStateLoaded = false;
+  isAddressLoaded = false;
 
   @wire(getObjectInfo, { objectApiName: ACCOUNT_OBJECT })
   objectInfo;
@@ -53,8 +61,9 @@ export default class NsAddressForm extends LightningElement {
 
       this.allStateValues = stateField.values;
       this.stateControllerValues = stateField.controllerValues;
-
       this.buildStateOptions();
+      this.isCountryLoaded = true;
+      this.checkLoadingState();
     } else if (error) {
       console.error(error);
     }
@@ -76,6 +85,9 @@ export default class NsAddressForm extends LightningElement {
           }
         } catch (err) {
           console.error(err);
+        } finally {
+          this.isAddressLoaded = true;
+          this.checkLoadingState();
         }
       } else {
         try {
@@ -166,10 +178,15 @@ export default class NsAddressForm extends LightningElement {
       }
     } catch (err) {
       console.error(err.message);
+    } finally {
+      this.isAddressLoaded = true;
+      this.checkLoadingState();
     }
   }
 
   async saveAddress() {
+    if (this.isLoading) return;
+
     try {
       const addressPaylod = {
         internalId: this.addressNsInternalId,
@@ -186,21 +203,40 @@ export default class NsAddressForm extends LightningElement {
       };
 
       console.log(JSON.stringify(addressPaylod));
+      this.isLoading = true;
 
       const result = await saveCustomer({
         custNsInternalId: this.custNsInternalId,
         addressJson: JSON.stringify(addressPaylod)
       });
 
-      console.log(JSON.stringify(result));
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Address Saved",
+          message: "Address saved successfully!",
+          variant: "success"
+        })
+      );
+
+      if (this.recordId) {
+        this[NavigationMixin.Navigate]({
+          type: "standard__recordPage",
+          attributes: { recordId: this.recordId, actionName: "view" }
+        });
+      }
     } catch (err) {
       console.error("Failed to save customer!");
       console.error(err);
       console.error(err.name);
       console.error(err.message);
       console.error(err.stack);
-
-      throw err;
+      LightningAlert.open({
+        label: "Error!",
+        message: `Address was not saved, cause: ${err?.body?.message || err?.message}`,
+        theme: "error"
+      });
+    } finally {
+      this.isLoading = false;
     }
   }
 
@@ -208,6 +244,7 @@ export default class NsAddressForm extends LightningElement {
     if (!this.country || !this.stateControllerValues[this.country]) {
       this.stateOptions = [];
       this.state = null;
+      this.isStateLoaded = true;
 
       return;
     }
@@ -217,6 +254,8 @@ export default class NsAddressForm extends LightningElement {
     this.stateOptions = this.allStateValues
       .filter((state) => state.validFor.includes(countryKey))
       .map((state) => ({ label: state.label, value: state.value }));
+
+    this.isStateLoaded = true;
   }
 
   setCountryAndState(country, state) {
@@ -234,11 +273,13 @@ export default class NsAddressForm extends LightningElement {
       this.country = countryOption.value;
       this.countryEnum = toCountryEnum(countryOption.label);
       this.buildStateOptions();
+      this.isCountryLoaded = true;
     }
 
     if (!isBlank(state)) {
       if (!this.isSelectableState) {
         this.state = state;
+        this.isStateLoaded = true;
 
         return;
       }
@@ -250,6 +291,16 @@ export default class NsAddressForm extends LightningElement {
       if (stateOption) {
         this.state = stateOption.value;
       }
+
+      this.isStateLoaded = true;
+    }
+
+    this.checkLoadingState();
+  }
+
+  checkLoadingState() {
+    if (this.isCountryLoaded && this.isStateLoaded && this.isAddressLoaded) {
+      this.isLoading = false;
     }
   }
 }
