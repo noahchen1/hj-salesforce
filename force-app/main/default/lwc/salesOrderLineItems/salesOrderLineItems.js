@@ -50,6 +50,16 @@ export default class SalesOrderLineItems extends LightningElement {
     this.reset();
   }
 
+  emitLineItemsChange() {
+    this.dispatchEvent(
+      new CustomEvent("lineitemschange", {
+        detail: {
+          rows: this.getRows()
+        }
+      })
+    );
+  }
+
   get isSalesOrder() {
     return this.orderType === "sales";
   }
@@ -144,6 +154,8 @@ export default class SalesOrderLineItems extends LightningElement {
         (row) => row.specialOrderVendorNum || ""
       );
     }
+
+    this.emitLineItemsChange();
   }
 
   @api
@@ -159,6 +171,7 @@ export default class SalesOrderLineItems extends LightningElement {
     this.pendingLookupSelections = {
       item: [""]
     };
+    this.emitLineItemsChange();
   }
 
   @api
@@ -226,6 +239,8 @@ export default class SalesOrderLineItems extends LightningElement {
       this.pendingLookupSelections.specialOrderItem = [""];
       this.pendingLookupSelections.specialOrderVendorNum = [""];
     }
+
+    this.emitLineItemsChange();
   }
 
   @api
@@ -314,6 +329,7 @@ export default class SalesOrderLineItems extends LightningElement {
         }
 
         this.rows = updatedRows;
+        this.emitLineItemsChange();
       }
 
       if (
@@ -504,6 +520,7 @@ export default class SalesOrderLineItems extends LightningElement {
     }
 
     this.rows = updatedRows;
+    this.emitLineItemsChange();
 
     if (!isDiscount) {
       this.selectedItemRowIndex = index;
@@ -650,6 +667,7 @@ export default class SalesOrderLineItems extends LightningElement {
         row.showAction = idx === index + 1;
       });
       this.rows = updatedRows;
+      this.emitLineItemsChange();
     } catch (error) {
       console.error(`Error adding row at index ${index}`, error);
     }
@@ -667,6 +685,7 @@ export default class SalesOrderLineItems extends LightningElement {
     });
 
     this.rows = updatedRows;
+    this.emitLineItemsChange();
   }
 
   handleFocus(e) {
@@ -675,6 +694,7 @@ export default class SalesOrderLineItems extends LightningElement {
       ...row,
       showAction: idx === index
     }));
+    this.emitLineItemsChange();
   }
 
   clearItemLookups() {
@@ -711,6 +731,7 @@ export default class SalesOrderLineItems extends LightningElement {
       };
 
       this.rows = updatedRows;
+      this.emitLineItemsChange();
     }
 
     if (this.selectedItemRowIndex === index) {
@@ -755,6 +776,7 @@ export default class SalesOrderLineItems extends LightningElement {
         ...updates
       };
       this.rows = updatedRows;
+      this.emitLineItemsChange();
     }
   }
 

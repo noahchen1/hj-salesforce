@@ -33,21 +33,21 @@
       <c-sales-order-body
         subsidiary-options={subsidiaryOptions}
         location-options={locationOptions}
-        date={date}
-        subsidiary={subsidiary}
-        location={location}
-        memo={memo}
-        order-type={orderType}
-        payment-term={paymentTerm}
-        special-date={specialDate}
-        need-by-date={needByDate}
-        special-order-item-type={specialOrderItemType}
-        special-order-vendor={specialOrderVendor}
-        special-order-requested-vendor={specialOrderRequestedVendor}
-        special-order-comments={specialOrderComments}
-        special-order-notes={specialOrderNotes}
-        special-order-memo-or-sold={specialOrderMemoOrSold}
-        special-order-status={specialOrderStatus}
+        date={formState.date}
+        subsidiary={formState.subsidiary}
+        location={formState.location}
+        memo={formState.memo}
+        order-type={formState.orderType}
+        payment-term={formState.paymentTerm}
+        special-date={formState.specialDate}
+        need-by-date={formState.needByDate}
+        special-order-item-type={formState.specialOrderItemType}
+        special-order-vendor={formState.specialOrderVendor}
+        special-order-requested-vendor={formState.specialOrderRequestedVendor}
+        special-order-comments={formState.specialOrderComments}
+        special-order-notes={formState.specialOrderNotes}
+        special-order-memo-or-sold={formState.specialOrderMemoOrSold}
+        special-order-status={formState.specialOrderStatus}
         is-order-type-disabled={isOrderTypeDisabled}
         is-subsidiary-disbaled={isSubsidiaryDisbaled}
         oncustomerselect={handleCustomerSelect}
@@ -60,15 +60,17 @@
 
       <c-sales-order-address
         address-options={addressOptions}
-        selected-location={location}
-        order-type={orderType}
+        selected-location={formState.location}
+        order-type={formState.orderType}
+        onaddressstatechange={handleAddressStateChange}
       ></c-sales-order-address>
 
       <c-sales-order-line-items
-        location={location}
-        special-order-status={specialOrderStatus}
+        location={formState.location}
+        special-order-status={formState.specialOrderStatus}
         disabled={showTableOverlay}
-        order-type={orderType}
+        order-type={formState.orderType}
+        onlineitemschange={handleLineItemsChange}
       ></c-sales-order-line-items>
     </div>
   </lightning-card>

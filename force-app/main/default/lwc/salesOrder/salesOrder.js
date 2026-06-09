@@ -22,32 +22,42 @@ import { processPicklistData } from "c/salesOrderUtils";
 import { VENDOR_REQUIRED_ITEM_TYPES } from "c/salesOrderUtils";
 import { isValidRolexVendorNum } from "c/salesOrderUtils";
 
+const DEFAULT_FORM_STATE = Object.freeze({
+  custNsInternalId: "",
+  date: new Date().toISOString(),
+  salesRep1: "",
+  salesRep2: "",
+  location: "",
+  memo: "",
+  orderType: "sales",
+  paymentTerm: "149",
+  specialDate: null,
+  needByDate: null,
+  specialOrderItemType: "",
+  specialOrderVendor: "",
+  specialOrderRequestedVendor: "",
+  specialOrderComments: "",
+  specialOrderNotes: "",
+  specialOrderMemoOrSold: "2",
+  specialOrderStatus: "",
+  subsidiary: "",
+  address: {
+    shippingAddressState: {},
+    billingAddressState: {}
+  },
+  lineItems: []
+});
+
+const FORM_STATE_FIELDS = new Set(Object.keys(DEFAULT_FORM_STATE));
+
 export default class SalesOrder extends NavigationMixin(LightningElement) {
   @api recordId;
 
   soNsInternalId;
   accountId;
-  custNsInternalId = "";
+  formState = { ...DEFAULT_FORM_STATE };
   selectedNsCompanyId;
-  date = new Date().toISOString();
-  salesRep1 = "";
-  salesRep2 = "";
-  location = "";
-  memo = "";
-  orderType = "sales";
-  paymentTerm = "149";
 
-  specialDate = null;
-  needByDate = null;
-  specialOrderItemType = "";
-  specialOrderVendor = "";
-  specialOrderRequestedVendor = "";
-  specialOrderComments = "";
-  specialOrderNotes = "";
-  specialOrderMemoOrSold = "2";
-  specialOrderStatus = "";
-
-  subsidiary = "";
   isLoading = true;
   locationOptions = [];
   addressOptions = [];
@@ -65,6 +75,36 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   loadingMessage = "";
 
+  updateFormState(patch) {
+    this.formState = {
+      ...this.formState,
+      ...patch
+    };
+  }
+
+  setFormField(field, value) {
+    this.updateFormState({ [field]: value });
+  }
+
+  setAddressState(addressState = {}) {
+    this.updateFormState({
+      address: {
+        shippingAddressState: {
+          ...(addressState.shippingAddressState || {})
+        },
+        billingAddressState: {
+          ...(addressState.billingAddressState || {})
+        }
+      }
+    });
+  }
+
+  setLineItems(rows = []) {
+    this.updateFormState({
+      lineItems: rows.map((row) => ({ ...row }))
+    });
+  }
+
   get header() {
     return this.template.querySelector("c-sales-order-body");
   }
@@ -78,7 +118,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   }
 
   get isSpecialOrder() {
-    return this.orderType === "special";
+    return this.formState.orderType === "special";
   }
 
   get parentRecordId() {
@@ -90,33 +130,35 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   }
 
   get showTableOverlay() {
-    if (this.orderType === "sales") {
+    const state = this.formState;
+
+    if (state.orderType === "sales") {
       return !(
-        this.custNsInternalId &&
-        this.salesRep1 &&
-        this.subsidiary &&
-        this.location &&
-        this.date
+        state.custNsInternalId &&
+        state.salesRep1 &&
+        state.subsidiary &&
+        state.location &&
+        state.date
       );
-    } else if (this.orderType === "special") {
+    } else if (state.orderType === "special") {
       return !(
-        this.custNsInternalId &&
-        this.salesRep1 &&
-        this.subsidiary &&
-        this.location &&
-        this.date &&
-        this.needByDate &&
-        this.specialOrderItemType &&
-        (!VENDOR_REQUIRED_ITEM_TYPES.has(this.specialOrderItemType) ||
-          this.specialOrderVendor) &&
-        this.specialOrderMemoOrSold
+        state.custNsInternalId &&
+        state.salesRep1 &&
+        state.subsidiary &&
+        state.location &&
+        state.date &&
+        state.needByDate &&
+        state.specialOrderItemType &&
+        (!VENDOR_REQUIRED_ITEM_TYPES.has(state.specialOrderItemType) ||
+          state.specialOrderVendor) &&
+        state.specialOrderMemoOrSold
       );
     }
 
     return false;
   }
 
-  @wire(getSubsidiaryLocations, { subsidiary: "$subsidiary" })
+  @wire(getSubsidiaryLocations, { subsidiary: "$formState.subsidiary" })
   handleLocations({ data, error }) {
     if (error) {
       console.error("Error fetching locationOptions:", error);
@@ -171,7 +213,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         );
 
         if (paymentTermObj.length > 0) {
-          this.paymentTerm = paymentTermObj[0].value;
+          this.setFormField("paymentTerm", paymentTermObj[0].value);
         }
       }
 
@@ -182,7 +224,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       this.fetchCustomerAddresses({
         nsCompanyId: this.selectedNsCompanyId,
-        location: this.location
+        location: this.formState.location
       });
     } else {
       // this._addressSection?.reset();
@@ -220,24 +262,30 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       const { options: subOptions } = processPicklistData(subsidiaries);
       this.subsidiaryOptions = subOptions;
 
-      this.subsidiary = emp.subsidiaryId || "";
-      this.location = emp.locationId || "";
-      this.salesRep1 = emp.employeeId || "";
+      this.updateFormState({
+        subsidiary: emp.subsidiaryId || "",
+        location: emp.locationId || "",
+        salesRep1: emp.employeeId || ""
+      });
 
       if (emp.employeeId && emp.employeeName) {
         this.header?.setLookupValue("salesRep1", emp.employeeName);
       }
 
-      if (this.subsidiary) {
+      if (this.formState.subsidiary) {
         const locations = await getSubsidiaryLocations({
-          subsidiary: this.subsidiary
+          subsidiary: this.formState.subsidiary
         });
 
         const { options: locOptions } = processPicklistData(locations);
         this.locationOptions = locOptions;
 
-        if (!this.locationOptions.some((opt) => opt.value === this.location)) {
-          this.location = "";
+        if (
+          !this.locationOptions.some(
+            (opt) => opt.value === this.formState.location
+          )
+        ) {
+          this.setFormField("location", "");
         }
       }
     } catch (error) {
@@ -250,37 +298,48 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   handleCustomerSelect(e) {
     this.selectedNsCompanyId = e.detail.id;
-    this.custNsInternalId = e.detail.nsId;
+    this.setFormField("custNsInternalId", e.detail.nsId);
     this.accountId = "";
   }
 
   handleSalesRepSelect(e) {
-    this[e.detail.type] = e.detail.nsId;
+    this.setFormField(e.detail.type, e.detail.nsId);
   }
 
   handleSpecialOrderVendorSelect(e) {
-    this[e.detail.type] = e.detail.nsId;
+    this.setFormField(e.detail.type, e.detail.nsId);
   }
 
   handleHeaderFieldChange(e) {
-    this[e.detail.field] = e.detail.value;
+    this.setFormField(e.detail.field, e.detail.value);
   }
 
   handleHeaderFieldClear(e) {
     const field = e.detail.field;
     if (field === "customer") {
-      this.custNsInternalId = "";
+      this.setFormField("custNsInternalId", "");
       this.accountId = "";
-    } else {
-      this[field] = "";
+      return;
     }
+
+    if (FORM_STATE_FIELDS.has(field)) {
+      this.setFormField(field, "");
+    }
+  }
+
+  handleAddressStateChange(e) {
+    this.setAddressState(e.detail);
+  }
+
+  handleLineItemsChange(e) {
+    this.setLineItems(e.detail?.rows || []);
   }
 
   handleHeaderComboboxChange(e) {
     const { name, value } = e.detail;
 
     if (name === "orderType") {
-      this[name] = value;
+      this.setFormField(name, value);
       this.reset();
 
       const isSpecialOrder = value === "special";
@@ -295,18 +354,20 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     if (name === "specialOrderItemType") {
       const isRolex = value === "6";
 
-      this.specialOrderVendor = "";
-      this.specialOrderRequestedVendor = "";
+      this.updateFormState({
+        specialOrderVendor: "",
+        specialOrderRequestedVendor: ""
+      });
 
       if (isRolex) {
-        this.specialOrderVendor = "220";
+        this.setFormField("specialOrderVendor", "220");
 
         this.header?.setLookupValue(
           "specialOrderVendor",
           "ROLEX WATCH U.S.A., INC"
         );
       } else {
-        this.specialOrderVendor = "";
+        this.setFormField("specialOrderVendor", "");
 
         this.header?.setLookupValue("specialOrderVendor", "");
       }
@@ -329,8 +390,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       }
     }
 
-    if (name === "subsidiary" && this.subsidiary !== value) {
-      this.location = "";
+    if (name === "subsidiary" && this.formState.subsidiary !== value) {
+      this.setFormField("location", "");
       // this.lineItems?.reset();
     }
 
@@ -338,7 +399,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     //   this.lineItems?.reset();
     // }
 
-    this[name] = value;
+    this.setFormField(name, value);
   }
 
   async reset() {
@@ -348,17 +409,18 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.isAddressLoaded = false;
     this.isNsCompanyIdLoaded = false;
 
-    this.date = new Date().toISOString();
-    this.salesRep1 = "";
-    this.salesRep2 = "";
-    this.location = "";
-    this.memo = "";
-    this.paymentTerm = "149";
-    this.subsidiary = "";
-    this.specialDate = "";
-    this.needByDate = "";
+    this.formState = {
+      ...DEFAULT_FORM_STATE,
+      date: new Date().toISOString(),
+      specialDate: "",
+      needByDate: "",
+      address: {
+        shippingAddressState: {},
+        billingAddressState: {}
+      },
+      lineItems: []
+    };
     this.accountId = this.recordId || "";
-    this.custNsInternalId = "";
     this.selectedNsCompanyId = undefined;
     this.locationOptions = [];
     this.addressOptions = [{ label: "Select", value: "" }];
@@ -490,38 +552,37 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   }
 
   buildPayload() {
-    const { shippingAddressState, billingAddressState } =
-      this.addressSection?.getAddressState() ?? {
-        shippingAddressState: {},
-        billingAddressState: {}
-      };
+    const { shippingAddressState = {}, billingAddressState = {} } =
+      this.formState.address || {};
 
-    const rows = this.lineItems?.getRows() ?? [];
+    const rows = this.formState.lineItems || [];
 
     const payload = {
-      orderType: this.orderType,
+      orderType: this.formState.orderType,
       soNsInternalId: this.soNsInternalId,
-      custNsInternalId: this.custNsInternalId,
-      orderDate: this.date,
-      salesRep1: this.salesRep1,
-      salesRep2: this.salesRep2,
-      subsidiary: this.subsidiary,
-      location: this.location,
-      termsNsInternalId: this.paymentTerm,
-      memo: this.memo,
-      specialOrderItemType: this.specialOrderItemType,
-      specialOrderVendor: this.specialOrderVendor,
-      specialOrderRequestedVendor: this.specialOrderRequestedVendor,
-      specialOrderComments: this.specialOrderComments,
-      specialOrderNotes: this.specialOrderNotes,
-      specialOrderMemoOrSold: this.specialOrderMemoOrSold,
+      custNsInternalId: this.formState.custNsInternalId,
+      orderDate: this.formState.date,
+      salesRep1: this.formState.salesRep1,
+      salesRep2: this.formState.salesRep2,
+      subsidiary: this.formState.subsidiary,
+      location: this.formState.location,
+      termsNsInternalId: this.formState.paymentTerm,
+      memo: this.formState.memo,
+      specialOrderItemType: this.formState.specialOrderItemType,
+      specialOrderVendor: this.formState.specialOrderVendor,
+      specialOrderRequestedVendor: this.formState.specialOrderRequestedVendor,
+      specialOrderComments: this.formState.specialOrderComments,
+      specialOrderNotes: this.formState.specialOrderNotes,
+      specialOrderMemoOrSold: this.formState.specialOrderMemoOrSold,
       shippingAddressJson: JSON.stringify(shippingAddressState),
       billingAddressJson: JSON.stringify(billingAddressState),
       lineItemsJson: JSON.stringify(rows)
     };
 
-    if (this.specialDate) payload.specialDate = this.specialDate;
-    if (this.needByDate) payload.needByDate = this.needByDate;
+    if (this.formState.specialDate)
+      payload.specialDate = this.formState.specialDate;
+    if (this.formState.needByDate)
+      payload.needByDate = this.formState.needByDate;
 
     return payload;
   }
@@ -556,48 +617,58 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         data.specialOrderItemType !== "" &&
         data.specialOrderItemType !== undefined;
 
-      this.orderType = isSpecialOrder ? "special" : "sales";
+      this.updateFormState({
+        orderType: isSpecialOrder ? "special" : "sales",
+        custNsInternalId: data.customerNsId ?? "",
+        date: data.orderDate ?? null,
+        salesRep1: data.salesRep1NsId ?? "",
+        salesRep2: data.salesRep2NsId ?? "",
+        memo: data.memo ?? "",
+        paymentTerm: data.termNsId ?? "",
+        subsidiary: data.subsidiaryNsId ?? "",
+        location: data.locationNsId ?? ""
+      });
       this.soNsInternalId = data.soNsInternalId ?? "";
       this.accountId = data.accountId ?? "";
-      this.custNsInternalId = data.customerNsId ?? "";
-      this.date = data.orderDate ?? null;
-      this.salesRep1 = data.salesRep1NsId ?? "";
-      this.salesRep2 = data.salesRep2NsId ?? "";
-      this.memo = data.memo ?? "";
-      this.paymentTerm = data.paymentTerm ?? "149";
-      this.subsidiary = data.subsidiaryNsId ?? "";
-      this.location = data.locationNsId ?? "";
-      this.paymentTerm = data.termNsId ?? "";
 
       if (isSpecialOrder) {
-        this.specialDate = data.specialDate ?? null;
-        this.needByDate = data.needByDate ?? null;
-        this.specialOrderItemType = data.specialOrderItemType ?? "";
-        this.specialOrderVendor = data.specialOrderVendorNsId ?? "";
-        this.specialOrderRequestedVendor =
-          data.specialOrderRequestedVendor ?? "";
-        this.specialOrderComments = data.specialOrderComments ?? "";
-        this.specialOrderNotes = data.specialOrderNotes ?? "";
-        this.specialOrderMemoOrSold = data.specialOrderMemoOrSold ?? "";
-        this.specialOrderStatus = data.specialOrderStatus ?? "";
+        this.updateFormState({
+          specialDate: data.specialDate ?? null,
+          needByDate: data.needByDate ?? null,
+          specialOrderItemType: data.specialOrderItemType ?? "",
+          specialOrderVendor: data.specialOrderVendorNsId ?? "",
+          specialOrderRequestedVendor: data.specialOrderRequestedVendor ?? "",
+          specialOrderComments: data.specialOrderComments ?? "",
+          specialOrderNotes: data.specialOrderNotes ?? "",
+          specialOrderMemoOrSold: data.specialOrderMemoOrSold ?? "",
+          specialOrderStatus: data.specialOrderStatus ?? ""
+        });
       } else {
-        this.specialDate = "";
-        this.needByDate = "";
-        this.specialOrderItemType = "";
-        this.specialOrderVendor = "";
-        this.specialOrderRequestedVendor = "";
-        this.specialOrderComments = "";
-        this.specialOrderNotes = "";
-        this.specialOrderMemoOrSold = "";
+        this.updateFormState({
+          specialDate: "",
+          needByDate: "",
+          specialOrderItemType: "",
+          specialOrderVendor: "",
+          specialOrderRequestedVendor: "",
+          specialOrderComments: "",
+          specialOrderNotes: "",
+          specialOrderMemoOrSold: "",
+          specialOrderStatus: ""
+        });
       }
 
       this.addressSection?.loadFromOrderData(data);
       const mappedRows = this.lineItems?.getMappedRows(data.lineItems);
       this.lineItems?.loadRows(mappedRows);
+      this.setAddressState({
+        shippingAddressState: data.shippingAddress || {},
+        billingAddressState: data.billingAddress || {}
+      });
+      this.setLineItems(mappedRows || []);
 
       await this.fetchCustomerAddresses({
         nsCompanyId: data.nsCompanyId,
-        location: this.location,
+        location: this.formState.location,
         skipSelection: true
       });
 
@@ -629,7 +700,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       const nsCompanyData = await getNsCompanyFromAccount({ accountId });
       if (nsCompanyData) {
         this.selectedNsCompanyId = nsCompanyData.companyId;
-        this.custNsInternalId = nsCompanyData.internalId;
+        this.setFormField("custNsInternalId", nsCompanyData.internalId);
       } else {
         this.addressOptions = [{ label: "Select", value: "" }];
         this.isAddressLoaded = true;
@@ -714,7 +785,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
         try {
           parsedLineItems = JSON.parse(payload.lineItemsJson || "[]");
-        } catch (error) {
+        } catch {
           throw new Error("Invalid line item payload.");
         }
 
@@ -749,6 +820,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   }
 
   initSpecialOrderForm() {
-    this.specialDate = new Date().toISOString();
+    this.setFormField("specialDate", new Date().toISOString());
   }
 }

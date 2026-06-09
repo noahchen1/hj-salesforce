@@ -144,6 +144,17 @@ export default class SalesOrderAddress extends LightningElement {
   previousAddressSnapshot = null;
   isInStorePickupDisabled = false;
 
+  emitAddressStateChange() {
+    this.dispatchEvent(
+      new CustomEvent("addressstatechange", {
+        detail: {
+          shippingAddressState: { ...this.shippingAddressState },
+          billingAddressState: { ...this.billingAddressState }
+        }
+      })
+    );
+  }
+
   get hasPreviousAddressSnapshot() {
     return !isAddressSnapshotEmpty(this.previousAddressSnapshot);
   }
@@ -204,6 +215,7 @@ export default class SalesOrderAddress extends LightningElement {
         this.selectedBillingAddress = this.defaultBillingAddress;
       }
 
+      this.emitAddressStateChange();
       return;
     }
 
@@ -220,6 +232,7 @@ export default class SalesOrderAddress extends LightningElement {
       ...this.previousAddressSnapshot.billingAddressState
     };
     this.previousAddressSnapshot = null;
+    this.emitAddressStateChange();
   }
 
   async applyInStorePickupAddress() {
@@ -247,6 +260,7 @@ export default class SalesOrderAddress extends LightningElement {
       this.billingAddressState = { ...locationState };
       this.shippingAddress = locationText;
       this.billingAddress = locationText;
+      this.emitAddressStateChange();
     } catch (error) {
       console.error("Error fetching in-store pickup address", error);
     }
@@ -298,6 +312,7 @@ export default class SalesOrderAddress extends LightningElement {
       zip: data.billingAddress?.zip,
       country: data.billingAddress?.country
     });
+    this.emitAddressStateChange();
   }
 
   @api
@@ -320,6 +335,7 @@ export default class SalesOrderAddress extends LightningElement {
     this.shippingAddressState = { ...EMPTY_ADDRESS };
     this.billingAddressState = { ...EMPTY_ADDRESS };
     this.previousAddressSnapshot = null;
+    this.emitAddressStateChange();
   }
 
   @wire(getRecord, {
@@ -334,13 +350,16 @@ export default class SalesOrderAddress extends LightningElement {
     if (data) {
       this.shippingAddressState = buildStateFromRecord(data);
       this.shippingAddress = formatFromRecord(data);
+      this.emitAddressStateChange();
     } else if (error) {
       this.shippingAddressState = { ...EMPTY_ADDRESS };
       this.shippingAddress = "";
       console.error("Error fetching shipping address", error);
+      this.emitAddressStateChange();
     } else {
       this.shippingAddressState = { ...EMPTY_ADDRESS };
       this.shippingAddress = "";
+      this.emitAddressStateChange();
     }
   }
 
@@ -356,13 +375,16 @@ export default class SalesOrderAddress extends LightningElement {
     if (data) {
       this.billingAddressState = buildStateFromRecord(data);
       this.billingAddress = formatFromRecord(data);
+      this.emitAddressStateChange();
     } else if (error) {
       this.billingAddressState = { ...EMPTY_ADDRESS };
       this.billingAddress = "";
       console.error("Error fetching billing address", error);
+      this.emitAddressStateChange();
     } else {
       this.billingAddressState = { ...EMPTY_ADDRESS };
       this.billingAddress = "";
+      this.emitAddressStateChange();
     }
   }
 
@@ -372,6 +394,7 @@ export default class SalesOrderAddress extends LightningElement {
     }
 
     this[e.target.name] = e.target.value;
+    this.emitAddressStateChange();
   }
 
   async handleInputChange(e) {
