@@ -40,6 +40,16 @@ const DEFAULT_FORM_STATE = Object.freeze({
   specialOrderNotes: "",
   specialOrderMemoOrSold: "2",
   specialOrderStatus: "",
+  repairType: "",
+  repairStation: "",
+  repairPerson: "",
+  repairLocation: "",
+  repairVendor: "",
+  shipRepairTo: "",
+  repairDescription: "",
+  extendedDescription: "",
+  dateOpened: null,
+  datePromised: null,
   subsidiary: "",
   address: {
     shippingAddressState: {},
@@ -84,6 +94,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   setFormField(field, value) {
     this.updateFormState({ [field]: value });
+    console.log(JSON.stringify(this.formState));
   }
 
   setAddressState(addressState = {}) {
@@ -302,14 +313,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.accountId = "";
   }
 
-  handleSalesRepSelect(e) {
-    this.setFormField(e.detail.type, e.detail.nsId);
-  }
-
-  handleSpecialOrderVendorSelect(e) {
-    this.setFormField(e.detail.type, e.detail.nsId);
-  }
-
   handleHeaderFieldChange(e) {
     this.setFormField(e.detail.field, e.detail.value);
   }
@@ -409,8 +412,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.isAddressLoaded = false;
     this.isNsCompanyIdLoaded = false;
 
+    const orderType =
+      this.formState.orderType || DEFAULT_FORM_STATE.orderType;
+
     this.formState = {
       ...DEFAULT_FORM_STATE,
+      orderType: orderType,
       date: new Date().toISOString(),
       specialDate: "",
       needByDate: "",

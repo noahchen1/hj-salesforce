@@ -219,4 +219,145 @@
       ></lightning-textarea>
     </div>
   </template>
+
+  <template if:true={isRepairOrder}>
+    <div class="section-title">Primary Information:</div>
+    <div class="form-body">
+      <c-lookup-input
+        data-type="customer"
+        label="Customer"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+        required
+      ></c-lookup-input>
+      <lightning-input
+        label="Date"
+        data-type="date"
+        type="date"
+        value={date}
+        onchange={handleInputChange}
+        required
+        disabled="true"
+      ></lightning-input>
+      <c-lookup-input
+        data-type="salesRep1"
+        label="Sales Rep"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+        required
+      ></c-lookup-input>
+      <c-lookup-input
+        data-type="salesRep2"
+        label="Sales Rep 2"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-combobox
+        name="subsidiary"
+        label="Subsidiary"
+        value={subsidiary}
+        placeholder="Select a subsidiary"
+        options={subsidiaryOptions}
+        onchange={handleComboboxChange}
+        disabled={isSubsidiaryDisbaled}
+        required
+      ></lightning-combobox>
+      <lightning-combobox
+        name="location"
+        label="Location"
+        value={location}
+        placeholder="Select a location"
+        options={locationOptions}
+        onchange={handleComboboxChange}
+        disabled={isLocationDisabled}
+        required
+      ></lightning-combobox>
+      <lightning-combobox
+        name="paymentTerm"
+        label="Payment Term"
+        value={paymentTerm}
+        placeholder="Select a payment term"
+        options={paymentTermOptions}
+        onchange={handleComboboxChange}
+        required
+      ></lightning-combobox>
+    </div>
+
+    <div class="section-title">Repair Information:</div>
+    <div class="form-body">
+      <lightning-combobox
+        name="repairType"
+        label="Repair Type"
+        value={repairType}
+        options={repairTypeOptions}
+        onchange={handleComboboxChange}
+        required
+      ></lightning-combobox>
+      <lightning-combobox
+        name="repairStation"
+        label="Repair Station"
+        value={repairStation}
+        options={repairStationOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
+      <c-lookup-input
+        data-type="repairPerson"
+        label="Repair Person"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-combobox
+        name="repairLocation"
+        label="Repair Location"
+        value={repairLocation}
+        options={repairLocationOptions}
+        onchange={handleComboboxChange}
+      ></lightning-combobox>
+      <c-lookup-input
+        data-type="repairVendor"
+        label="Repair Vendor"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <c-lookup-input
+        data-type="shipRepairTo"
+        label="Ship Repair To"
+        placeholder="Enter Name"
+        onsearch={handleLookupSearch}
+        onselect={handleLookupSelect}
+      ></c-lookup-input>
+      <lightning-input
+        label="Repair Description"
+        data-type="repairDescription"
+        type="text"
+        value={repairDescription}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-textarea
+        label="Extended Description"
+        data-type="extendedDescription"
+        value={extendedDescription}
+        onchange={handleInputChange}
+      ></lightning-textarea>
+      <lightning-input
+        label="Date Opened"
+        data-type="dateOpened"
+        type="date"
+        value={dateOpened}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <lightning-input
+        label="Date Promised"
+        data-type="datePromised"
+        type="date"
+        value={datePromised}
+        onchange={handleInputChange}
+      ></lightning-input>
+    </div>
+  </template>
 </template>

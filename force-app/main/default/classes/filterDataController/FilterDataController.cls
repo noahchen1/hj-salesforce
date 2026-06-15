@@ -294,4 +294,29 @@ public with sharing class FilterDataController {
       throw new AuraHandledException(e.getMessage());
     }
   }
+
+  @AuraEnabled(cacheable=true)
+  public static List<LookupResult> searchNetsuiteContact(String input) {
+    List<LookupResult> nsContacts = new List<LookupResult>();
+
+    try {
+      for (breadwinner_ns__BW_Contact__c nsContact : [
+        SELECT Id, Name, breadwinner_ns__InternalId__c
+        FROM breadwinner_ns__BW_Contact__c
+        WHERE Name LIKE :input + '%'
+      ]) {
+        nsContacts.add(
+          new LookupResult(
+            nsContact.Id,
+            nsContact.Name,
+            nsContact.breadwinner_ns__InternalId__c
+          )
+        );
+      }
+
+      return nsContacts;
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
 }
