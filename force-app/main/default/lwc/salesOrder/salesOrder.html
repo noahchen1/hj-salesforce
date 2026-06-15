@@ -73,13 +73,24 @@
         onaddressstatechange={handleAddressStateChange}
       ></c-sales-order-address>
 
-      <c-sales-order-line-items
-        location={formState.location}
-        special-order-status={formState.specialOrderStatus}
-        disabled={showTableOverlay}
+      <c-sales-order-tabs
         order-type={formState.orderType}
-        onlineitemschange={handleLineItemsChange}
-      ></c-sales-order-line-items>
+        ontablesectionchange={handleTableSecionChange}
+      ></c-sales-order-tabs>
+
+      <template if:true={isLineItemTableOn}>
+        <c-sales-order-line-items
+          location={formState.location}
+          special-order-status={formState.specialOrderStatus}
+          disabled={showTableOverlay}
+          order-type={formState.orderType}
+          onlineitemschange={handleLineItemsChange}
+        ></c-sales-order-line-items>
+      </template>
+
+      <template if:true={isInstructionTableOn}>
+        <c-sales-order-instructions></c-sales-order-instructions>
+      </template>
     </div>
   </lightning-card>
 </template>

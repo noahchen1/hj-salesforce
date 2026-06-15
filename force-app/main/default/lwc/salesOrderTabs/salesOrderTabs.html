@@ -1,0 +1,47 @@
+<template>
+  <div class="table-section">
+    <template if:false={isRepairOrder}>
+      <h3 class="table-title">Order Items</h3>
+    </template>
+
+    <template if:true={isRepairOrder}>
+      <div class="table-section-container">
+        <div
+          class="table-section-title"
+          data-tabletype="items"
+          onclick={handleTableSectionClick}
+        >
+          Order Items
+        </div>
+        <div
+          class="table-section-title"
+          data-tabletype="instructions"
+          onclick={handleTableSectionClick}
+        >
+          Instructions
+        </div>
+        <div
+          class="table-section-title"
+          data-tabletype="comments"
+          onclick={handleTableSectionClick}
+        >
+          Comments
+        </div>
+        <div
+          class="table-section-title"
+          data-tabletype="notes"
+          onclick={handleTableSectionClick}
+        >
+          Condition Notes
+        </div>
+        <div
+          class="table-section-title"
+          data-tabletype="attachments"
+          onclick={handleTableSectionClick}
+        >
+          Attachments
+        </div>
+      </div>
+    </template>
+  </div>
+</template>

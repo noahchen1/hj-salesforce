@@ -4,13 +4,6 @@
   min-height: 350px;
 }
 
-.table-title {
-  margin: 0 0 12px;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
 .table-scroll {
   width: 100%;
   overflow-x: auto;

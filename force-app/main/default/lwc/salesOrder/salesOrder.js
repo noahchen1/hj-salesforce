@@ -30,6 +30,7 @@ const DEFAULT_FORM_STATE = Object.freeze({
   location: "",
   memo: "",
   orderType: "sales",
+  tableType: "items",
   paymentTerm: "149",
   specialDate: null,
   needByDate: null,
@@ -94,7 +95,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   setFormField(field, value) {
     this.updateFormState({ [field]: value });
-    console.log(JSON.stringify(this.formState));
   }
 
   setAddressState(addressState = {}) {
@@ -138,6 +138,26 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   get showLoadingMessage() {
     return this.loadingMessage !== "";
+  }
+
+  get isLineItemTableOn() {
+    return this.formState.tableType === "items";
+  }
+
+  get isInstructionTableOn() {
+    return this.formState.tableType === "instructions";
+  }
+
+  get isCommentsTableOn() {
+    return this.formState.tableType === "comments";
+  }
+
+  get isNotesTableOn() {
+    return this.formState.tableType === "notes";
+  }
+
+  get isAttachmentsTableOn() {
+    return this.formState.tableType === "attachments";
   }
 
   get showTableOverlay() {
@@ -405,6 +425,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.setFormField(name, value);
   }
 
+  handleTableSecionChange(e) {
+    const tableType = e.detail.tableType;
+
+    this.setFormField("tableType", tableType);
+  }
+
   async reset() {
     this.isLoading = true;
     this.loadingMessage = "";
@@ -412,8 +438,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.isAddressLoaded = false;
     this.isNsCompanyIdLoaded = false;
 
-    const orderType =
-      this.formState.orderType || DEFAULT_FORM_STATE.orderType;
+    const orderType = this.formState.orderType || DEFAULT_FORM_STATE.orderType;
 
     this.formState = {
       ...DEFAULT_FORM_STATE,

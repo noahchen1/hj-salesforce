@@ -594,7 +594,6 @@ export default class SalesOrderLineItems extends LightningElement {
     const row = updatedRows[index];
     const isInventoryItem = row.itemType === "Inventory Item";
     if (field === "quantity" && isInventoryItem && !this.isSpecialOrder) {
-
       if (!row.isDiscount) {
         const itemIsAvailable = await checkOnHand({
           itemName: row.itemName,
