@@ -48,12 +48,16 @@ export default class OpenSpecialOrders extends LightningElement {
     showActiveOrdersOnly: "$showActiveOrdersOnly",
     comments: "$comments",
     hideRolexOrTudor: "$hideRolexOrTudor",
-    limitSize: "$pageSize",
+    limitSize: "$queryLimit",
     offsetSize: "$offset",
     sortBy: "$sortBy",
     sortDirection: "$sortDirection"
   })
   wiredData;
+
+  get queryLimit() {
+    return this.pageSize + 1;
+  }
 
   @wire(getSpecialOrderItemTypes)
   handleItemTypes(result) {
@@ -116,11 +120,13 @@ export default class OpenSpecialOrders extends LightningElement {
   }
 
   get isNextDisabled() {
-    return this.rows.length < this.pageSize;
+    const data = this.wiredData?.data || [];
+
+    return data.length <= this.pageSize;
   }
 
   get rows() {
-    const data = this.wiredData?.data || [];
+    const data = (this.wiredData?.data || []).slice(0, this.pageSize);
     const mappedData = data.map((r) => {
       const so = r.breadwinner_ns__Sales_Order__r || {};
       const entity = so.breadwinner_ns__Entity__r || {};
@@ -266,7 +272,6 @@ export default class OpenSpecialOrders extends LightningElement {
 
       if (userName) {
         this.salesRep = userName;
-        this.pageNumber = 1;
         this.isRepFilterDisabled = true;
 
         const input = this.template.querySelector(

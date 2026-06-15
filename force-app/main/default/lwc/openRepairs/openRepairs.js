@@ -29,12 +29,16 @@ export default class OpenRepairs extends LightningElement {
     salesRep: "$salesRep",
     name: "$name",
     station: "$station",
-    limitSize: "$pageSize",
+    limitSize: "$queryLimit",
     offsetSize: "$offset",
     sortBy: "$sortBy",
     sortDirection: "$sortDirection"
   })
   wiredData;
+
+  get queryLimit() {
+    return this.pageSize + 1;
+  }
 
   get offset() {
     return (this.pageNumber - 1) * this.pageSize;
@@ -45,11 +49,13 @@ export default class OpenRepairs extends LightningElement {
   }
 
   get isNextDisabled() {
-    return this.rows.length < this.pageSize;
+    const data = this.wiredData?.data || [];
+
+    return data.length <= this.pageSize;
   }
 
   get rows() {
-    const data = this.wiredData?.data || [];
+    const data = (this.wiredData?.data || []).slice(0, this.pageSize);
     const mappedData = data.map((r) => {
       const soLink = `https://5405357.app.netsuite.com/app/accounting/transactions/salesord.nl?id=${r.breadwinner_ns__InternalId__c}`;
 
@@ -205,7 +211,6 @@ export default class OpenRepairs extends LightningElement {
 
       if (userName) {
         this.salesRep = userName;
-        this.pageNumber = 1;
         this.isRepFilterDisabled = true;
 
         const input = this.template.querySelector(
