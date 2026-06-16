@@ -59,7 +59,9 @@ const DEFAULT_FORM_STATE = Object.freeze({
     billingAddressState: {}
   },
   lineItems: [],
-  instructions: []
+  instructions: [],
+  comments: [],
+  notes: []
 });
 
 const FORM_STATE_FIELDS = new Set(Object.keys(DEFAULT_FORM_STATE));
@@ -122,6 +124,18 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   setInstructions(rows = []) {
     this.updateFormState({
       instructions: rows.map((row) => ({ ...row }))
+    });
+  }
+
+  setComments(rows = []) {
+    this.updateFormState({
+      comments: rows.map((row) => ({ ...row }))
+    });
+  }
+
+  setNotes(rows = []) {
+    this.updateFormState({
+      notes: rows.map((row) => ({ ...row }))
     });
   }
 
@@ -372,6 +386,16 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   handleInstructionChange(e) {
     this.setInstructions(e.detail?.rows || []);
     console.log(JSON.stringify(this.formState.instructions));
+  }
+
+  handleCommentChange(e) {
+    this.setComments(e.detail?.rows || []);
+    console.log(JSON.stringify(this.formState.comments));
+  }
+
+  handleNoteChange(e) {
+    this.setNotes(e.detail?.rows || []);
+    console.log(JSON.stringify(this.formState.notes));
   }
 
   handleHeaderComboboxChange(e) {

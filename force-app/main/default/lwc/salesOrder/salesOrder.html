@@ -96,6 +96,22 @@
           running-user-id={formState.runningUserId}
         ></c-sales-order-instructions>
       </template>
+
+      <template if:true={isCommentsTableOn}>
+        <c-sales-order-comments
+          oncommentchange={handleCommentChange}
+          running-user-name={formState.runningUserName}
+          running-user-id={formState.runningUserId}
+        ></c-sales-order-comments>
+      </template>
+
+      <template if:true={isNotesTableOn}>
+        <c-sales-order-notes
+          onnotechange={handleNoteChange}
+          running-user-name={formState.runningUserName}
+          running-user-id={formState.runningUserId}
+        ></c-sales-order-notes>
+      </template>
     </div>
   </lightning-card>
 </template>
