@@ -25,6 +25,8 @@ import { isValidRolexVendorNum } from "c/salesOrderUtils";
 const DEFAULT_FORM_STATE = Object.freeze({
   custNsInternalId: "",
   date: new Date().toISOString(),
+  runningUserName: "",
+  runningUserId: "",
   salesRep1: "",
   salesRep2: "",
   location: "",
@@ -56,7 +58,8 @@ const DEFAULT_FORM_STATE = Object.freeze({
     shippingAddressState: {},
     billingAddressState: {}
   },
-  lineItems: []
+  lineItems: [],
+  instructions: []
 });
 
 const FORM_STATE_FIELDS = new Set(Object.keys(DEFAULT_FORM_STATE));
@@ -113,6 +116,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   setLineItems(rows = []) {
     this.updateFormState({
       lineItems: rows.map((row) => ({ ...row }))
+    });
+  }
+
+  setInstructions(rows = []) {
+    this.updateFormState({
+      instructions: rows.map((row) => ({ ...row }))
     });
   }
 
@@ -296,7 +305,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this.updateFormState({
         subsidiary: emp.subsidiaryId || "",
         location: emp.locationId || "",
-        salesRep1: emp.employeeId || ""
+        salesRep1: emp.employeeId || "",
+        runningUserName: emp.employeeName || "",
+        runningUserId: emp.employeeId || ""
       });
 
       if (emp.employeeId && emp.employeeName) {
@@ -356,6 +367,11 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   handleLineItemsChange(e) {
     this.setLineItems(e.detail?.rows || []);
+  }
+
+  handleInstructionChange(e) {
+    this.setInstructions(e.detail?.rows || []);
+    console.log(JSON.stringify(this.formState.instructions));
   }
 
   handleHeaderComboboxChange(e) {

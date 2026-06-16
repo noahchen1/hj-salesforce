@@ -1,3 +1,81 @@
 <template>
-  <p>This is where instructions are!!!</p>
+  <div class="table-section">
+    <template if:true={isRepairOrder}>
+      <div class="table-scroll">
+        <table class="order-table sales-order-table">
+          <colgroup>
+            <col class="owner-col" />
+            <col class="commnet-col" />
+            <col class="date-col" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col">Owner</th>
+              <th scope="col">Comment</th>
+              <th scope="col">Date Last Modified</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template for:each={rows} for:item="row" for:index="index">
+              <tr key={row.id}>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="owner"
+                    type="text"
+                    value={row.owner}
+                    placeholder=""
+                    onfocus={handleFocus}
+                    onchange={handleRowChange}
+                    readonly
+                  ></lightning-input>
+                </td>
+                <td>
+                  <lightning-textarea
+                    data-index={index}
+                    data-field="comment"
+                    value={row.comment}
+                    placeholder=""
+                    onfocus={handleFocus}
+                    onchange={handleRowChange}
+                  ></lightning-textarea>
+                </td>
+                <td>
+                  <lightning-input
+                    data-index={index}
+                    data-field="dateLastModified"
+                    value={row.dateLastModified}
+                    type="datetime"
+                    placeholder=""
+                    onfocus={handleFocus}
+                    onchange={handleRowChange}
+                    readonly
+                  ></lightning-input>
+                </td>
+              </tr>
+            </template>
+            <template if:true={hasRows}>
+              <tr class="row-action-row">
+                <td colspan="8">
+                  <div class="row-action-container">
+                    <lightning-button
+                      label="Add Row"
+                      data-index={activeRowIndex}
+                      onclick={addRow}
+                    ></lightning-button>
+                    <lightning-button
+                      label="Remove Row"
+                      data-index={activeRowIndex}
+                      onclick={removeRow}
+                      disabled={isActiveRowRemoveDisabled}
+                    ></lightning-button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </template>
+  </div>
 </template>

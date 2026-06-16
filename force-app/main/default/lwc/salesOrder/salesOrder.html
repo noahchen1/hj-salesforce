@@ -89,7 +89,12 @@
       </template>
 
       <template if:true={isInstructionTableOn}>
-        <c-sales-order-instructions></c-sales-order-instructions>
+        <c-sales-order-instructions
+          order-type={formState.orderType}
+          oninstructionchange={handleInstructionChange}
+          running-user-name={formState.runningUserName}
+          running-user-id={formState.runningUserId}
+        ></c-sales-order-instructions>
       </template>
     </div>
   </lightning-card>
