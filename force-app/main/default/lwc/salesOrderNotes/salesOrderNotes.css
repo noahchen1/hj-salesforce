@@ -6,18 +6,15 @@
 
 .table-scroll {
   width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
 }
 
 .order-table {
   width: 100%;
-  table-layout: auto;
+  table-layout: fixed;
   border-collapse: collapse;
   background: #ffffff;
   border: 1px solid #d8dde6;
   border-radius: 8px;
-  overflow: hidden;
 }
 
 .owner-col {
@@ -25,15 +22,19 @@
 }
 
 .title-col {
-  width: 16%;
+  width: 12%;
+}
+
+.type-col {
+  width: 12%;
 }
 
 .direction-col {
-  width: 16%;
+  width: 12%;
 }
 
 .memo-col {
-  width: 36%;
+  width: 30%;
 }
 
 .date-col {

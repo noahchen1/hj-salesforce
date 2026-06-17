@@ -1,147 +1,223 @@
 import { LightningElement, api } from "lwc";
 
 const BASE_ROW = Object.freeze({
-	owner: "",
-	ownerId: "",
-	title: "",
-	direction: "",
-	memo: "",
-	dateLastModified: null
+  owner: "",
+  ownerId: "",
+  title: "",
+  direction: "",
+  memo: "",
+  dateLastModified: null
 });
 
 export default class SalesOrderNotes extends LightningElement {
-	@api runningUserName;
-	@api runningUserId;
+  @api runningUserName;
+  @api runningUserId;
 
-	rows = [];
-	nextRowId = 0;
+  rows = [];
+  previousRowData = [];
+  nextRowId = 0;
 
-	constructor() {
-		super();
-		this.reset();
-	}
+  constructor() {
+    super();
+    this.reset();
+  }
 
-	get hasRows() {
-		return this.rows.length > 0;
-	}
+  @api
+  get previousRows() {
+    return this.previousRowData;
+  }
 
-	get activeRowIndex() {
-		const activeIndex = this.rows.findIndex((row) => row.showAction);
-		return activeIndex === -1 ? 0 : activeIndex;
-	}
+  set previousRows(value) {
+    this.previousRowData = Array.isArray(value)
+      ? value.map((row) => ({ ...row }))
+      : [];
 
-	get isActiveRowRemoveDisabled() {
-		return this.rows.length <= 1 || this.activeRowIndex === 0;
-	}
+    if (this.shouldHydrateRows()) {
+      this.hydrateRowsFromPrevious();
+    }
+  }
 
-	emitNoteChange() {
-		this.dispatchEvent(
-			new CustomEvent("notechange", {
-				detail: {
-					rows: this.getRows()
-				}
-			})
-		);
-	}
+  get typeOptions() {
+    return [
+      { label: "Conference Call", value: "2" },
+      { label: "E-mail", value: "3" },
+      { label: "Fax", value: "4" },
+      { label: "Letter", value: "5" },
+      { label: "Meeting", value: "6" },
+      { label: "Note", value: "7" },
+      { label: "Phone Call", value: "8" }
+    ];
+  }
 
-	createRow({
-		id,
-		showAction = false,
-		disableRemove = false,
-		overrides = {}
-	} = {}) {
-		const rowId = id ?? this.nextRowId++;
+  get directionOptions() {
+    return [
+      { label: "Incoming", value: "1" },
+      { label: "Outgoing", value: "2" }
+    ];
+  }
 
-		const row = {
-			id: rowId,
-			actionKey: `action-${rowId}`,
-			...BASE_ROW,
-			showAction,
-			disableRemove
-		};
+  get hasRows() {
+    return this.rows.length > 0;
+  }
 
-		return {
-			...row,
-			...overrides
-		};
-	}
+  get activeRowIndex() {
+    const activeIndex = this.rows.findIndex((row) => row.showAction);
+    return activeIndex === -1 ? 0 : activeIndex;
+  }
 
-	@api
-	getRows() {
-		return [...this.rows];
-	}
+  get isActiveRowRemoveDisabled() {
+    return this.rows.length <= 1 || this.activeRowIndex === 0;
+  }
 
-	@api
-	reset() {
-		this.rows = [
-			this.createRow({
-				id: 1,
-				showAction: true,
-				disableRemove: true
-			})
-		];
-		this.nextRowId = 2;
-	}
+  emitNoteChange() {
+    this.dispatchEvent(
+      new CustomEvent("notechange", {
+        detail: {
+          rows: this.getRows()
+        }
+      })
+    );
+  }
 
-	handleFocus(e) {
-		const index = Number(e.target.dataset.index);
-		this.rows = this.rows.map((row, idx) => ({
-			...row,
-			showAction: idx === index
-		}));
+  createRow({
+    id,
+    showAction = false,
+    disableRemove = false,
+    overrides = {}
+  } = {}) {
+    const rowId = id ?? this.nextRowId++;
 
-		this.emitNoteChange();
-	}
+    const row = {
+      id: rowId,
+      actionKey: `action-${rowId}`,
+      ...BASE_ROW,
+      showAction,
+      disableRemove
+    };
 
-	handleRowChange(e) {
-		const index = Number(e.target.dataset.index);
-		const field = e.target.dataset.field;
-		const value = e.target.value;
-		const updatedRows = [...this.rows];
-		const row = updatedRows[index];
+    return {
+      ...row,
+      ...overrides
+    };
+  }
 
-		row[field] = value;
-		row.dateLastModified = new Date().toISOString();
+  @api
+  getRows() {
+    return [...this.rows];
+  }
 
-		if (this.runningUserName && this.runningUserId) {
-			row.owner = this.runningUserName;
-			row.ownerId = this.runningUserId;
-		}
+  @api
+  reset() {
+    this.rows = [];
+    this.nextRowId = 0;
+    this.hydrateRowsFromPrevious();
+  }
 
-		this.rows = updatedRows;
+  shouldHydrateRows() {
+    if (!this.rows.length) {
+      return true;
+    }
 
-		this.emitNoteChange();
-	}
+    if (this.rows.length > 1) {
+      return false;
+    }
 
-	addRow(e) {
-		const index = Number(e.target.dataset.index);
+    const row = this.rows[0];
 
-		try {
-			const newRow = this.createRow();
+    const hasData =
+      row.owner ||
+      row.ownerId ||
+      row.title ||
+      row.direction ||
+      row.memo ||
+      row.dateLastModified;
 
-			const updatedRows = [...this.rows];
-			updatedRows.splice(index + 1, 0, newRow);
-			updatedRows.forEach((row, idx) => {
-				row.showAction = idx === index + 1;
-			});
-			this.rows = updatedRows;
-			this.emitNoteChange();
-		} catch (error) {
-			console.error(`Error adding row at index ${index}`, error);
-		}
-	}
+    return !hasData;
+  }
 
-	removeRow(e) {
-		const index = Number(e.target.dataset.index);
-		const updatedRows = [...this.rows];
-		updatedRows.splice(index, 1);
+  hydrateRowsFromPrevious() {
+    if (this.previousRowData.length > 0) {
+      this.rows = this.previousRowData.map((row, index) =>
+        this.createRow({
+          showAction: index === 0,
+          disableRemove: index === 0,
+          overrides: row
+        })
+      );
 
-		const nextActiveIndex = Math.max(0, index - 1);
-		updatedRows.forEach((row, idx) => {
-			row.showAction = idx === nextActiveIndex;
-		});
+      this.nextRowId = this.rows.length;
+      return;
+    }
 
-		this.rows = updatedRows;
-		this.emitNoteChange();
-	}
+    this.rows = [
+      this.createRow({
+        id: 1,
+        showAction: true,
+        disableRemove: true
+      })
+    ];
+    this.nextRowId = 2;
+  }
+
+  handleFocus(e) {
+    const index = Number(e.target.dataset.index);
+    this.rows = this.rows.map((row, idx) => ({
+      ...row,
+      showAction: idx === index
+    }));
+
+    this.emitNoteChange();
+  }
+
+  handleRowChange(e) {
+    const index = Number(e.target.dataset.index);
+    const field = e.target.dataset.field;
+    const value = e.target.value;
+    const updatedRows = [...this.rows];
+    const row = updatedRows[index];
+
+    row[field] = value;
+    row.dateLastModified = new Date().toISOString();
+
+    if (this.runningUserName && this.runningUserId) {
+      row.owner = this.runningUserName;
+      row.ownerId = this.runningUserId;
+    }
+
+    this.rows = updatedRows;
+
+    this.emitNoteChange();
+  }
+
+  addRow(e) {
+    const index = Number(e.target.dataset.index);
+
+    try {
+      const newRow = this.createRow();
+
+      const updatedRows = [...this.rows];
+      updatedRows.splice(index + 1, 0, newRow);
+      updatedRows.forEach((row, idx) => {
+        row.showAction = idx === index + 1;
+      });
+      this.rows = updatedRows;
+      this.emitNoteChange();
+    } catch (error) {
+      console.error(`Error adding row at index ${index}`, error);
+    }
+  }
+
+  removeRow(e) {
+    const index = Number(e.target.dataset.index);
+    const updatedRows = [...this.rows];
+    updatedRows.splice(index, 1);
+
+    const nextActiveIndex = Math.max(0, index - 1);
+    updatedRows.forEach((row, idx) => {
+      row.showAction = idx === nextActiveIndex;
+    });
+
+    this.rows = updatedRows;
+    this.emitNoteChange();
+  }
 }
