@@ -8,7 +8,15 @@ export default class SalesOrderTabs extends LightningElement {
   }
 
   handleTableSectionClick(e) {
-    const tableType = e.target.dataset.tabletype;
+    const selectedTab = e.target;
+    const tableType = selectedTab.dataset.tabletype;
+
+    this.template.querySelectorAll(".table-section-title").forEach((tab) => {
+      tab.style.color = "#1f2937";
+      tab.style.textDecoration = "none";
+    });
+
+    selectedTab.style.textDecoration = "underline";
 
     this.dispatchEvent(
       new CustomEvent("tablesectionchange", {
@@ -20,23 +28,22 @@ export default class SalesOrderTabs extends LightningElement {
   }
 }
 
+// get isRepairItemTable() {
+//   return this.repairTableType === "items";
+// }
 
-  // get isRepairItemTable() {
-  //   return this.repairTableType === "items";
-  // }
+// get isRepairInstructionTable() {
+//   return this.repairTableType === "instructions";
+// }
 
-  // get isRepairInstructionTable() {
-  //   return this.repairTableType === "instructions";
-  // }
+// get isRepairCommentsTable() {
+//   return this.repairTableType === "comments";
+// }
 
-  // get isRepairCommentsTable() {
-  //   return this.repairTableType === "comments";
-  // }
+// get isRepairNoteTable() {
+//   return this.repairTableType === "notes";
+// }
 
-  // get isRepairNoteTable() {
-  //   return this.repairTableType === "notes";
-  // }
-
-  // get isRepairAttachmentTable() {
-  //   return this.repairTableType === "attachments";
-  // }
+// get isRepairAttachmentTable() {
+//   return this.repairTableType === "attachments";
+// }

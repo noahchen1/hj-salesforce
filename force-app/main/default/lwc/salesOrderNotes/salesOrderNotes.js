@@ -110,7 +110,7 @@ export default class SalesOrderNotes extends LightningElement {
   reset() {
     this.rows = [];
     this.nextRowId = 0;
-    this.hydrateRowsFromPrevious();
+    this.emitNoteChange();
   }
 
   shouldHydrateRows() {

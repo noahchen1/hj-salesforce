@@ -85,6 +85,7 @@
           disabled={showTableOverlay}
           order-type={formState.orderType}
           onlineitemschange={handleLineItemsChange}
+          previous-rows={formState.lineItems}
         ></c-sales-order-line-items>
       </template>
 
@@ -94,6 +95,7 @@
           oninstructionchange={handleInstructionChange}
           running-user-name={formState.runningUserName}
           running-user-id={formState.runningUserId}
+          previous-rows={formState.instructions}
         ></c-sales-order-instructions>
       </template>
 
@@ -102,6 +104,7 @@
           oncommentchange={handleCommentChange}
           running-user-name={formState.runningUserName}
           running-user-id={formState.runningUserId}
+          previous-rows={formState.comments}
         ></c-sales-order-comments>
       </template>
 

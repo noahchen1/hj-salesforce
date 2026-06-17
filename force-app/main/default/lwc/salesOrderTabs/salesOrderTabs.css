@@ -9,7 +9,6 @@
   margin: 0 30px 30px;
 }
 
-
 .table-section-container {
   display: flex;
   align-items: center;
@@ -19,7 +18,12 @@
   padding: 4px 0;
 }
 
+.table-section-title:first-child {
+  text-decoration: underline;
+}
+
 .table-section-title {
+  cursor: pointer;
   flex: 0 0 auto;
   margin: 0;
   font-size: 18px;
