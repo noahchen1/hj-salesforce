@@ -4,6 +4,8 @@ String internalId = InstructionController.saveInstruction(
   'This is a test instruction!'
 );
 
-InstructionController.getInstructionData('2407139');
-
-SalesOrderController.getOrderData('a0hWJ000005RrjrYAC');
+String internalId = CommentController.saveComment(
+  '187027',
+  '2407139',
+  'This is a test comment!'
+);
