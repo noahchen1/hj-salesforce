@@ -12,6 +12,9 @@ public with sharing class InstructionDataModel {
     @AuraEnabled
     public String instruction;
 
+    @AuraEnabled
+    public String lastModified;
+
     public InstructionData() {
     }
   }

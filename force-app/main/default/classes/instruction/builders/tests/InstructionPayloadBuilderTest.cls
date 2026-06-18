@@ -8,8 +8,8 @@ private class InstructionPayloadBuilderTest {
       'Leave at loading dock'
     );
 
-    System.assertEquals('Repair Instruction', (String) request.get('name'));
-    System.assertEquals(false, request.get('isInactive'));
+    Map<String, Object> owner = (Map<String, Object>) request.get('owner');
+    System.assertEquals('145', (String) owner.get('internalId'));
 
     Map<String, Object> customFieldList = (Map<String, Object>) request.get(
       'customFieldList'
@@ -18,15 +18,10 @@ private class InstructionPayloadBuilderTest {
       'customField'
     );
 
-    System.assertEquals(3, customFields.size());
+    System.assertEquals(2, customFields.size());
 
-    Map<String, Object> ownerField = (Map<String, Object>) customFields[0];
-    Map<String, Object> soField = (Map<String, Object>) customFields[1];
-    Map<String, Object> instructionField = (Map<String, Object>) customFields[2];
-
-    System.assertEquals('select', (String) ownerField.get('fieldType'));
-    System.assertEquals('owner', (String) ownerField.get('scriptId'));
-    System.assertEquals('145', (String) ownerField.get('value'));
+    Map<String, Object> soField = (Map<String, Object>) customFields[0];
+    Map<String, Object> instructionField = (Map<String, Object>) customFields[1];
 
     System.assertEquals('string', (String) soField.get('fieldType'));
     System.assertEquals('custrecord1', (String) soField.get('scriptId'));
@@ -64,12 +59,45 @@ private class InstructionPayloadBuilderTest {
     );
 
     System.assertEquals(
-      'customrecord_repair_instructions',
+      '109',
       (String) requestJSONMap.get('customObjectID')
     );
     System.assertEquals(
       1,
       ((List<Object>) requestJSONMap.get('customObjectRecords')).size()
     );
+  }
+
+  @isTest
+  static void buildReadPayload_setsExpectedActionAndFilter() {
+    Map<String, Object> request = InstructionPayloadBuilder.buildReadRequest(
+      '9988'
+    );
+
+    Map<String, Object> payload = InstructionPayloadBuilder.buildReadPayload(
+      request
+    );
+
+    System.assertEquals('1.0', payload.get('version'));
+    System.assertEquals('readCustomObjectRecord', payload.get('action'));
+    System.assert(payload.get('requestJSON') != null);
+
+    Map<String, Object> requestJSONMap = (Map<String, Object>) JSON.deserializeUntyped(
+      (String) payload.get('requestJSON')
+    );
+
+    System.assertEquals('109', (String) requestJSONMap.get('customObjectID'));
+
+    Map<String, Object> customParameters = (Map<String, Object>) requestJSONMap.get(
+      'customParameters'
+    );
+    Map<String, Object> whereMap = (Map<String, Object>) customParameters.get(
+      'where'
+    );
+    Map<String, Object> keyValueMap = (Map<String, Object>) whereMap.get(
+      'keyValueMap'
+    );
+
+    System.assertEquals('9988', (String) keyValueMap.get('internalId'));
   }
 }

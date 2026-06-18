@@ -14,8 +14,11 @@ public with sharing class InstructionResHandler {
     InstructionValidator.validateTypedBody(parsed);
 
     InstructionResModel.InstructionRecord record = parsed.customObjectRecords[0];
+
     InstructionDataModel.InstructionData result = new InstructionDataModel.InstructionData();
+
     result.internalId = record.internalId;
+    
     result.nsEmployeeId = record.owner == null ? null : record.owner.internalId;
 
     if (

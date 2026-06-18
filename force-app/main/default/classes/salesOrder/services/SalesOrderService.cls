@@ -182,6 +182,11 @@ public with sharing class SalesOrderService {
 
     Map<String, Object> resp = NetSuiteClient.call(reqObj);
 
+    System.debug(
+      LoggingLevel.INFO,
+      'SoService.getOrderData response: ' + JSON.serialize(resp)
+    );
+
     return SalesOrderResHandler.handleResponse(resp);
   }
 

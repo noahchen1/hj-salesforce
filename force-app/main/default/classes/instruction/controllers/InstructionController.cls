@@ -11,4 +11,11 @@ public with sharing class InstructionController {
       instruction
     );
   }
+
+  @AuraEnabled(cacheable=false)
+  public static InstructionDataModel.InstructionData getInstructionData(
+    String nsSoId
+  ) {
+    return InstructionService.getInstructionData(nsSoId);
+  }
 }

@@ -17,12 +17,19 @@ public with sharing class InstructionValidator {
     }
   }
 
+  public static void validateReadRequest(String nsSoId) {
+    if (String.isBlank(nsSoId)) {
+      throw Helpers.buildAuraException('SO internal id is required.');
+    }
+  }
+
   public static void validateRawResponse(Map<String, Object> response) {
     if (response == null) {
       throw Helpers.buildAuraException('No response returned from NetSuite.');
     }
 
     Boolean validRequest = (Boolean) response.get('validRequest');
+
     if (validRequest == null || !validRequest) {
       throw Helpers.buildAuraException(
         'Invalid request: NetSuite rejected the payload.'
@@ -30,6 +37,7 @@ public with sharing class InstructionValidator {
     }
 
     String responseJsonStr = (String) response.get('responseJSON');
+    
     if (String.isBlank(responseJsonStr)) {
       responseJsonStr = (String) response.get('requestJSON');
     }

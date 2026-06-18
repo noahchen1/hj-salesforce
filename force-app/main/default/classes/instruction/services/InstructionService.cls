@@ -35,4 +35,34 @@ public with sharing class InstructionService {
 
     return instructionData.internalId;
   }
+
+  public static InstructionDataModel.InstructionData getInstructionData(
+    String nsSoId
+  ) {
+    InstructionValidator.validateReadRequest(nsSoId);
+
+    Map<String, Object> requestJSONMap = InstructionPayloadBuilder.buildReadRequest(
+      nsSoId
+    );
+
+    Map<String, Object> requestPayload = InstructionPayloadBuilder.buildReadPayload(
+      requestJSONMap
+    );
+
+    System.debug(
+      LoggingLevel.INFO,
+      'InstructionService.getInstructionData request: ' +
+      JSON.serialize(requestPayload)
+    );
+
+    Map<String, Object> response = NetSuiteClient.call(requestPayload);
+
+    System.debug(
+      LoggingLevel.INFO,
+      'InstructionService.getInstructionData response: ' +
+      JSON.serialize(response)
+    );
+
+    return InstructionResHandler.handleResponse(response);
+  }
 }
