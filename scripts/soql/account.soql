@@ -123,3 +123,8 @@ SELECT Id, Name, breadwinner_ns__InternalId__c FROM breadwinner_ns__BW_Employee_
 
 
 SELECT Name FROM USER WHERE isActive = true
+
+
+SELECT FIELDS(ALL) FROM ContentVersion WHERE ContentDocumentId = '069WJ00000CEd4JYAT' AND IsLatest = true LIMIT 1
+
+Select Id, VersionData from ContentVersion where ContentDocumentId = '069WJ00000CEd4JYAT'
