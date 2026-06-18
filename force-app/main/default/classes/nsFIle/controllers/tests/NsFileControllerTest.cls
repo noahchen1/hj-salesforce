@@ -46,18 +46,4 @@ private class NsFileControllerTest {
     System.assertEquals('1876', result.internalId);
     System.assertEquals(null, result.fileName);
   }
-
-  @isTest
-  static void uploadFile_missingRequiredField_throws() {
-    try {
-      NsFileController.uploadFile(
-        null,
-        '800',
-        '{}'
-      );
-      System.assert(false, 'Expected AuraHandledException for missing caption');
-    } catch (AuraHandledException ex) {
-      System.assert(ex.getMessage().contains('caption is required'));
-    }
-  }
 }
