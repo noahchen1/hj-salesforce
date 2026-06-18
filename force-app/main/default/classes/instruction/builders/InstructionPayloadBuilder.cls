@@ -1,5 +1,5 @@
 public with sharing class InstructionPayloadBuilder {
-  public static Map<String, Object> buildCreateRequest(
+  public static Map<String, Object> buildSaveRequest(
     String nsEmployeeId,
     String nsSoId,
     String instruction
@@ -36,7 +36,7 @@ public with sharing class InstructionPayloadBuilder {
     return requestMap;
   }
 
-  public static Map<String, Object> buildCreatePayload(
+  public static Map<String, Object> buildSavePayload(
     Map<String, Object> instructionRequest
   ) {
     Map<String, Object> requestJsonMap = new Map<String, Object>{

@@ -6,13 +6,13 @@ public with sharing class InstructionService {
   ) {
     InstructionValidator.validateSaveRequest(nsEmployeeId, nsSoId, instruction);
 
-    Map<String, Object> instructionRequest = InstructionPayloadBuilder.buildCreateRequest(
+    Map<String, Object> instructionRequest = InstructionPayloadBuilder.buildSaveRequest(
       nsEmployeeId,
       nsSoId,
       instruction
     );
 
-    Map<String, Object> requestPayload = InstructionPayloadBuilder.buildCreatePayload(
+    Map<String, Object> requestPayload = InstructionPayloadBuilder.buildSavePayload(
       instructionRequest
     );
 

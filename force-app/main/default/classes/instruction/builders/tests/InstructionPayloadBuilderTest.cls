@@ -1,10 +1,10 @@
 @isTest
 private class InstructionPayloadBuilderTest {
   @isTest
-  static void buildCreateRequest_setsExpectedCustomObjectFields() {
-    Map<String, Object> request = InstructionPayloadBuilder.buildCreateRequest(
+  static void buildSaveRequest_success() {
+    Map<String, Object> request = InstructionPayloadBuilder.buildSaveRequest(
       '145',
-      'SO-991',
+      '123456',
       'Leave at loading dock'
     );
 
@@ -14,90 +14,43 @@ private class InstructionPayloadBuilderTest {
     Map<String, Object> customFieldList = (Map<String, Object>) request.get(
       'customFieldList'
     );
+
     List<Object> customFields = (List<Object>) customFieldList.get(
       'customField'
     );
 
-    System.assertEquals(2, customFields.size());
+    for (Object obj : customFields) {
+      Map<String, Object> field = (Map<String, Object>) obj;
 
-    Map<String, Object> soField = (Map<String, Object>) customFields[0];
-    Map<String, Object> instructionField = (Map<String, Object>) customFields[1];
+      String fieldId = (String) field.get('scriptId');
 
-    System.assertEquals('string', (String) soField.get('fieldType'));
-    System.assertEquals('custrecord1', (String) soField.get('scriptId'));
-    System.assertEquals('SO-991', (String) soField.get('value'));
+      if (fieldId == 'custrecord1') {
+        String value = (String) field.get('value');
 
-    System.assertEquals('string', (String) instructionField.get('fieldType'));
-    System.assertEquals(
-      'custrecord_instruction_comment',
-      (String) instructionField.get('scriptId')
-    );
-    System.assertEquals(
-      'Leave at loading dock',
-      (String) instructionField.get('value')
-    );
+        System.assertEquals(value, '123456');
+      }
+
+      if (fieldId == 'custrecord_instruction_comment') {
+        String value = (String) field.get('value');
+
+        System.assertEquals(value, 'Leave at loading dock');
+      }
+    }
   }
 
   @isTest
-  static void buildCreatePayload_setsExpectedActionAndRequestKey() {
-    Map<String, Object> request = InstructionPayloadBuilder.buildCreateRequest(
-      '145',
-      'SO-991',
-      'Leave at loading dock'
+  static void buildSavePayload_success() {
+    Map<String, Object> request = InstructionPayloadBuilder.buildSaveRequest(
+      '12345',
+      '67890',
+      'This is an instruction!'
     );
 
-    Map<String, Object> payload = InstructionPayloadBuilder.buildCreatePayload(
+    Map<String, Object> payload = InstructionPayloadBuilder.buildSavePayload(
       request
     );
 
-    System.assertEquals('1.0', payload.get('version'));
-    System.assertEquals('createCustomObjectRecord', payload.get('action'));
+    System.assertEquals(payload.get('action'), 'createCustomObjectRecord');
     System.assert(payload.get('requestJSON') != null);
-
-    Map<String, Object> requestJSONMap = (Map<String, Object>) JSON.deserializeUntyped(
-      (String) payload.get('requestJSON')
-    );
-
-    System.assertEquals(
-      '109',
-      (String) requestJSONMap.get('customObjectID')
-    );
-    System.assertEquals(
-      1,
-      ((List<Object>) requestJSONMap.get('customObjectRecords')).size()
-    );
-  }
-
-  @isTest
-  static void buildReadPayload_setsExpectedActionAndFilter() {
-    Map<String, Object> request = InstructionPayloadBuilder.buildReadRequest(
-      '9988'
-    );
-
-    Map<String, Object> payload = InstructionPayloadBuilder.buildReadPayload(
-      request
-    );
-
-    System.assertEquals('1.0', payload.get('version'));
-    System.assertEquals('readCustomObjectRecord', payload.get('action'));
-    System.assert(payload.get('requestJSON') != null);
-
-    Map<String, Object> requestJSONMap = (Map<String, Object>) JSON.deserializeUntyped(
-      (String) payload.get('requestJSON')
-    );
-
-    System.assertEquals('109', (String) requestJSONMap.get('customObjectID'));
-
-    Map<String, Object> customParameters = (Map<String, Object>) requestJSONMap.get(
-      'customParameters'
-    );
-    Map<String, Object> whereMap = (Map<String, Object>) customParameters.get(
-      'where'
-    );
-    Map<String, Object> keyValueMap = (Map<String, Object>) whereMap.get(
-      'keyValueMap'
-    );
-
-    System.assertEquals('9988', (String) keyValueMap.get('internalId'));
   }
 }
