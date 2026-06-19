@@ -20,6 +20,16 @@ public with sharing class SalesOrderController {
     String specialOrderComments,
     String specialOrderNotes,
     String specialOrderMemoOrSold,
+    String repairType,
+    String repairStation,
+    String repairPerson,
+    String repairLocation,
+    String repairVendor,
+    String shipRepairTo,
+    String repairDescription,
+    String extendedDescription,
+    Date dateOpened,
+    Date datePromised,
     String shippingAddressJson,
     String billingAddressJson,
     String inquiryId,
@@ -30,7 +40,11 @@ public with sharing class SalesOrderController {
     Boolean inquiryIsSendEmail,
     Boolean inquiryIsPrority,
     Boolean inquiryIsOpenDial,
-    String lineItemsJson
+    String lineItemsJson,
+    String instructionsJson,
+    String commentsJson,
+    String notesJson,
+    String fileJson
   ) {
     return SalesOrderService.saveSalesOrder(
       orderType,
@@ -52,6 +66,16 @@ public with sharing class SalesOrderController {
       specialOrderComments,
       specialOrderNotes,
       specialOrderMemoOrSold,
+      repairType,
+      repairStation,
+      repairPerson,
+      repairLocation,
+      repairVendor,
+      shipRepairTo,
+      repairDescription,
+      extendedDescription,
+      dateOpened,
+      datePromised,
       shippingAddressJson,
       billingAddressJson,
       inquiryId,
@@ -62,7 +86,11 @@ public with sharing class SalesOrderController {
       inquiryIsSendEmail,
       inquiryIsPrority,
       inquiryIsOpenDial,
-      lineItemsJson
+      lineItemsJson,
+      instructionsJson,
+      commentsJson,
+      notesJson,
+      fileJson
     );
   }
 

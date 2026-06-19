@@ -667,13 +667,23 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       specialOrderComments: this.formState.specialOrderComments,
       specialOrderNotes: this.formState.specialOrderNotes,
       specialOrderMemoOrSold: this.formState.specialOrderMemoOrSold,
+      repairType: this.formState.repairType,
+      repairStation: this.formState.repairStation,
+      repairPerson: this.formState.repairPerson,
+      repairLocation: this.formState.repairLocation,
+      repairVendor: this.formState.repairVendor,
+      shipRepairTo: this.formState.shipRepairTo,
+      repairDescription: this.formState.repairDescription,
+      extendedDescription: this.formState.extendedDescription,
+      dateOpened: this.formState.dateOpened,
+      datePromised: this.formState.datePromised,
       shippingAddressJson: JSON.stringify(shippingAddressState),
       billingAddressJson: JSON.stringify(billingAddressState),
       lineItemsJson: JSON.stringify(lineItems),
       instructions: JSON.stringify(instructions),
-      comments: JSON.stringify(comments),
-      notes: JSON.stringify(notes),
-      attachments: JSON.stringify(attachments)
+      commentsJson: JSON.stringify(comments),
+      notesJson: JSON.stringify(notes),
+      fileJson: JSON.stringify(attachments)
     };
 
     if (this.formState.specialDate)
@@ -690,10 +700,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     try {
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
-      // const soNsInternalId = await saveSalesOrder(payload);
-      // this.soNsInternalId = soNsInternalId;
-      // const orderRecordId = await getOrder({ soNsInternalId });
-      // return { soNsInternalId, orderRecordId, isUpdate };
+      const soNsInternalId = await saveSalesOrder({
+        requestJson: JSON.stringify(payload)
+      });
+      this.soNsInternalId = soNsInternalId;
+      const orderRecordId = await getOrder({ soNsInternalId });
+      return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
       console.error("Failed to save sales order");
       console.error(err.name);

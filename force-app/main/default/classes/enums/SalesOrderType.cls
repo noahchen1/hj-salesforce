@@ -1,5 +1,6 @@
 public enum SalesOrderType {
   sales,
   special,
-  inquiry
+  inquiry,
+  repair
 }

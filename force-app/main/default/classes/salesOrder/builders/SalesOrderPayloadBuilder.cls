@@ -18,6 +18,16 @@ public with sharing class SalesOrderPayloadBuilder {
     String specialOrderComments,
     String specialOrderNotes,
     String specialOrderMemoOrSold,
+    String repairType,
+    String repairStation,
+    String repairPerson,
+    String repairLocation,
+    String repairVendor,
+    String shipRepairTo,
+    String repairDescription,
+    String extendedDescription,
+    Date dateOpened,
+    Date datePromised,
     String inquiryModel,
     String inquiryName,
     String inquiryLink,
@@ -40,6 +50,8 @@ public with sharing class SalesOrderPayloadBuilder {
 
     if (orderTypeContext.isSpecialOrder || orderTypeContext.isInquiryOrder) {
       requestMap.put('customForm', lookupByInternalId('275'));
+    } else if (orderTypeContext.isRepairOrder) {
+      requestMap.put('customForm', lookupByInternalId('158'));
     } else {
       requestMap.put('customForm', lookupByInternalId('115'));
     }
@@ -93,6 +105,16 @@ public with sharing class SalesOrderPayloadBuilder {
           specialOrderComments,
           specialOrderNotes,
           specialOrderMemoOrSold,
+          repairType,
+          repairStation,
+          repairPerson,
+          repairLocation,
+          repairVendor,
+          shipRepairTo,
+          repairDescription,
+          extendedDescription,
+          dateOpened,
+          datePromised,
           inquiryModel,
           inquiryName,
           inquiryLink,
@@ -184,6 +206,16 @@ public with sharing class SalesOrderPayloadBuilder {
     String specialOrderComments,
     String specialOrderNotes,
     String specialOrderMemoOrSold,
+    String repairType,
+    String repairStation,
+    String repairPerson,
+    String repairLocation,
+    String repairVendor,
+    String shipRepairTo,
+    String repairDescription,
+    String extendedDescription,
+    Date dateOpened,
+    Date datePromised,
     String inquiryModel,
     String inquiryName,
     String inquiryLink,
@@ -384,6 +416,116 @@ public with sharing class SalesOrderPayloadBuilder {
             'fieldType' => 'boolean',
             'scriptId' => 'custbody_initial_email_check',
             'value' => inquiryIsSendEmail
+          }
+        );
+      }
+    }
+
+    if (orderTypeContext.isRepairOrder) {
+      customFields.add(
+        new Map<String, Object>{
+          'fieldType' => 'boolean',
+          'scriptId' => 'custbody_repair_order',
+          'value' => true
+        }
+      );
+
+      if (String.isNotBlank(repairType)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody1',
+            'value' => repairType
+          }
+        );
+      }
+
+      if (String.isNotBlank(repairStation)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'select',
+            'scriptId' => 'custbody_repair_station',
+            'valueLookup' => lookupByInternalId(repairStation)
+          }
+        );
+      }
+
+      if (String.isNotBlank(repairPerson)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'select',
+            'scriptId' => 'custbody_repair_person',
+            'valueLookup' => lookupByInternalId(repairPerson)
+          }
+        );
+      }
+
+      if (String.isNotBlank(repairLocation)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'select',
+            'scriptId' => 'custbody_repair_location',
+            'valueLookup' => lookupByInternalId(repairLocation)
+          }
+        );
+      }
+
+      if (String.isNotBlank(repairVendor)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'select',
+            'scriptId' => 'custbody_repair_vendor',
+            'valueLookup' => lookupByInternalId(repairVendor)
+          }
+        );
+      }
+
+      if (String.isNotBlank(shipRepairTo)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'select',
+            'scriptId' => 'custbody_shiprepairto',
+            'valueLookup' => lookupByInternalId(shipRepairTo)
+          }
+        );
+      }
+
+      if (String.isNotBlank(repairDescription)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'String',
+            'scriptId' => 'custbody_repair_description',
+            'value' => repairDescription
+          }
+        );
+      }
+
+      if (String.isNotBlank(extendedDescription)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'String',
+            'scriptId' => 'custbody_extended_description',
+            'value' => extendedDescription
+          }
+        );
+      }
+
+      if (dateOpened != null) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'date',
+            'scriptId' => 'startdate',
+            'value' => Helpers.toUnixSeconds(dateOpened)
+          }
+        );
+      }
+
+      if (datePromised != null) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'date',
+            'scriptId' => 'enddate',
+            'value' => Helpers.toUnixSeconds(datePromised)
           }
         );
       }

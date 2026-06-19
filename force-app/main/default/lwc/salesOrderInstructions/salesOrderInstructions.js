@@ -1,8 +1,8 @@
 import { LightningElement, api } from "lwc";
 
 const BASE_ROW = Object.freeze({
-  owner: "",
-  ownerId: "",
+  nsEmployee: "",
+  nsEmployeeId: "",
   instruction: "",
   dateLastModified: null
 });
@@ -122,8 +122,8 @@ export default class SalesOrderInstructions extends LightningElement {
       row.dateLastModified = new Date().toISOString();
 
       if (this.runningUserName && this.runningUserId) {
-        row.owner = this.runningUserName;
-        row.ownerId = this.runningUserId;
+        row.nsEmployee = this.runningUserName;
+        row.nsEmployeeId = this.runningUserId;
       }
 
       this.rows = updatedRows;

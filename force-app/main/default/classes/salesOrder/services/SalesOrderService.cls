@@ -19,6 +19,16 @@ public with sharing class SalesOrderService {
     String specialOrderComments,
     String specialOrderNotes,
     String specialOrderMemoOrSold,
+    String repairType,
+    String repairStation,
+    String repairPerson,
+    String repairLocation,
+    String repairVendor,
+    String shipRepairTo,
+    String repairDescription,
+    String extendedDescription,
+    Date dateOpened,
+    Date datePromised,
     String shippingAddressJson,
     String billingAddressJson,
     String inquiryId,
@@ -29,7 +39,11 @@ public with sharing class SalesOrderService {
     Boolean inquiryIsSendEmail,
     Boolean inquiryIsPrority,
     Boolean inquiryIsOpenDial,
-    String lineItemsJson
+    String lineItemsJson,
+    String instructionsJson,
+    String commentsJson,
+    String notesJson,
+    String fileJson
   ) {
     try {
       SalesOrderTypeContext orderTypeContext = SalesOrderTypeContext.fromOrderType(
@@ -98,6 +112,16 @@ public with sharing class SalesOrderService {
         specialOrderComments,
         specialOrderNotes,
         specialOrderMemoOrSold,
+        repairType,
+        repairStation,
+        repairPerson,
+        repairLocation,
+        repairVendor,
+        shipRepairTo,
+        repairDescription,
+        extendedDescription,
+        dateOpened,
+        datePromised,
         inquiryModel,
         inquiryName,
         inquiryLink,
@@ -133,6 +157,33 @@ public with sharing class SalesOrderService {
       SalesOrderDataModel.SalesOrderData so = SalesOrderResHandler.handleResponse(
         response
       );
+
+      if (orderTypeContext.isRepairOrder) {
+        List<InstructionDataModel.InstructionData> instructions;
+        List<CommentDataModel.CommentData> comments;
+
+        if (String.isNotBlank(instructionsJson)) {
+          instructions = InstructionMapper.deserializeInstructions(
+            instructionsJson
+          );
+        }
+
+        if (String.isNotBlank(commentsJson)) {
+          comments = CommentMapper.deserializeComments(commentsJson);
+        }
+
+        for (InstructionDataModel.InstructionData i : instructions) {
+          InstructionController.saveInstruction(
+            i.nsEmployeeId,
+            i.nsSoId,
+            i.instruction
+          );
+        }
+
+        for (CommentDataModel.CommentData c : comments) {
+          CommentController.saveComment(c.nsEmployeeId, c.nsSoId, c.comment);
+        }
+      }
 
       return so.soNsInternalId;
     } catch (Exception e) {

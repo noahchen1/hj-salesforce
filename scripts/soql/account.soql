@@ -129,4 +129,4 @@ SELECT FIELDS(ALL) FROM ContentVersion WHERE ContentDocumentId = '069WJ00000CEd4
 
 Select Id, VersionData from ContentVersion where ContentDocumentId = '069WJ00000CEd4JYAT'
 
-SELECT nid_record1__c FROM nco_repair_instructions__c LIMIT 10 
+SELECT COUNT() FROM nco_repair_comments__c
