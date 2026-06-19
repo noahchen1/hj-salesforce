@@ -78,44 +78,40 @@
         ontablesectionchange={handleTableSecionChange}
       ></c-sales-order-tabs>
 
-      <template if:true={isLineItemTableOn}>
+      <div class={lineItemPanelClass}>
         <c-sales-order-line-items
           location={formState.location}
           special-order-status={formState.specialOrderStatus}
           disabled={showTableOverlay}
           order-type={formState.orderType}
           onlineitemschange={handleLineItemsChange}
-          previous-rows={formState.lineItems}
         ></c-sales-order-line-items>
-      </template>
+      </div>
 
-      <template if:true={isInstructionTableOn}>
+      <div class={instructionPanelClass}>
         <c-sales-order-instructions
           order-type={formState.orderType}
           oninstructionchange={handleInstructionChange}
           running-user-name={formState.runningUserName}
           running-user-id={formState.runningUserId}
-          previous-rows={formState.instructions}
         ></c-sales-order-instructions>
-      </template>
+      </div>
 
-      <template if:true={isCommentsTableOn}>
+      <div class={commentPanelClass}>
         <c-sales-order-comments
           oncommentchange={handleCommentChange}
           running-user-name={formState.runningUserName}
           running-user-id={formState.runningUserId}
-          previous-rows={formState.comments}
         ></c-sales-order-comments>
-      </template>
+      </div>
 
-      <template if:true={isNotesTableOn}>
+      <div class={notePanelClass}>
         <c-sales-order-notes
           onnotechange={handleNoteChange}
           running-user-name={formState.runningUserName}
           running-user-id={formState.runningUserId}
-          previous-rows={formState.notes}
         ></c-sales-order-notes>
-      </template>
+      </div>
     </div>
   </lightning-card>
 </template>

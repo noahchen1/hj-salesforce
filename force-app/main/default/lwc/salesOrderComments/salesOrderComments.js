@@ -12,28 +12,12 @@ export default class SalesOrderComments extends LightningElement {
   @api runningUserId;
 
   rows = [];
-  previousRowData = [];
   nextRowId = 0;
   debounceTimer;
 
   constructor() {
     super();
     this.reset();
-  }
-
-  @api
-  get previousRows() {
-    return this.previousRowData;
-  }
-
-  set previousRows(value) {
-    this.previousRowData = Array.isArray(value)
-      ? value.map((row) => ({ ...row }))
-      : [];
-
-    if (this.shouldHydrateRows()) {
-      this.hydrateRowsFromPrevious();
-    }
   }
 
   get hasRows() {
@@ -92,45 +76,12 @@ export default class SalesOrderComments extends LightningElement {
 
   @api
   reset() {
-    this.rows = [];
-    this.nextRowId = 0;
-    this.emitCommentChange();
-  }
-
-  shouldHydrateRows() {
-    if (!this.rows.length) {
-      return true;
-    }
-
-    if (this.rows.length > 1) {
-      return false;
-    }
-
-    return !this.rows[0].comment;
-  }
-
-  hydrateRowsFromPrevious() {
-    if (this.previousRowData.length > 0) {
-      this.rows = this.previousRowData.map((row, index) =>
-        this.createRow({
-          showAction: index === 0,
-          disableRemove: index === 0,
-          overrides: row
-        })
-      );
-
-      this.nextRowId = this.rows.length;
-      return;
-    }
-
     this.rows = [
-      this.createRow({
-        id: 1,
-        showAction: true,
-        disableRemove: true
-      })
+      this.createRow({ id: 1, showAction: true, disableRemove: true })
     ];
+    
     this.nextRowId = 2;
+    this.emitCommentChange();
   }
 
   handleFocus(e) {

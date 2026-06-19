@@ -48,3 +48,7 @@ lightning-card {
 .btn-container {
   margin: 30px;
 }
+
+.tab-hidden {
+  display: none;
+}

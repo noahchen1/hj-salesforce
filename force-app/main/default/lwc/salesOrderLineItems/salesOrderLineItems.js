@@ -40,7 +40,6 @@ export default class SalesOrderLineItems extends LightningElement {
   @api specialOrderStatus;
 
   rows = [];
-  previousRowData = [];
   nextRowId = 0;
   selectedItemId;
   selectedItemRowIndex = null;
@@ -49,41 +48,6 @@ export default class SalesOrderLineItems extends LightningElement {
   constructor() {
     super();
     this.reset();
-  }
-
-  @api
-  get previousRows() {
-    return this.previousRowData;
-  }
-
-  set previousRows(value) {
-    this.previousRowData = Array.isArray(value)
-      ? value.map((row) => ({ ...row }))
-      : [];
-
-    if (!this.shouldHydrateRows()) {
-      return;
-    }
-
-    const sourceRows = this.previousRowData;
-
-    if (!sourceRows.length) {
-      return;
-    }
-
-    this.setRows(sourceRows);
-  }
-
-  shouldHydrateRows() {
-    if (!this.rows.length) {
-      return true;
-    }
-
-    if (this.rows.length > 1) {
-      return false;
-    }
-
-    return !this.rows[0].item;
   }
 
   emitLineItemsChange() {

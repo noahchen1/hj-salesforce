@@ -184,6 +184,22 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     return this.formState.tableType === "attachments";
   }
 
+  get lineItemPanelClass() {
+    return this.isLineItemTableOn ? "" : "tab-hidden";
+  }
+
+  get instructionPanelClass() {
+    return this.isInstructionTableOn ? "" : "tab-hidden";
+  }
+
+  get commentPanelClass() {
+    return this.isCommentsTableOn ? "" : "tab-hidden";
+  }
+
+  get notePanelClass() {
+    return this.isNotesTableOn ? "" : "tab-hidden";
+  }
+
   get showTableOverlay() {
     const state = this.formState;
 
@@ -849,14 +865,11 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   validateFields(payload) {
     const isHeaderValid = this.header?.validateFields();
-    // const isLineItemValid = this.lineItems?.validateFields();
+    const isLineItemValid = this.lineItems?.validateFields();
 
-    console.log(JSON.stringify(isHeaderValid));
-    // console.log(JSON.stringify(isLineItemValid));
-
-    // if (!isHeaderValid || !isLineItemValid) {
-    //   throw new Error("Please fill in all required fields.");
-    // }
+    if (!isHeaderValid || !isLineItemValid) {
+      throw new Error("Please fill in all required fields.");
+    }
 
     const orderType = payload.orderType;
 

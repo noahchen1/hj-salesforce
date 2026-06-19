@@ -14,27 +14,11 @@ export default class SalesOrderNotes extends LightningElement {
   @api runningUserId;
 
   rows = [];
-  previousRowData = [];
   nextRowId = 0;
 
   constructor() {
     super();
     this.reset();
-  }
-
-  @api
-  get previousRows() {
-    return this.previousRowData;
-  }
-
-  set previousRows(value) {
-    this.previousRowData = Array.isArray(value)
-      ? value.map((row) => ({ ...row }))
-      : [];
-
-    if (this.shouldHydrateRows()) {
-      this.hydrateRowsFromPrevious();
-    }
   }
 
   get typeOptions() {
@@ -108,55 +92,12 @@ export default class SalesOrderNotes extends LightningElement {
 
   @api
   reset() {
-    this.rows = [];
-    this.nextRowId = 0;
-    this.emitNoteChange();
-  }
-
-  shouldHydrateRows() {
-    if (!this.rows.length) {
-      return true;
-    }
-
-    if (this.rows.length > 1) {
-      return false;
-    }
-
-    const row = this.rows[0];
-
-    const hasData =
-      row.owner ||
-      row.ownerId ||
-      row.title ||
-      row.direction ||
-      row.memo ||
-      row.dateLastModified;
-
-    return !hasData;
-  }
-
-  hydrateRowsFromPrevious() {
-    if (this.previousRowData.length > 0) {
-      this.rows = this.previousRowData.map((row, index) =>
-        this.createRow({
-          showAction: index === 0,
-          disableRemove: index === 0,
-          overrides: row
-        })
-      );
-
-      this.nextRowId = this.rows.length;
-      return;
-    }
-
     this.rows = [
-      this.createRow({
-        id: 1,
-        showAction: true,
-        disableRemove: true
-      })
+      this.createRow({ id: 1, showAction: true, disableRemove: true })
     ];
+
     this.nextRowId = 2;
+    this.emitNoteChange();
   }
 
   handleFocus(e) {
