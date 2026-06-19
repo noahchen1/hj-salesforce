@@ -3,7 +3,7 @@ import { LightningElement, api } from "lwc";
 const BASE_ROW = Object.freeze({
   owner: "",
   ownerId: "",
-  comment: "",
+  instruction: "",
   dateLastModified: null
 });
 

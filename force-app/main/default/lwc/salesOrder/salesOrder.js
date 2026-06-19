@@ -61,7 +61,8 @@ const DEFAULT_FORM_STATE = Object.freeze({
   lineItems: [],
   instructions: [],
   comments: [],
-  notes: []
+  notes: [],
+  attachments: []
 });
 
 const FORM_STATE_FIELDS = new Set(Object.keys(DEFAULT_FORM_STATE));
@@ -627,7 +628,11 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     const { shippingAddressState = {}, billingAddressState = {} } =
       this.formState.address || {};
 
-    const rows = this.formState.lineItems || [];
+    const lineItems = this.formState.lineItems;
+    const instructions = this.formState.instructions;
+    const comments = this.formState.comments;
+    const notes = this.formState.notes;
+    const attachments = this.formState.attachments;
 
     const payload = {
       orderType: this.formState.orderType,
@@ -648,7 +653,11 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       specialOrderMemoOrSold: this.formState.specialOrderMemoOrSold,
       shippingAddressJson: JSON.stringify(shippingAddressState),
       billingAddressJson: JSON.stringify(billingAddressState),
-      lineItemsJson: JSON.stringify(rows)
+      lineItemsJson: JSON.stringify(lineItems),
+      instructions: JSON.stringify(instructions),
+      comments: JSON.stringify(comments),
+      notes: JSON.stringify(notes),
+      attachments: JSON.stringify(attachments)
     };
 
     if (this.formState.specialDate)
@@ -665,10 +674,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     try {
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
-      const soNsInternalId = await saveSalesOrder(payload);
-      this.soNsInternalId = soNsInternalId;
-      const orderRecordId = await getOrder({ soNsInternalId });
-      return { soNsInternalId, orderRecordId, isUpdate };
+      // const soNsInternalId = await saveSalesOrder(payload);
+      // this.soNsInternalId = soNsInternalId;
+      // const orderRecordId = await getOrder({ soNsInternalId });
+      // return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
       console.error("Failed to save sales order");
       console.error(err.name);
@@ -840,11 +849,14 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   validateFields(payload) {
     const isHeaderValid = this.header?.validateFields();
-    const isLineItemValid = this.lineItems?.validateFields();
+    // const isLineItemValid = this.lineItems?.validateFields();
 
-    if (!isHeaderValid || !isLineItemValid) {
-      throw new Error("Please fill in all required fields.");
-    }
+    console.log(JSON.stringify(isHeaderValid));
+    // console.log(JSON.stringify(isLineItemValid));
+
+    // if (!isHeaderValid || !isLineItemValid) {
+    //   throw new Error("Please fill in all required fields.");
+    // }
 
     const orderType = payload.orderType;
 
