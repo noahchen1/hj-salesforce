@@ -13,7 +13,7 @@ public with sharing class openCampaigns {
         'WHERE Account.OwnerId = \'' +
         UserInfo.getUserId() +
         '\' ' +
-        'AND status = \'Notsent\'';
+        'AND status = \'Not_Sent\'';
 
       if (String.isNotEmpty(campaignId)) {
         query += ' AND Campaign.Id = :campaignId';

@@ -1,139 +1,61 @@
 public with sharing class SalesOrderService {
   public static String saveSalesOrder(
-    String orderType,
-    String inquiryType,
-    String soNsInternalId,
-    String custNsInternalId,
-    Date orderDate,
-    String salesRep1,
-    String salesRep2,
-    String subsidiary,
-    String location,
-    String termsNsInternalId,
-    String memo,
-    Date specialDate,
-    Date needByDate,
-    String specialOrderItemType,
-    String specialOrderVendor,
-    String specialOrderRequestedVendor,
-    String specialOrderComments,
-    String specialOrderNotes,
-    String specialOrderMemoOrSold,
-    String repairType,
-    String repairStation,
-    String repairPerson,
-    String repairLocation,
-    String repairVendor,
-    String shipRepairTo,
-    String repairDescription,
-    String extendedDescription,
-    Date dateOpened,
-    Date datePromised,
-    String shippingAddressJson,
-    String billingAddressJson,
-    String inquiryId,
-    String inquiryModel,
-    String inquiryName,
-    String inquiryLink,
-    String inquiryPersonalMsg,
-    Boolean inquiryIsSendEmail,
-    Boolean inquiryIsPrority,
-    Boolean inquiryIsOpenDial,
-    String lineItemsJson,
-    String instructionsJson,
-    String commentsJson,
-    String notesJson,
-    String fileJson
+    SalesOrderParamModel.SalesOrderSaveParam saveParams
   ) {
     try {
       SalesOrderTypeContext orderTypeContext = SalesOrderTypeContext.fromOrderType(
-        orderType
+        saveParams.orderType
       );
 
       SalesOrderValidator.validateParams(
-        orderType,
-        inquiryType,
-        custNsInternalId,
-        orderDate,
-        salesRep1,
-        subsidiary,
-        location,
-        specialDate,
-        needByDate,
-        specialOrderItemType,
-        specialOrderVendor,
-        specialOrderMemoOrSold,
-        inquiryId,
-        inquiryModel,
-        inquiryName,
-        inquiryLink,
-        inquiryIsPrority,
-        lineItemsJson
+        saveParams.orderType,
+        saveParams.inquiryType,
+        saveParams.custNsInternalId,
+        saveParams.orderDate,
+        saveParams.salesRep1,
+        saveParams.subsidiary,
+        saveParams.location,
+        saveParams.specialDate,
+        saveParams.needByDate,
+        saveParams.specialOrderItemType,
+        saveParams.specialOrderVendor,
+        saveParams.specialOrderMemoOrSold,
+        saveParams.inquiryId,
+        saveParams.inquiryModel,
+        saveParams.inquiryName,
+        saveParams.inquiryLink,
+        saveParams.inquiryIsPrority,
+        saveParams.lineItemsJson
       );
 
-      Boolean isUpdate = String.isNotBlank(soNsInternalId);
+      Boolean isUpdate = String.isNotBlank(saveParams.soNsInternalId);
       String inquiryTranNumber;
 
       if (orderTypeContext.isInquiryOrder) {
         inquiryTranNumber = buildNextInquiryTranNumber(
-          custNsInternalId,
-          inquiryType
+          saveParams.custNsInternalId,
+          saveParams.inquiryType
         );
       }
 
       List<SalesOrderDataModel.LineItem> lineItems = SalesOrderMapper.deserializeLineItems(
-        lineItemsJson
+        saveParams.lineItemsJson
       );
 
       SalesOrderDataModel.Address shippingAddress = SalesOrderMapper.deserializeAddress(
-        shippingAddressJson
+        saveParams.shippingAddressJson
       );
 
       SalesOrderDataModel.Address billingAddress = SalesOrderMapper.deserializeAddress(
-        billingAddressJson
+        saveParams.billingAddressJson
       );
 
       Map<String, Object> salesOrderRequest = SalesOrderPayloadBuilder.buildSaveRequest(
-        orderType,
-        soNsInternalId,
-        custNsInternalId,
-        orderDate,
-        salesRep1,
-        salesRep2,
-        subsidiary,
-        location,
-        termsNsInternalId,
-        memo,
-        specialDate,
-        needByDate,
-        specialOrderItemType,
-        specialOrderVendor,
-        specialOrderRequestedVendor,
-        specialOrderComments,
-        specialOrderNotes,
-        specialOrderMemoOrSold,
-        repairType,
-        repairStation,
-        repairPerson,
-        repairLocation,
-        repairVendor,
-        shipRepairTo,
-        repairDescription,
-        extendedDescription,
-        dateOpened,
-        datePromised,
-        inquiryModel,
-        inquiryName,
-        inquiryLink,
-        inquiryPersonalMsg,
-        inquiryIsSendEmail,
-        inquiryIsPrority,
-        inquiryIsOpenDial,
-        inquiryTranNumber,
-        inquiryId,
+        saveParams,
         shippingAddress,
         billingAddress,
         lineItems,
+        inquiryTranNumber,
         isUpdate
       );
 
@@ -157,33 +79,6 @@ public with sharing class SalesOrderService {
       SalesOrderDataModel.SalesOrderData so = SalesOrderResHandler.handleResponse(
         response
       );
-
-      if (orderTypeContext.isRepairOrder) {
-        List<InstructionDataModel.InstructionData> instructions;
-        List<CommentDataModel.CommentData> comments;
-
-        if (String.isNotBlank(instructionsJson)) {
-          instructions = InstructionMapper.deserializeInstructions(
-            instructionsJson
-          );
-        }
-
-        if (String.isNotBlank(commentsJson)) {
-          comments = CommentMapper.deserializeComments(commentsJson);
-        }
-
-        for (InstructionDataModel.InstructionData i : instructions) {
-          InstructionController.saveInstruction(
-            i.nsEmployeeId,
-            i.nsSoId,
-            i.instruction
-          );
-        }
-
-        for (CommentDataModel.CommentData c : comments) {
-          CommentController.saveComment(c.nsEmployeeId, c.nsSoId, c.comment);
-        }
-      }
 
       return so.soNsInternalId;
     } catch (Exception e) {

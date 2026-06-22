@@ -4,6 +4,8 @@ import getSubsidiaries from "@salesforce/apex/DropdownDataController.getSubsidia
 import USER_ID from "@salesforce/user/Id";
 import { getFieldValue, getRecord } from "lightning/uiRecordApi";
 import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder";
+import saveInstruction from "@salesforce/apex/InstructionController.saveInstruction";
+import saveComment from "@salesforce/apex/CommentController.saveComment";
 import getOrderData from "@salesforce/apex/SalesOrderController.getOrderData";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
@@ -21,6 +23,7 @@ import notifyOrderSaveStatus from "@salesforce/apex/SalesOrderController.notifyO
 import { processPicklistData } from "c/salesOrderUtils";
 import { VENDOR_REQUIRED_ITEM_TYPES } from "c/salesOrderUtils";
 import { isValidRolexVendorNum } from "c/salesOrderUtils";
+import { isBlank } from "c/utils";
 
 const DEFAULT_FORM_STATE = Object.freeze({
   custNsInternalId: "",
@@ -154,6 +157,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   get isSpecialOrder() {
     return this.formState.orderType === "special";
+  }
+
+  get isRepairOrder() {
+    return this.formState.orderType === "repair";
   }
 
   get parentRecordId() {
@@ -654,7 +661,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       orderType: this.formState.orderType,
       soNsInternalId: this.soNsInternalId,
       custNsInternalId: this.formState.custNsInternalId,
-      orderDate: this.formState.date,
+      orderDate: new Date(this.formState.date).toLocaleDateString("en-CA"),
       salesRep1: this.formState.salesRep1,
       salesRep2: this.formState.salesRep2,
       subsidiary: this.formState.subsidiary,
@@ -680,7 +687,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       shippingAddressJson: JSON.stringify(shippingAddressState),
       billingAddressJson: JSON.stringify(billingAddressState),
       lineItemsJson: JSON.stringify(lineItems),
-      instructions: JSON.stringify(instructions),
+      instructionsJson: JSON.stringify(instructions),
       commentsJson: JSON.stringify(comments),
       notesJson: JSON.stringify(notes),
       fileJson: JSON.stringify(attachments)
@@ -696,15 +703,56 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   async executeSave(payload = this.buildPayload()) {
     const isUpdate = Boolean(this.soNsInternalId);
+    const instructions = this.formState.instructions;
+    const comments = this.formState.comments;
+    const notes = this.formState.notes;
+    const attachments = this.formState.attachments;
 
     try {
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
 
       const soNsInternalId = await saveSalesOrder({
-        requestJson: JSON.stringify(payload)
+        saveParamJson: JSON.stringify(payload)
       });
+
       this.soNsInternalId = soNsInternalId;
+
       const orderRecordId = await getOrder({ soNsInternalId });
+
+      if (!isBlank(orderRecordId) && this.isRepairOrder) {
+        const instructionSaves = instructions
+          .filter(
+            ({ nsEmployeeId, instruction }) =>
+              !isBlank(nsEmployeeId) && !isBlank(instruction)
+          )
+          .map(async ({ nsEmployeeId, instruction }) => {
+            const instructionId = await saveInstruction({
+              nsEmployeeId,
+              nsSoId: soNsInternalId,
+              instruction
+            });
+
+            console.log("instruction inserted: " + instructionId);
+          });
+
+        const commentSaves = comments
+          .filter(
+            ({ nsEmployeeId, comment }) =>
+              !isBlank(nsEmployeeId) && !isBlank(comment)
+          )
+          .map(async ({ nsEmployeeId, comment }) => {
+            const commentId = await saveComment({
+              nsEmployeeId,
+              nsSoId: soNsInternalId,
+              comment
+            });
+
+            console.log("comment inserted: " + commentId);
+          });
+
+        await Promise.all([...instructionSaves, ...commentSaves]);
+      }
+
       return { soNsInternalId, orderRecordId, isUpdate };
     } catch (err) {
       console.error("Failed to save sales order");
@@ -929,6 +977,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   }
 
   initSpecialOrderForm() {
-    this.setFormField("specialDate", new Date().toISOString());
+    this.setFormField("specialDate", new Date());
   }
 }

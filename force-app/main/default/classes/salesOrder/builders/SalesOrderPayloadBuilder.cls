@@ -1,51 +1,16 @@
 public with sharing class SalesOrderPayloadBuilder {
   public static Map<String, Object> buildSaveRequest(
-    String orderType,
-    String soNsInternalId,
-    String custNsInternalId,
-    Date orderDate,
-    String salesRep1,
-    String salesRep2,
-    String subsidiary,
-    String location,
-    String termsNsInternalId,
-    String memo,
-    Date specialDate,
-    Date needByDate,
-    String specialOrderItemType,
-    String specialOrderVendor,
-    String specialOrderRequestedVendor,
-    String specialOrderComments,
-    String specialOrderNotes,
-    String specialOrderMemoOrSold,
-    String repairType,
-    String repairStation,
-    String repairPerson,
-    String repairLocation,
-    String repairVendor,
-    String shipRepairTo,
-    String repairDescription,
-    String extendedDescription,
-    Date dateOpened,
-    Date datePromised,
-    String inquiryModel,
-    String inquiryName,
-    String inquiryLink,
-    String inquiryPersonalMsg,
-    Boolean inquiryIsSendEmail,
-    Boolean inquiryIsPrority,
-    Boolean inquiryIsOpenDial,
-    String inquiryTranNumber,
-    String inquiryId,
+    SalesOrderParamModel.SalesOrderSaveParam saveParams,
     SalesOrderDataModel.Address shippingAddress,
     SalesOrderDataModel.Address billingAddress,
     List<SalesOrderDataModel.LineItem> lineItems,
+    String inquiryTranNumber,
     Boolean isUpdate
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
 
     SalesOrderTypeContext orderTypeContext = SalesOrderTypeContext.fromOrderType(
-      orderType
+      saveParams.orderType
     );
 
     if (orderTypeContext.isSpecialOrder || orderTypeContext.isInquiryOrder) {
@@ -60,19 +25,19 @@ public with sharing class SalesOrderPayloadBuilder {
       requestMap.put('tranid', inquiryTranNumber);
     }
 
-    requestMap.put('entity', lookupByInternalId(custNsInternalId));
-    requestMap.put('salesRep', lookupByInternalId(salesRep1));
-    requestMap.put('subsidiary', lookupByInternalId(subsidiary));
-    requestMap.put('location', lookupByInternalId(location));
-    requestMap.put('terms', lookupByInternalId(termsNsInternalId));
+    requestMap.put('entity', lookupByInternalId(saveParams.custNsInternalId));
+    requestMap.put('salesRep', lookupByInternalId(saveParams.salesRep1));
+    requestMap.put('subsidiary', lookupByInternalId(saveParams.subsidiary));
+    requestMap.put('location', lookupByInternalId(saveParams.location));
+    requestMap.put('terms', lookupByInternalId(saveParams.termsNsInternalId));
     requestMap.put('tranDate', Helpers.toUnixSeconds(Date.today()));
 
-    if (String.isNotBlank(soNsInternalId)) {
-      requestMap.put('internalId', soNsInternalId);
+    if (String.isNotBlank(saveParams.soNsInternalId)) {
+      requestMap.put('internalId', saveParams.soNsInternalId);
     }
 
-    if (String.isNotBlank(memo)) {
-      requestMap.put('memo', memo);
+    if (String.isNotBlank(saveParams.memo)) {
+      requestMap.put('memo', saveParams.memo);
     }
 
     Map<String, Object> shippingAddressDetails = buildAddressDetails(
@@ -95,40 +60,44 @@ public with sharing class SalesOrderPayloadBuilder {
       'customFieldList',
       new Map<String, Object>{
         'customField' => buildCustomFields(
-          orderType,
-          salesRep2,
-          specialDate,
-          needByDate,
-          specialOrderItemType,
-          specialOrderVendor,
-          specialOrderRequestedVendor,
-          specialOrderComments,
-          specialOrderNotes,
-          specialOrderMemoOrSold,
-          repairType,
-          repairStation,
-          repairPerson,
-          repairLocation,
-          repairVendor,
-          shipRepairTo,
-          repairDescription,
-          extendedDescription,
-          dateOpened,
-          datePromised,
-          inquiryModel,
-          inquiryName,
-          inquiryLink,
-          inquiryPersonalMsg,
-          inquiryIsSendEmail,
-          inquiryIsPrority,
-          inquiryIsOpenDial,
-          inquiryId
+          saveParams.orderType,
+          saveParams.salesRep2,
+          saveParams.specialDate,
+          saveParams.needByDate,
+          saveParams.specialOrderItemType,
+          saveParams.specialOrderVendor,
+          saveParams.specialOrderRequestedVendor,
+          saveParams.specialOrderComments,
+          saveParams.specialOrderNotes,
+          saveParams.specialOrderMemoOrSold,
+          saveParams.repairType,
+          saveParams.repairStation,
+          saveParams.repairPerson,
+          saveParams.repairLocation,
+          saveParams.repairVendor,
+          saveParams.shipRepairTo,
+          saveParams.repairDescription,
+          saveParams.extendedDescription,
+          saveParams.dateOpened,
+          saveParams.datePromised,
+          saveParams.inquiryModel,
+          saveParams.inquiryName,
+          saveParams.inquiryLink,
+          saveParams.inquiryPersonalMsg,
+          saveParams.inquiryIsSendEmail,
+          saveParams.inquiryIsPrority,
+          saveParams.inquiryIsOpenDial,
+          saveParams.inquiryId
         )
       }
     );
 
     Map<String, Object> itemList = new Map<String, Object>{
-      'item' => buildItemList(orderType, lineItems, location)
+      'item' => buildItemList(
+        saveParams.orderType,
+        lineItems,
+        saveParams.location
+      )
     };
 
     if (isUpdate) {
@@ -433,7 +402,7 @@ public with sharing class SalesOrderPayloadBuilder {
       if (String.isNotBlank(repairType)) {
         customFields.add(
           new Map<String, Object>{
-            'fieldType' => 'string',
+            'fieldType' => 'select',
             'scriptId' => 'custbody1',
             'value' => repairType
           }

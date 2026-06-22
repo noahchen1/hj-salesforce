@@ -41,6 +41,25 @@ public with sharing class SalesOrderMapper {
     }
   }
 
+  public static SalesOrderParamModel.SalesOrderSaveParam deserializeSaveParams(
+    String saveParamJson
+  ) {
+    try {
+      return (SalesOrderParamModel.SalesOrderSaveParam) JSON.deserialize(
+        saveParamJson,
+        SalesOrderParamModel.SalesOrderSaveParam.class
+      );
+    } catch (Exception err) {
+      AuraHandledException e = new AuraHandledException(
+        'Invalid save param: ' + err.getMessage()
+      );
+
+      e.setMessage('Invalid save param: ' + err.getMessage());
+
+      throw e;
+    }
+  }
+
   public static SalesOrderDataModel.SalesOrderData mapSalesOrder(
     SalesOrderResModel.SalesOrder so
   ) {
