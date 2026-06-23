@@ -1,5 +1,5 @@
 public with sharing class NsFileService {
-  public static NsFileDataModel.UploadFileResult uploadFile(
+  public static String uploadFile(
     String caption,
     String folderInternalId,
     String fileDataJson
@@ -8,11 +8,7 @@ public with sharing class NsFileService {
       fileDataJson
     );
 
-    NsFileValidator.validateUploadRequest(
-      caption,
-      folderInternalId,
-      fileData
-    );
+    NsFileValidator.validateUploadRequest(caption, folderInternalId, fileData);
 
     ContentVersion sourceVersion;
     try {
@@ -29,7 +25,9 @@ public with sharing class NsFileService {
       );
     }
 
-    String encodedContent = EncodingUtil.base64Encode(sourceVersion.VersionData);
+    String encodedContent = EncodingUtil.base64Encode(
+      sourceVersion.VersionData
+    );
 
     Map<String, Object> nsFileRequest = NsFilePayloadBuilder.buildUploadRequest(
       caption,
@@ -54,6 +52,10 @@ public with sharing class NsFileService {
       'NsFileService.uploadFile response: ' + JSON.serialize(response)
     );
 
-    return NsFileResHandler.handleUploadResponse(response);
+    NsFileDataModel.UploadFileResult file = NsFileResHandler.handleUploadResponse(
+      response
+    );
+
+    return file.internalId;
   }
 }

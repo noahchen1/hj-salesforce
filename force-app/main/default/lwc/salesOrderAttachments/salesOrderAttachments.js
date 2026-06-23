@@ -3,14 +3,16 @@ import { deleteRecord } from "lightning/uiRecordApi";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 const BASE_ROW = Object.freeze({
-  fileName: "",
+  name: "",
   documentId: "",
-  fileUrl: ""
+  contentVersionId: "",
+  contentBodyId: "",
+  mimeType: "",
+  fileUrl: "",
+  downloadUrl: ""
 });
 
 export default class SalesOrderAttachments extends LightningElement {
-  @api orderType;
-
   rows = [];
   nextRowId = 0;
 
@@ -24,6 +26,20 @@ export default class SalesOrderAttachments extends LightningElement {
 
   get isRepairOrder() {
     return this.orderType === "repair";
+  }
+
+  @api getRows() {
+    return [...this.rows];
+  }
+
+  emitAttachmentChange() {
+    this.dispatchEvent(
+      new CustomEvent("attachmentchange", {
+        detail: {
+          rows: this.getRows()
+        }
+      })
+    );
   }
 
   createRow({ id, overrides = {} }) {
@@ -44,12 +60,17 @@ export default class SalesOrderAttachments extends LightningElement {
 
     const newRows = uploadedFiles.map((file) => {
       const fileUrl = `/lightning/r/ContentDocument/${file.documentId}/view`;
+      const downloadUrl = `https://hamiltonjewelers--full.sandbox.file.force.com/sfc/servlet.shepherd/version/download/${file.contentVersionId}`;
 
       const row = this.createRow({
         overrides: {
-          fileName: file.name,
+          name: file.name,
           documentId: file.documentId,
-          fileUrl: fileUrl
+          contentVersionId: file.contentVersionId,
+          contentBodyId: file.contentBodyId,
+          mimeType: file.mimeType,
+          fileUrl: fileUrl,
+          downloadUrl: downloadUrl
         }
       });
 
@@ -57,6 +78,8 @@ export default class SalesOrderAttachments extends LightningElement {
     });
 
     this.rows = [...this.rows, ...newRows];
+
+    this.emitAttachmentChange();
   }
 
   async handleRemoveClick(event) {
@@ -77,6 +100,8 @@ export default class SalesOrderAttachments extends LightningElement {
 
       console.error("Error deleting file:", error);
     }
+
+    this.emitAttachmentChange();
   }
 }
 

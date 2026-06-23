@@ -87,7 +87,8 @@ public with sharing class SalesOrderPayloadBuilder {
           saveParams.inquiryIsSendEmail,
           saveParams.inquiryIsPrority,
           saveParams.inquiryIsOpenDial,
-          saveParams.inquiryId
+          saveParams.inquiryId,
+          saveParams.attachmentUrls
         )
       }
     );
@@ -192,7 +193,8 @@ public with sharing class SalesOrderPayloadBuilder {
     Boolean inquiryIsSendEmail,
     Boolean inquiryIsPrority,
     Boolean inquiryIsOpenDial,
-    String inquiryId
+    String inquiryId,
+    String attachmentUrls
   ) {
     List<Object> customFields = new List<Object>();
 
@@ -462,7 +464,7 @@ public with sharing class SalesOrderPayloadBuilder {
       if (String.isNotBlank(repairDescription)) {
         customFields.add(
           new Map<String, Object>{
-            'fieldType' => 'String',
+            'fieldType' => 'string',
             'scriptId' => 'custbody_repair_description',
             'value' => repairDescription
           }
@@ -472,7 +474,7 @@ public with sharing class SalesOrderPayloadBuilder {
       if (String.isNotBlank(extendedDescription)) {
         customFields.add(
           new Map<String, Object>{
-            'fieldType' => 'String',
+            'fieldType' => 'string',
             'scriptId' => 'custbody_extended_description',
             'value' => extendedDescription
           }
@@ -495,6 +497,16 @@ public with sharing class SalesOrderPayloadBuilder {
             'fieldType' => 'date',
             'scriptId' => 'enddate',
             'value' => Helpers.toUnixSeconds(datePromised)
+          }
+        );
+      }
+
+      if (String.isNotBlank(attachmentUrls)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_repair_attach_urls',
+            'value' => attachmentUrls
           }
         );
       }

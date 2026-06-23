@@ -59,6 +59,8 @@ public with sharing class SalesOrderParamModel {
     @AuraEnabled
     public Date datePromised;
     @AuraEnabled
+    public String attachmentUrls;
+    @AuraEnabled
     public String shippingAddressJson;
     @AuraEnabled
     public String billingAddressJson;
@@ -80,5 +82,7 @@ public with sharing class SalesOrderParamModel {
     public Boolean inquiryIsOpenDial;
     @AuraEnabled
     public String lineItemsJson;
+    @AuraEnabled
+    public String fileJson;
   }
 }

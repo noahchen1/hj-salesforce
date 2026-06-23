@@ -6,6 +6,7 @@ import { getFieldValue, getRecord } from "lightning/uiRecordApi";
 import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder";
 import saveInstruction from "@salesforce/apex/InstructionController.saveInstruction";
 import saveComment from "@salesforce/apex/CommentController.saveComment";
+import uploadFile from "@salesforce/apex/NsFileController.uploadFile";
 import getOrderData from "@salesforce/apex/SalesOrderController.getOrderData";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
@@ -140,6 +141,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   setNotes(rows = []) {
     this.updateFormState({
       notes: rows.map((row) => ({ ...row }))
+    });
+  }
+
+  setAttachments(rows = []) {
+    this.updateFormState({
+      attachments: rows.map((row) => ({ ...row }))
     });
   }
 
@@ -423,6 +430,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.setNotes(e.detail?.rows || []);
   }
 
+  handleAttachmentChange(e) {
+    this.setAttachments(e.detail?.rows || []);
+  }
+
   handleHeaderComboboxChange(e) {
     const { name, value } = e.detail;
 
@@ -653,10 +664,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this.formState.address || {};
 
     const lineItems = this.formState.lineItems;
-    const instructions = this.formState.instructions;
-    const comments = this.formState.comments;
-    const notes = this.formState.notes;
     const attachments = this.formState.attachments;
+    const attachmentUrls = this.formState.attachments
+      .map(({ downloadUrl }) => downloadUrl)
+      .join(",");
 
     const payload = {
       orderType: this.formState.orderType,
@@ -685,13 +696,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       extendedDescription: this.formState.extendedDescription,
       dateOpened: this.formState.dateOpened,
       datePromised: this.formState.datePromised,
+      attachmentUrls: attachmentUrls,
       shippingAddressJson: JSON.stringify(shippingAddressState),
       billingAddressJson: JSON.stringify(billingAddressState),
       lineItemsJson: JSON.stringify(lineItems),
-      instructionsJson: JSON.stringify(instructions),
-      commentsJson: JSON.stringify(comments),
-      notesJson: JSON.stringify(notes),
-      fileJson: JSON.stringify(attachments)
     };
 
     if (this.formState.specialDate)
@@ -707,7 +715,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     const instructions = this.formState.instructions;
     const comments = this.formState.comments;
     const notes = this.formState.notes;
-    const attachments = this.formState.attachments;
 
     try {
       console.log("saveSalesOrder payload:", JSON.stringify(payload));
@@ -750,6 +757,25 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
             console.log("comment inserted: " + commentId);
           });
+
+        // const fileSaves = attachments
+        //   .filter(
+        //     ({ name, documentId, contentVersionId, contentBodyId, mimeType }) =>
+        //       !isBlank(name) &&
+        //       !isBlank(documentId) &&
+        //       !isBlank(contentVersionId) &&
+        //       !isBlank(contentBodyId) &&
+        //       !isBlank(mimeType)
+        //   )
+        //   .map(async (file) => {
+        //     const fileId = await uploadFile({
+        //       caption: "Uploaded from salesforce",
+        //       folderInternalId: "29448",
+        //       fileDataJson: JSON.stringify(file)
+        //     });
+
+        //     console.log("file added: " + JSON.parse(fileId));
+        //   });
 
         await Promise.all([...instructionSaves, ...commentSaves]);
       }

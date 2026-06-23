@@ -114,7 +114,9 @@
       </div>
 
       <div class={attachmentClass}>
-        <c-sales-order-attachments></c-sales-order-attachments>
+        <c-sales-order-attachments
+          onattachmentchange={handleAttachmentChange}
+        ></c-sales-order-attachments>
       </div>
     </div>
   </lightning-card>

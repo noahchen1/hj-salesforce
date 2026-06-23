@@ -127,6 +127,6 @@ SELECT Name FROM USER WHERE isActive = true
 
 SELECT FIELDS(ALL) FROM ContentVersion WHERE ContentDocumentId = '069WJ00000CEd4JYAT' AND IsLatest = true LIMIT 1
 
-Select Id, VersionData from ContentVersion where ContentDocumentId = '069WJ00000CEd4JYAT'
+Select FIELDS(ALL) from ContentVersion where ContentDocumentId = '069WJ00000CEd4JYAT' LIMIT 1
 
 SELECT COUNT() FROM nco_repair_comments__c
