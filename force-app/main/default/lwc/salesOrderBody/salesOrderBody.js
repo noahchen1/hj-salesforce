@@ -310,10 +310,4 @@ export default class SalesOrderBody extends LightningElement {
       new CustomEvent("comboboxchange", { detail: { name, value } })
     );
   }
-
-  handleUploadFinished(e) {
-    const uploadedFiles = e.detail.files;
-
-    console.log(JSON.stringify(uploadedFiles));
-  }
 }

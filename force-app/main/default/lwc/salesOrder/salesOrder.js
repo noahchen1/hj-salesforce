@@ -207,6 +207,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     return this.isNotesTableOn ? "" : "tab-hidden";
   }
 
+  get attachmentClass() {
+    return this.isAttachmentsTableOn ? "" : "tab-hidden";
+  }
+
   get showTableOverlay() {
     const state = this.formState;
 
@@ -409,17 +413,14 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   handleInstructionChange(e) {
     this.setInstructions(e.detail?.rows || []);
-    console.log(JSON.stringify(this.formState.instructions));
   }
 
   handleCommentChange(e) {
     this.setComments(e.detail?.rows || []);
-    console.log(JSON.stringify(this.formState.comments));
   }
 
   handleNoteChange(e) {
     this.setNotes(e.detail?.rows || []);
-    console.log(JSON.stringify(this.formState.notes));
   }
 
   handleHeaderComboboxChange(e) {

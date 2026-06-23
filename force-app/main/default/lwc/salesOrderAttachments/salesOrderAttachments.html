@@ -1,34 +1,50 @@
 <template>
   <div class="table-section">
-    <template if:true={isRepairOrder}>
-      <div class="table-scroll">
-        <table class="order-table sales-order-table">
-          <colgroup>
-            <col class="file-col" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th scope="col">File</th>
+    <div>
+      <lightning-file-upload
+        label=""
+        name="fileUploader"
+        onuploadfinished={handleUploadFinished}
+        multiple
+      >
+      </lightning-file-upload>
+    </div>
+    <div class="table-scroll">
+      <table class="order-table sales-order-table">
+        <colgroup>
+          <col class="file-col" />
+          <col />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">File</th>
+            <th scope="col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template for:each={rows} for:item="row">
+            <tr key={row.id}>
+              <td>
+                <lightning-formatted-url
+                  value={row.fileUrl}
+                  label={row.fileName}
+                  target="_blank"
+                ></lightning-formatted-url>
+              </td>
+              <td>
+                <lightning-button-icon
+                  icon-name="utility:delete"
+                  variant="bare"
+                  title="Remove file"
+                  data-row-id={row.id}
+                  data-document-id={row.documentId}
+                  onclick={handleRemoveClick}
+                ></lightning-button-icon>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            <template for:each={rows} for:item="row" for:index="index">
-              <tr key={row.id}>
-                <td>
-                  <lightning-input
-                    data-index={index}
-                    data-field="fileUrl"
-                    type="url"
-                    value={row.fileUrl}
-                    placeholder=""
-                    readonly
-                  ></lightning-input>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-    </template>
+          </template>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
