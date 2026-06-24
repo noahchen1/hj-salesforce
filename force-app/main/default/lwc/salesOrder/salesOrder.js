@@ -557,7 +557,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     let payload;
 
     try {
-      payload = this.buildPayload();
+      payload = await this.buildPayload();
 
       this.validateFields(payload);
     } catch (error) {
@@ -659,15 +659,34 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     }
   }
 
-  buildPayload() {
+  async buildPayload() {
     const { shippingAddressState = {}, billingAddressState = {} } =
       this.formState.address || {};
 
     const lineItems = this.formState.lineItems;
     const attachments = this.formState.attachments;
-    const attachmentUrls = this.formState.attachments
-      .map(({ downloadUrl }) => downloadUrl)
-      .join(",");
+    const fileIds = await Promise.all(
+      attachments
+        .filter(
+          ({ name, documentId, contentVersionId, contentBodyId, mimeType }) =>
+            !isBlank(name) &&
+            !isBlank(documentId) &&
+            !isBlank(contentVersionId) &&
+            !isBlank(contentBodyId) &&
+            !isBlank(mimeType)
+        )
+        .map(async (file) => {
+          const fileId = await uploadFile({
+            caption: "Uploaded from salesforce",
+            folderInternalId: "29448",
+            fileDataJson: JSON.stringify(file)
+          });
+
+          console.log("file added:", JSON.parse(fileId));
+
+          return fileId;
+        })
+    );
 
     const payload = {
       orderType: this.formState.orderType,
@@ -696,10 +715,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       extendedDescription: this.formState.extendedDescription,
       dateOpened: this.formState.dateOpened,
       datePromised: this.formState.datePromised,
-      attachmentUrls: attachmentUrls,
       shippingAddressJson: JSON.stringify(shippingAddressState),
       billingAddressJson: JSON.stringify(billingAddressState),
       lineItemsJson: JSON.stringify(lineItems),
+      fileIds: fileIds.join(",")
     };
 
     if (this.formState.specialDate)
@@ -710,7 +729,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     return payload;
   }
 
-  async executeSave(payload = this.buildPayload()) {
+  async executeSave(payload) {
     const isUpdate = Boolean(this.soNsInternalId);
     const instructions = this.formState.instructions;
     const comments = this.formState.comments;
@@ -757,25 +776,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
             console.log("comment inserted: " + commentId);
           });
-
-        // const fileSaves = attachments
-        //   .filter(
-        //     ({ name, documentId, contentVersionId, contentBodyId, mimeType }) =>
-        //       !isBlank(name) &&
-        //       !isBlank(documentId) &&
-        //       !isBlank(contentVersionId) &&
-        //       !isBlank(contentBodyId) &&
-        //       !isBlank(mimeType)
-        //   )
-        //   .map(async (file) => {
-        //     const fileId = await uploadFile({
-        //       caption: "Uploaded from salesforce",
-        //       folderInternalId: "29448",
-        //       fileDataJson: JSON.stringify(file)
-        //     });
-
-        //     console.log("file added: " + JSON.parse(fileId));
-        //   });
 
         await Promise.all([...instructionSaves, ...commentSaves]);
       }

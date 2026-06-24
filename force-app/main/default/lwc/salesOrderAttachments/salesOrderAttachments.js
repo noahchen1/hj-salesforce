@@ -55,7 +55,7 @@ export default class SalesOrderAttachments extends LightningElement {
     };
   }
 
-  handleUploadFinished(e) {
+  async handleUploadFinished(e) {
     const uploadedFiles = e.detail.files;
 
     const newRows = uploadedFiles.map((file) => {

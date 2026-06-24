@@ -59,7 +59,7 @@ public with sharing class SalesOrderParamModel {
     @AuraEnabled
     public Date datePromised;
     @AuraEnabled
-    public String attachmentUrls;
+    public String fileIds;
     @AuraEnabled
     public String shippingAddressJson;
     @AuraEnabled

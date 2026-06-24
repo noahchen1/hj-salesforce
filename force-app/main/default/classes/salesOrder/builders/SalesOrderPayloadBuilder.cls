@@ -88,7 +88,7 @@ public with sharing class SalesOrderPayloadBuilder {
           saveParams.inquiryIsPrority,
           saveParams.inquiryIsOpenDial,
           saveParams.inquiryId,
-          saveParams.attachmentUrls
+          saveParams.fileIds
         )
       }
     );
@@ -194,7 +194,7 @@ public with sharing class SalesOrderPayloadBuilder {
     Boolean inquiryIsPrority,
     Boolean inquiryIsOpenDial,
     String inquiryId,
-    String attachmentUrls
+    String fileIds
   ) {
     List<Object> customFields = new List<Object>();
 
@@ -501,12 +501,12 @@ public with sharing class SalesOrderPayloadBuilder {
         );
       }
 
-      if (String.isNotBlank(attachmentUrls)) {
+      if (String.isNotBlank(fileIds)) {
         customFields.add(
           new Map<String, Object>{
             'fieldType' => 'string',
-            'scriptId' => 'custbody_repair_attach_urls',
-            'value' => attachmentUrls
+            'scriptId' => 'custbody_sf_file_ids',
+            'value' => fileIds
           }
         );
       }
