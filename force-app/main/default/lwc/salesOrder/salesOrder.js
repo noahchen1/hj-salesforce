@@ -664,30 +664,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this.formState.address || {};
 
     const lineItems = this.formState.lineItems;
-    const attachments = this.formState.attachments;
-    const fileIds = await Promise.all(
-      attachments
-        .filter(
-          ({ name, documentId, contentVersionId, contentBodyId, mimeType }) =>
-            !isBlank(name) &&
-            !isBlank(documentId) &&
-            !isBlank(contentVersionId) &&
-            !isBlank(contentBodyId) &&
-            !isBlank(mimeType)
-        )
-        .map(async (file) => {
-          const fileId = await uploadFile({
-            caption: "Uploaded from salesforce",
-            folderInternalId: "29448",
-            fileDataJson: JSON.stringify(file)
-          });
-
-          console.log("file added:", JSON.parse(fileId));
-
-          return fileId;
-        })
-    );
-
     const payload = {
       orderType: this.formState.orderType,
       soNsInternalId: this.soNsInternalId,
@@ -717,8 +693,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       datePromised: this.formState.datePromised,
       shippingAddressJson: JSON.stringify(shippingAddressState),
       billingAddressJson: JSON.stringify(billingAddressState),
-      lineItemsJson: JSON.stringify(lineItems),
-      fileIds: fileIds.join(",")
+      lineItemsJson: JSON.stringify(lineItems)
     };
 
     if (this.formState.specialDate)
@@ -733,13 +708,42 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     const isUpdate = Boolean(this.soNsInternalId);
     const instructions = this.formState.instructions;
     const comments = this.formState.comments;
+    const attachments = this.formState.attachments;
     const notes = this.formState.notes;
 
     try {
-      console.log("saveSalesOrder payload:", JSON.stringify(payload));
+      const fileIds = await Promise.all(
+        attachments
+          .filter(
+            ({ name, documentId, contentVersionId, contentBodyId, mimeType }) =>
+              !isBlank(name) &&
+              !isBlank(documentId) &&
+              !isBlank(contentVersionId) &&
+              !isBlank(contentBodyId) &&
+              !isBlank(mimeType)
+          )
+          .map(async (file) => {
+            const fileId = await uploadFile({
+              caption: "Uploaded from salesforce",
+              folderInternalId: "29448",
+              fileDataJson: JSON.stringify(file)
+            });
+
+            console.log("file added:", JSON.parse(fileId));
+
+            return fileId;
+          })
+      );
+
+      const fullPayload = {
+        ...payload,
+        fileIds: fileIds.join(",")
+      };
+
+      console.log("saveSalesOrder payload:", JSON.stringify(fullPayload));
 
       const soNsInternalId = await saveSalesOrder({
-        saveParamJson: JSON.stringify(payload)
+        saveParamJson: JSON.stringify(fullPayload)
       });
 
       this.soNsInternalId = soNsInternalId;

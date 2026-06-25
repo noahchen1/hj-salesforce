@@ -656,6 +656,7 @@ export default class SalesOrderLineItems extends LightningElement {
     }
 
     this.rows = updatedRows;
+    this.emitLineItemsChange();
   }
 
   addRow(e) {
@@ -697,7 +698,6 @@ export default class SalesOrderLineItems extends LightningElement {
       ...row,
       showAction: idx === index
     }));
-    this.emitLineItemsChange();
   }
 
   clearItemLookups() {
