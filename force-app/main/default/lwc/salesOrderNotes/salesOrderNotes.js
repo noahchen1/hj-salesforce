@@ -3,12 +3,8 @@ import { LightningElement, api } from "lwc";
 const BASE_ROW = Object.freeze({
   nsEmployee: "",
   nsEmployeeId: "",
-  title: "",
-  direction: "",
   memo: "",
-  dateLastModified: null,
-  transaction: "",
-  transactionType: ""
+  dateLastModified: null
 });
 
 export default class SalesOrderNotes extends LightningElement {
@@ -17,29 +13,11 @@ export default class SalesOrderNotes extends LightningElement {
 
   rows = [];
   nextRowId = 0;
+  debounceTimer;
 
   constructor() {
     super();
     this.reset();
-  }
-
-  get typeOptions() {
-    return [
-      { label: "Conference Call", value: "2" },
-      { label: "E-mail", value: "3" },
-      { label: "Fax", value: "4" },
-      { label: "Letter", value: "5" },
-      { label: "Meeting", value: "6" },
-      { label: "Note", value: "7" },
-      { label: "Phone Call", value: "8" }
-    ];
-  }
-
-  get directionOptions() {
-    return [
-      { label: "Incoming", value: "1" },
-      { label: "Outgoing", value: "2" }
-    ];
   }
 
   get hasRows() {
@@ -108,8 +86,6 @@ export default class SalesOrderNotes extends LightningElement {
       ...row,
       showAction: idx === index
     }));
-
-    this.emitNoteChange();
   }
 
   handleRowChange(e) {
@@ -119,17 +95,21 @@ export default class SalesOrderNotes extends LightningElement {
     const updatedRows = [...this.rows];
     const row = updatedRows[index];
 
-    row[field] = value;
-    row.dateLastModified = new Date().toISOString();
+    clearTimeout(this.debounceTimer);
 
-    if (this.runningUserName && this.runningUserId) {
-      row.owner = this.runningUserName;
-      row.ownerId = this.runningUserId;
-    }
+    this.debounceTimer = setTimeout(() => {
+      row[field] = value;
+      row.dateLastModified = new Date().toISOString();
 
-    this.rows = updatedRows;
+      if (this.runningUserName && this.runningUserId) {
+        row.nsEmployee = this.runningUserName;
+        row.nsEmployeeId = this.runningUserId;
+      }
 
-    this.emitNoteChange();
+      this.rows = updatedRows;
+
+      this.emitNoteChange();
+    }, 400);
   }
 
   addRow(e) {

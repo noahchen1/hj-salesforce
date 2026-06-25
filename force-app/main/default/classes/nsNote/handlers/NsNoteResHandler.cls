@@ -8,7 +8,7 @@ public with sharing class NsNoteResHandler {
 
     NsNoteResModel.ResponseJson parsed = (NsNoteResModel.ResponseJson) JSON.deserialize(
       jsonStr,
-      NsNoteDataModel.NsNoteData.class
+      NsNoteResModel.ResponseJson.class
     );
 
     NsNoteValidator.validateTypedBody(parsed);

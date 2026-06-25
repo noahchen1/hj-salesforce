@@ -4,18 +4,12 @@
       <table class="order-table sales-order-table">
         <colgroup>
           <col class="owner-col" />
-          <col class="title-col" />
-          <col class="type-col" />
-          <col class="direction-col" />
           <col class="memo-col" />
           <col class="date-col" />
         </colgroup>
         <thead>
           <tr>
             <th scope="col">Owner</th>
-            <th scope="col">Title</th>
-            <th scope="col">Type</th>
-            <th scope="col">Direction</th>
             <th scope="col">Memo</th>
             <th scope="col">Date Last Modified</th>
           </tr>
@@ -34,36 +28,6 @@
                   onchange={handleRowChange}
                   readonly
                 ></lightning-input>
-              </td>
-              <td>
-                <lightning-input
-                  data-index={index}
-                  data-field="title"
-                  type="text"
-                  value={row.title}
-                  placeholder=""
-                  onfocus={handleFocus}
-                  oninput={handleRowChange}
-                  onchange={handleRowChange}
-                ></lightning-input>
-              </td>
-              <td>
-                <lightning-combobox
-                  data-index={index}
-                  data-field="type"
-                  value={row.type}
-                  options={typeOptions}
-                  onchange={handleRowChange}
-                ></lightning-combobox>
-              </td>
-              <td>
-                <lightning-combobox
-                  data-index={index}
-                  data-field="direction"
-                  value={row.direction}
-                  options={directionOptions}
-                  onchange={handleRowChange}
-                ></lightning-combobox>
               </td>
               <td>
                 <lightning-textarea

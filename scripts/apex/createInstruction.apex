@@ -31,3 +31,7 @@ List<InstructionDataModel.InstructionData> parsedPayload = InstructionMapper.des
 );
 
 System.debug('parsed payload: ' + parsedPayload);
+
+String noteId = NsNoteController.saveNote('187027', '156154', 'Test Note');
+
+System.debug('Note Id: ' + noteId);

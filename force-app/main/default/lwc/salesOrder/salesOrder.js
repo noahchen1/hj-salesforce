@@ -7,6 +7,7 @@ import saveSalesOrder from "@salesforce/apex/SalesOrderController.saveSalesOrder
 import saveInstruction from "@salesforce/apex/InstructionController.saveInstruction";
 import saveComment from "@salesforce/apex/CommentController.saveComment";
 import uploadFile from "@salesforce/apex/NsFileController.uploadFile";
+import saveNote from "@salesforce/apex/NsNoteController.saveNote";
 import getOrderData from "@salesforce/apex/SalesOrderController.getOrderData";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
@@ -428,6 +429,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   handleNoteChange(e) {
     this.setNotes(e.detail?.rows || []);
+
+    console.log(JSON.stringify(this.formState.notes));
   }
 
   handleAttachmentChange(e) {
@@ -781,7 +784,21 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
             console.log("comment inserted: " + commentId);
           });
 
-        await Promise.all([...instructionSaves, ...commentSaves]);
+        const noteSaves = notes
+          .filter(
+            ({ nsEmployeeId, memo }) => !isBlank(nsEmployeeId) && !isBlank(memo)
+          )
+          .map(async ({ nsEmployeeId, memo }) => {
+            const noteId = await saveNote({
+              nsEmployeeId,
+              nsSoId: soNsInternalId,
+              content: memo
+            });
+
+            console.log("custom note inserted: " + noteId);
+          });
+
+        await Promise.all([...instructionSaves, ...commentSaves, ...noteSaves]);
       }
 
       return { soNsInternalId, orderRecordId, isUpdate };

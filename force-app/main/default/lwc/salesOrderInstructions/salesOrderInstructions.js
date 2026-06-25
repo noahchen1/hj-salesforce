@@ -104,8 +104,6 @@ export default class SalesOrderInstructions extends LightningElement {
       ...row,
       showAction: idx === index
     }));
-
-    this.emitInstructionChange();
   }
 
   handleRowChange(e) {
