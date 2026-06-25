@@ -1,12 +1,14 @@
 import { LightningElement, api } from "lwc";
 
 const BASE_ROW = Object.freeze({
-  owner: "",
-  ownerId: "",
+  nsEmployee: "",
+  nsEmployeeId: "",
   title: "",
   direction: "",
   memo: "",
-  dateLastModified: null
+  dateLastModified: null,
+  transaction: "",
+  transactionType: ""
 });
 
 export default class SalesOrderNotes extends LightningElement {
