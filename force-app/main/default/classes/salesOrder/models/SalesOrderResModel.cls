@@ -16,6 +16,8 @@ public with sharing class SalesOrderResModel {
   public class SalesOrder {
     public String internalId;
     public Long tranDate;
+    public Long startDate;
+    public Long endDate;
     public String memo;
     public RecordRef entity;
     public RecordRef salesRep;

@@ -35,3 +35,9 @@ System.debug('parsed payload: ' + parsedPayload);
 String noteId = NsNoteController.saveNote('187027', '156154', 'Test Note');
 
 System.debug('Note Id: ' + noteId);
+
+SalesOrderDataModel.SalesOrderData order = SalesOrderController.getOrderData(
+  'a0hWJ000006pJtBYAU'
+);
+
+System.debug('Order data: ' + order);

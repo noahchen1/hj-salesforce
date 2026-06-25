@@ -98,7 +98,6 @@ export default class SalesOrderBody extends LightningElement {
       { label: "Appraisal", value: "5" },
       { label: "CPO", value: "14" },
       { label: "Custom", value: "2" },
-      { label: "Declined Repair", value: "13" },
       { label: "Engraving", value: "9" },
       { label: "Inventory Work", value: "12" },
       { label: "Jewelry Repair", value: "3" },
@@ -289,7 +288,7 @@ export default class SalesOrderBody extends LightningElement {
       );
     } else {
       this.dispatchEvent(
-        new CustomEvent("fieldchange", { detail: { type, nsId } })
+        new CustomEvent("fieldchange", { detail: { field: type, value: nsId } })
       );
     }
   }

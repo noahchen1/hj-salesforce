@@ -395,7 +395,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   }
 
   handleHeaderFieldChange(e) {
+    console.log(JSON.stringify(e.detail.field));
+    console.log(JSON.stringify(e.detail.value));
     this.setFormField(e.detail.field, e.detail.value);
+    console.log(JSON.stringify(this.formState));
   }
 
   handleHeaderFieldClear(e) {
@@ -817,13 +820,15 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       console.log(data);
 
-      const isSpecialOrder =
-        data.specialOrderItemType !== null &&
-        data.specialOrderItemType !== "" &&
-        data.specialOrderItemType !== undefined;
+      const isSpecialOrder = !isBlank(data.specialOrderItemType);
+      const isRepairOrder = !isBlank(data.repairType);
 
       this.updateFormState({
-        orderType: isSpecialOrder ? "special" : "sales",
+        orderType: isRepairOrder
+          ? "repair"
+          : isSpecialOrder
+            ? "special"
+            : "sales",
         custNsInternalId: data.customerNsId ?? "",
         date: data.orderDate ?? null,
         salesRep1: data.salesRep1NsId ?? "",
@@ -833,6 +838,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         subsidiary: data.subsidiaryNsId ?? "",
         location: data.locationNsId ?? ""
       });
+
       this.soNsInternalId = data.soNsInternalId ?? "";
       this.accountId = data.accountId ?? "";
 
@@ -862,6 +868,34 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         });
       }
 
+      if (isRepairOrder) {
+        this.updateFormState({
+          repairType: data.repairType ?? null,
+          repairStation: data.repairStation ?? null,
+          repairPerson: data.repairPerson ?? null,
+          repairLocation: data.repairLocation ?? null,
+          repairVendor: data.repairVendor ?? null,
+          shipRepairTo: data.shipRepairTo ?? null,
+          repairDescription: data.repairDescription ?? null,
+          extendedDescription: data.extendedDescription ?? null,
+          dateOpened: data.dateOpened ?? null,
+          datePromised: data.datePromised ?? null
+        });
+      } else {
+        this.updateFormState({
+          repairType: null,
+          repairStation: null,
+          repairPerson: null,
+          repairLocation: null,
+          repairVendor: null,
+          shipRepairTo: null,
+          repairDescription: null,
+          extendedDescription: null,
+          dateOpened: null,
+          datePromised: null
+        });
+      }
+
       this.addressSection?.loadFromOrderData(data);
       const mappedRows = this.lineItems?.getMappedRows(data.lineItems);
       this.lineItems?.loadRows(mappedRows);
@@ -888,6 +922,25 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         );
       } else {
         this.header?.setLookupValue("specialOrderVendor", "");
+      }
+
+      if (isRepairOrder) {
+        this.header?.setLookupValue(
+          "repairPerson",
+          data.repairPersonName ?? ""
+        );
+        this.header?.setLookupValue(
+          "repairVendor",
+          data.repairVendorName ?? ""
+        );
+        this.header?.setLookupValue(
+          "shipRepairTo",
+          data.shipRepairToName ?? ""
+        );
+      } else {
+        this.header?.setLookupValue("repairPerson", "");
+        this.header?.setLookupValue("repairVendor", "");
+        this.header?.setLookupValue("shipRepairTo", "");
       }
     } catch (error) {
       console.error("Failed to load existing sales order");

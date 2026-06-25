@@ -32,6 +32,14 @@ public with sharing class SalesOrderPayloadBuilder {
     requestMap.put('terms', lookupByInternalId(saveParams.termsNsInternalId));
     requestMap.put('tranDate', Helpers.toUnixSeconds(Date.today()));
 
+    if (saveParams.dateOpened != null) {
+      requestMap.put('startDate', Helpers.toUnixSeconds(saveParams.dateOpened));
+    }
+
+    if (saveParams.datePromised != null) {
+      requestMap.put('endDate', Helpers.toUnixSeconds(saveParams.datePromised));
+    }
+
     if (String.isNotBlank(saveParams.soNsInternalId)) {
       requestMap.put('internalId', saveParams.soNsInternalId);
     }
@@ -406,7 +414,7 @@ public with sharing class SalesOrderPayloadBuilder {
           new Map<String, Object>{
             'fieldType' => 'select',
             'scriptId' => 'custbody1',
-            'value' => repairType
+            'valueLookup' => lookupByInternalId(repairType)
           }
         );
       }

@@ -50,6 +50,34 @@ public with sharing class SalesOrderDataModel {
     public String specialOrderNotes;
     @AuraEnabled
     public String specialOrderMemoOrSold;
+
+    @AuraEnabled
+    public String repairType;
+    @AuraEnabled
+    public String repairStation;
+    @AuraEnabled
+    public String repairPerson;
+    @AuraEnabled
+    public String repairPersonName;
+    @AuraEnabled
+    public String repairLocation;
+    @AuraEnabled
+    public String repairVendor;
+    @AuraEnabled
+    public String repairVendorName;
+    @AuraEnabled
+    public String shipRepairTo;
+    @AuraEnabled
+    public String shipRepairToName;
+    @AuraEnabled
+    public String repairDescription;
+    @AuraEnabled
+    public String extendedDescription;
+    @AuraEnabled
+    public String dateOpened;
+    @AuraEnabled
+    public String datePromised;
+
     @AuraEnabled
     public String inquiryModel;
     @AuraEnabled

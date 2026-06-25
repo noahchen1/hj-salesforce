@@ -67,6 +67,8 @@ public with sharing class SalesOrderMapper {
 
     result.soNsInternalId = so.internalId;
     result.orderDate = Helpers.toDateOnlyFromUnixSeconds(so.tranDate);
+    result.dateOpened = Helpers.toDateOnlyFromUnixSeconds(so.startDate);
+    result.datePromised = Helpers.toDateOnlyFromUnixSeconds(so.endDate);
     result.memo = so.memo;
 
     result.salesRep1Name = so.salesRep?.name;
@@ -137,6 +139,16 @@ public with sharing class SalesOrderMapper {
         result.salesRep2NsId = cf.valueLookup != null
           ? cf.valueLookup.internalId
           : null;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_repair_order') {
+        Boolean isRepairOrder = Boolean.valueOf(cf.value);
+
+        result.orderType = isRepairOrder
+          ? String.valueOf(SalesOrderType.repair)
+          : String.valueOf(SalesOrderType.sales);
 
         continue;
       }
@@ -235,6 +247,80 @@ public with sharing class SalesOrderMapper {
         result.specialOrderStatus = cf.valueLookup != null
           ? cf.valueLookup.internalId
           : cf.value;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody1') {
+        result.repairType = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : cf.value;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_repair_station') {
+        result.repairStation = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : cf.value;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_repair_person') {
+        result.repairPersonName = cf.valueLookup != null
+          ? cf.valueLookup.name
+          : cf.value;
+
+        result.repairPerson = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : null;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_repair_location') {
+        result.repairLocation = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : cf.value;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_repair_vendor') {
+        result.repairVendorName = cf.valueLookup != null
+          ? cf.valueLookup.name
+          : cf.value;
+
+        result.repairVendor = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : null;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_shiprepairto') {
+        result.shipRepairToName = cf.valueLookup != null
+          ? cf.valueLookup.name
+          : cf.value;
+
+        result.shipRepairTo = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : null;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_repair_description') {
+        result.repairDescription = cf.value;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_extended_description') {
+        result.extendedDescription = cf.value;
+
+        continue;
       }
     }
   }
