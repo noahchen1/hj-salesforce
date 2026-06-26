@@ -1,11 +1,16 @@
 public with sharing class InstructionPayloadBuilder {
   public static Map<String, Object> buildSaveRequest(
+    String nsInternalId,
     String nsEmployeeId,
     String nsSoId,
     String instruction
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
     List<Object> customObjectCustomFieldList = new List<Object>();
+
+    if (String.isNotBlank(nsInternalId)) {
+      requestMap.put('internalId', nsInternalId);
+    }
 
     requestMap.put(
       'owner',
@@ -37,23 +42,28 @@ public with sharing class InstructionPayloadBuilder {
   }
 
   public static Map<String, Object> buildSavePayload(
-    Map<String, Object> instructionRequest
+    Map<String, Object> instructionRequest,
+    Boolean isUpdate
   ) {
     Map<String, Object> requestJsonMap = new Map<String, Object>{
       'customObjectRecords' => new List<Object>{ instructionRequest },
       'customObjectID' => '109'
     };
 
-    return new Map<String, Object>{
-      'version' => '1.0',
-      'action' => 'createCustomObjectRecord',
-      'requestJSON' => JSON.serialize(requestJsonMap)
-    };
+    return isUpdate
+      ? new Map<String, Object>{
+          'version' => '1.0',
+          'action' => 'updateCustomObjectRecord',
+          'requestJSON' => JSON.serialize(requestJsonMap)
+        }
+      : new Map<String, Object>{
+          'version' => '1.0',
+          'action' => 'createCustomObjectRecord',
+          'requestJSON' => JSON.serialize(requestJsonMap)
+        };
   }
 
-  public static Map<String, Object> buildReadRequest(
-    String nsSoId
-  ) {
+  public static Map<String, Object> buildReadRequest(String nsSoId) {
     Map<String, Object> filters = new Map<String, Object>{
       'custrecord1' => nsSoId
     };
@@ -68,7 +78,9 @@ public with sharing class InstructionPayloadBuilder {
     };
   }
 
-  public static Map<String, Object> buildReadPayload(Map<String, Object> request) {
+  public static Map<String, Object> buildReadPayload(
+    Map<String, Object> request
+  ) {
     return new Map<String, Object>{
       'version' => '1.0',
       'action' => 'readCustomObjectRecord',

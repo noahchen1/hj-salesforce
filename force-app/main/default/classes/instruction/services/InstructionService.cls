@@ -1,19 +1,23 @@
 public with sharing class InstructionService {
   public static String saveInstruction(
+    String nsInternalId,
     String nsEmployeeId,
     String nsSoId,
     String instruction
   ) {
     InstructionValidator.validateSaveRequest(nsEmployeeId, nsSoId, instruction);
+    Boolean isUpdate = String.isNotBlank(nsInternalId);
 
     Map<String, Object> instructionRequest = InstructionPayloadBuilder.buildSaveRequest(
+      nsInternalId,
       nsEmployeeId,
       nsSoId,
       instruction
     );
 
     Map<String, Object> requestPayload = InstructionPayloadBuilder.buildSavePayload(
-      instructionRequest
+      instructionRequest,
+      isUpdate
     );
 
     System.debug(
@@ -42,7 +46,7 @@ public with sharing class InstructionService {
     if (salesOrderId == null) {
       throw new AuraHandledException('Sales order Id is required.');
     }
-    
+
     List<nco_repair_instructions__c> instructionRows = [
       SELECT
         InternalId__c,

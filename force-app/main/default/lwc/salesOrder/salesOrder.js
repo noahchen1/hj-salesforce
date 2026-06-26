@@ -165,6 +165,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     return this.template.querySelector("c-sales-order-line-items");
   }
 
+  get instruction() {
+    return this.template.querySelector("c-sales-order-instructions");
+  }
+
   get isSpecialOrder() {
     return this.formState.orderType === "special";
   }
@@ -397,10 +401,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   }
 
   handleHeaderFieldChange(e) {
-    console.log(JSON.stringify(e.detail.field));
-    console.log(JSON.stringify(e.detail.value));
     this.setFormField(e.detail.field, e.detail.value);
-    console.log(JSON.stringify(this.formState));
   }
 
   handleHeaderFieldClear(e) {
@@ -434,8 +435,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   handleNoteChange(e) {
     this.setNotes(e.detail?.rows || []);
-
-    console.log(JSON.stringify(this.formState.notes));
   }
 
   handleAttachmentChange(e) {
@@ -748,7 +747,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         fileIds: fileIds.join(",")
       };
 
-      console.log("saveSalesOrder payload:", JSON.stringify(fullPayload));
 
       const soNsInternalId = await saveSalesOrder({
         saveParamJson: JSON.stringify(fullPayload)
@@ -761,11 +759,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       if (!isBlank(orderRecordId) && this.isRepairOrder) {
         const instructionSaves = instructions
           .filter(
-            ({ nsEmployeeId, instruction }) =>
+            ({ nsEmployeeId, instruction, internalId }) =>
               !isBlank(nsEmployeeId) && !isBlank(instruction)
           )
-          .map(async ({ nsEmployeeId, instruction }) => {
+          .map(async ({ nsEmployeeId, instruction, internalId }) => {
             const instructionId = await saveInstruction({
+              nsInternalId: internalId,
               nsEmployeeId,
               nsSoId: soNsInternalId,
               instruction
@@ -819,14 +818,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   async loadOrder() {
     try {
       const data = await getOrderData({ salesOrderId: this.recordId });
-
-      console.log(data);
-
       const instructionData = await getInstructionData({
         salesOrderId: this.recordId
       });
-
-      console.log(JSON.stringify(instructionData));
 
       const isSpecialOrder = !isBlank(data.specialOrderItemType);
       const isRepairOrder = !isBlank(data.repairType);
@@ -907,6 +901,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this.addressSection?.loadFromOrderData(data);
       const mappedRows = this.lineItems?.getMappedRows(data.lineItems);
       this.lineItems?.loadRows(mappedRows);
+      this.instruction?.setRows(instructionData);
+
       this.setAddressState({
         shippingAddressState: data.shippingAddress || {},
         billingAddressState: data.billingAddress || {}

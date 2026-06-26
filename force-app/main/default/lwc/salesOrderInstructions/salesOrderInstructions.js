@@ -1,6 +1,7 @@
 import { LightningElement, api } from "lwc";
 
 const BASE_ROW = Object.freeze({
+  internalId: null,
   nsEmployee: "",
   nsEmployeeId: "",
   instruction: "",
@@ -86,6 +87,32 @@ export default class SalesOrderInstructions extends LightningElement {
   @api
   getRows() {
     return [...this.rows];
+  }
+
+  @api
+  setRows(rows) {
+    const sourceRows = rows || [];
+
+    this.rows = sourceRows.map((row, index) => {
+      const rowId = row.id || index + 1;
+
+      return this.createRow({
+        id: rowId,
+        showAction: index === 0,
+        disableRemove: index === 0,
+        overrides: {
+          internalId: row.internalId,
+          nsEmployee: row.nsEmployeeName,
+          nsEmployeeId: row.nsEmployeeId,
+          instruction: row.instruction,
+          dateLastModified: row.lastModified,
+          actionKey: row.actionKey || `action-${rowId}`
+        }
+      });
+    });
+
+    this.nextRowId = this.rows.length + 1;
+    this.emitInstructionChange();
   }
 
   @api
