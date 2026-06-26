@@ -138,3 +138,13 @@ WHERE ContentVersionId = '068WJ00000G60ovYAB'
 SELECT COUNT() FROM nco_repair_comments__c
 
 SELECT FIELDS(ALL) FROM ContentDistribution WHERE ContentVersionId = '068WJ00000G6XXxYAN' LIMIT 1
+
+SELECT
+InternalId__c,
+OwnerName__c,
+nid_record1__c,
+custrecord_instruction_comment__c,
+LastModified__c
+FROM
+nco_repair_instructions__c
+WHERE ncl_record1__c = 'a0hWJ000005ppPDYAY'

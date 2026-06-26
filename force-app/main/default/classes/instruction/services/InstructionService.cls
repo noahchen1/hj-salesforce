@@ -36,33 +36,71 @@ public with sharing class InstructionService {
     return instructionData.internalId;
   }
 
-  public static InstructionDataModel.InstructionData getInstructionData(
-    String nsSoId
+  public static List<InstructionDataModel.InstructionData> getInstructionData(
+    Id salesOrderId
   ) {
-    InstructionValidator.validateReadRequest(nsSoId);
+    if (salesOrderId == null) {
+      throw new AuraHandledException('Sales order Id is required.');
+    }
+    
+    List<nco_repair_instructions__c> instructionRows = [
+      SELECT
+        InternalId__c,
+        OwnerName__c,
+        nid_record1__c,
+        custrecord_instruction_comment__c,
+        LastModified__c
+      FROM nco_repair_instructions__c
+      WHERE ncl_record1__c = :salesOrderId
+    ];
 
-    Map<String, Object> requestJSONMap = InstructionPayloadBuilder.buildReadRequest(
-      nsSoId
-    );
+    if (instructionRows.isEmpty()) {
+      throw new AuraHandledException('Could not find related instructions');
+    }
 
-    Map<String, Object> requestPayload = InstructionPayloadBuilder.buildReadPayload(
-      requestJSONMap
-    );
+    Set<String> ownerNames = new Set<String>();
 
-    System.debug(
-      LoggingLevel.INFO,
-      'InstructionService.getInstructionData request: ' +
-      JSON.serialize(requestPayload)
-    );
+    for (nco_repair_instructions__c row : instructionRows) {
+      if (String.isNotBlank(row.OwnerName__c)) {
+        ownerNames.add(row.OwnerName__c);
+      }
+    }
 
-    Map<String, Object> response = NetSuiteClient.call(requestPayload);
+    Map<String, breadwinner_ns__BW_Employee__c> employeesByName = new Map<String, breadwinner_ns__BW_Employee__c>();
 
-    System.debug(
-      LoggingLevel.INFO,
-      'InstructionService.getInstructionData response: ' +
-      JSON.serialize(response)
-    );
+    for (breadwinner_ns__BW_Employee__c employee : [
+      SELECT breadwinner_ns__InternalId__c, Name
+      FROM breadwinner_ns__BW_Employee__c
+      WHERE Name = :ownerNames
+    ]) {
+      employeesByName.put(employee.Name, employee);
+    }
 
-    return InstructionResHandler.handleResponse(response);
+    List<InstructionDataModel.InstructionData> instructionData = new List<InstructionDataModel.InstructionData>();
+
+    for (nco_repair_instructions__c row : instructionRows) {
+      breadwinner_ns__BW_Employee__c employee = employeesByName.get(
+        row.OwnerName__c
+      );
+
+      if (employee == null) {
+        throw new AuraHandledException(
+          'Could not find NetSuite employee: ' + row.OwnerName__c
+        );
+      }
+
+      InstructionDataModel.InstructionData data = new InstructionDataModel.InstructionData();
+
+      data.internalId = row.InternalId__c;
+      data.nsEmployeeId = employee.breadwinner_ns__InternalId__c;
+      data.nsEmployeeName = employee.Name;
+      data.nsSoId = row.nid_record1__c;
+      data.instruction = row.custrecord_instruction_comment__c;
+      data.lastModified = row.LastModified__c;
+
+      instructionData.add(data);
+    }
+
+    return instructionData;
   }
 }

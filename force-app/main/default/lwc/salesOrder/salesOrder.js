@@ -9,8 +9,10 @@ import saveComment from "@salesforce/apex/CommentController.saveComment";
 import uploadFile from "@salesforce/apex/NsFileController.uploadFile";
 import saveNote from "@salesforce/apex/NsNoteController.saveNote";
 import getOrderData from "@salesforce/apex/SalesOrderController.getOrderData";
+import getInstructionData from "@salesforce/apex/InstructionController.getInstructionData";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
+
 import LightningAlert from "lightning/alert";
 import LightningConfirm from "lightning/confirm";
 import getEmployeeData from "@salesforce/apex/DataService.getEmployeeData";
@@ -820,6 +822,12 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       console.log(data);
 
+      const instructionData = await getInstructionData({
+        salesOrderId: this.recordId
+      });
+
+      console.log(JSON.stringify(instructionData));
+
       const isSpecialOrder = !isBlank(data.specialOrderItemType);
       const isRepairOrder = !isBlank(data.repairType);
 
@@ -944,6 +952,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       }
     } catch (error) {
       console.error("Failed to load existing sales order");
+      console.error(JSON.stringify(error));
       console.error(error.name);
       console.error(error.message);
       console.error(error.stack);

@@ -41,3 +41,9 @@ SalesOrderDataModel.SalesOrderData order = SalesOrderController.getOrderData(
 );
 
 System.debug('Order data: ' + order);
+
+List<InstructionDataModel.InstructionData> instructionData = InstructionController.getInstructionData(
+  'a0hWJ000005ppPDYAY'
+);
+
+System.debug('Instruction data: ' + instructionData);

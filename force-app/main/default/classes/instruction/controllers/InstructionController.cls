@@ -13,9 +13,9 @@ public with sharing class InstructionController {
   }
 
   @AuraEnabled(cacheable=false)
-  public static InstructionDataModel.InstructionData getInstructionData(
-    String nsSoId
+  public static List<InstructionDataModel.InstructionData> getInstructionData(
+    Id salesOrderId
   ) {
-    return InstructionService.getInstructionData(nsSoId);
+    return InstructionService.getInstructionData(salesOrderId);
   }
 }
