@@ -142,9 +142,8 @@ SELECT FIELDS(ALL) FROM ContentDistribution WHERE ContentVersionId = '068WJ00000
 SELECT
 InternalId__c,
 OwnerName__c,
-nid_record1__c,
-custrecord_instruction_comment__c,
+nid_record_parent_record__c,
+ncl_record_parent_record__c,
+custrecord_repair_comments__c,
 LastModified__c
-FROM
-nco_repair_instructions__c
-WHERE ncl_record1__c = 'a0hWJ000005ppPDYAY'
+FROM nco_repair_comments__c

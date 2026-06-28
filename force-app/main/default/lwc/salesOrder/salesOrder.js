@@ -10,6 +10,7 @@ import uploadFile from "@salesforce/apex/NsFileController.uploadFile";
 import saveNote from "@salesforce/apex/NsNoteController.saveNote";
 import getOrderData from "@salesforce/apex/SalesOrderController.getOrderData";
 import getInstructionData from "@salesforce/apex/InstructionController.getInstructionData";
+import getCommentData from "@salesforce/apex/CommentController.getCommentData";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 
@@ -167,6 +168,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   get instruction() {
     return this.template.querySelector("c-sales-order-instructions");
+  }
+
+  get comment() {
+    return this.template.querySelector("c-sales-order-comments");
   }
 
   get isSpecialOrder() {
@@ -747,7 +752,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         fileIds: fileIds.join(",")
       };
 
-
       const soNsInternalId = await saveSalesOrder({
         saveParamJson: JSON.stringify(fullPayload)
       });
@@ -818,9 +822,16 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
   async loadOrder() {
     try {
       const data = await getOrderData({ salesOrderId: this.recordId });
+
       const instructionData = await getInstructionData({
         salesOrderId: this.recordId
       });
+
+      const commentData = await getCommentData({
+        salesOrderId: this.recordId
+      });
+
+      console.log(JSON.stringify(commentData));
 
       const isSpecialOrder = !isBlank(data.specialOrderItemType);
       const isRepairOrder = !isBlank(data.repairType);
@@ -902,12 +913,14 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       const mappedRows = this.lineItems?.getMappedRows(data.lineItems);
       this.lineItems?.loadRows(mappedRows);
       this.instruction?.setRows(instructionData);
+      this.comment?.setRows(commentData);
 
       this.setAddressState({
         shippingAddressState: data.shippingAddress || {},
         billingAddressState: data.billingAddress || {}
       });
       this.setLineItems(mappedRows || []);
+      this.setComments(commentData || []);
 
       await this.fetchCustomerAddresses({
         nsCompanyId: data.nsCompanyId,

@@ -7,13 +7,16 @@ public with sharing class CommentDataModel {
     public String nsEmployeeId;
 
     @AuraEnabled
+    public String nsEmployeeName;
+
+    @AuraEnabled
     public String nsSoId;
 
     @AuraEnabled
     public String comment;
 
     @AuraEnabled
-    public String lastModified;
+    public Datetime lastModified;
 
     public CommentData() {
     }

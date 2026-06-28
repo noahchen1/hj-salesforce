@@ -9,7 +9,9 @@ public with sharing class CommentController {
     }
 
     @AuraEnabled(cacheable=false)
-    public static CommentDataModel.CommentData getCommentData(String nsSoId) {
-        return CommentService.getCommentData(nsSoId);
+    public static List<CommentDataModel.CommentData> getCommentData(
+        Id salesOrderId
+    ) {
+        return CommentService.getCommentData(salesOrderId);
     }
 }

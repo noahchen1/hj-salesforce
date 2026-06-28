@@ -1,6 +1,7 @@
 import { LightningElement, api } from "lwc";
 
 const BASE_ROW = Object.freeze({
+  internalId: null,
   nsEmployee: "",
   nsEmployeeId: "",
   comment: "",
@@ -75,11 +76,37 @@ export default class SalesOrderComments extends LightningElement {
   }
 
   @api
+  setRows(rows) {
+    const sourceRows = rows || [];
+
+    this.rows = sourceRows.map((row, index) => {
+      const rowId = row.id || index + 1;
+
+      return this.createRow({
+        id: rowId,
+        showAction: index === 0,
+        disableRemove: index === 0,
+        overrides: {
+          internalId: row.internalId,
+          nsEmployee: row.nsEmployeeName,
+          nsEmployeeId: row.nsEmployeeId,
+          comment: row.comment,
+          dateLastModified: row.lastModified,
+          actionKey: row.actionKey || `action-${rowId}`
+        }
+      });
+    });
+
+    this.nextRowId = this.rows.length + 1;
+    this.emitCommentChange();
+  }
+
+  @api
   reset() {
     this.rows = [
       this.createRow({ id: 1, showAction: true, disableRemove: true })
     ];
-    
+
     this.nextRowId = 2;
     this.emitCommentChange();
   }

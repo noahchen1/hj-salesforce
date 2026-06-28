@@ -35,29 +35,71 @@ public with sharing class CommentService {
     return commentData.internalId;
   }
 
-  public static CommentDataModel.CommentData getCommentData(String nsSoId) {
-    CommentValidator.validateReadRequest(nsSoId);
+  public static List<CommentDataModel.CommentData> getCommentData(
+    Id salesOrderId
+  ) {
+    if (salesOrderId == null) {
+      throw new AuraHandledException('Sales order Id is required.');
+    }
 
-    Map<String, Object> requestJSONMap = CommentPayloadBuilder.buildReadRequest(
-      nsSoId
-    );
+    List<nco_repair_comments__c> commentRows = [
+      SELECT
+        InternalId__c,
+        OwnerName__c,
+        nid_record_parent_record__c,
+        custrecord_repair_comments__c,
+        LastModified__c
+      FROM nco_repair_comments__c
+      WHERE ncl_record_parent_record__c = :salesOrderId
+    ];
 
-    Map<String, Object> requestPayload = CommentPayloadBuilder.buildReadPayload(
-      requestJSONMap
-    );
+    if (commentRows.isEmpty()) {
+      throw new AuraHandledException('Could not find related comments');
+    }
 
-    System.debug(
-      LoggingLevel.INFO,
-      'CommentService.getCommentData request: ' + JSON.serialize(requestPayload)
-    );
+    Set<String> ownerNames = new Set<String>();
 
-    Map<String, Object> response = NetSuiteClient.call(requestPayload);
+    for (nco_repair_comments__c row : commentRows) {
+      if (String.isNotBlank(row.OwnerName__c)) {
+        ownerNames.add(row.OwnerName__c);
+      }
+    }
 
-    System.debug(
-      LoggingLevel.INFO,
-      'CommentService.getCommentData response: ' + JSON.serialize(response)
-    );
+    Map<String, breadwinner_ns__BW_Employee__c> employeesByName = new Map<String, breadwinner_ns__BW_Employee__c>();
 
-    return CommentResHandler.handleResponse(response);
+    for (breadwinner_ns__BW_Employee__c employee : [
+      SELECT breadwinner_ns__InternalId__c, Name
+      FROM breadwinner_ns__BW_Employee__c
+      WHERE Name = :ownerNames
+    ]) {
+      employeesByName.put(employee.Name, employee);
+    }
+
+    List<CommentDataModel.CommentData> commentData = new List<CommentDataModel.CommentData>();
+
+    for (nco_repair_comments__c row : commentRows) {
+      breadwinner_ns__BW_Employee__c employee = employeesByName.get(
+        row.OwnerName__c
+      );
+
+      if (employee == null) {
+        throw new AuraHandledException(
+          'Could not find NetSuite employee: ' + row.OwnerName__c
+        );
+      }
+
+      CommentDataModel.CommentData data = new CommentDataModel.CommentData();
+
+      data.internalId = row.InternalId__c;
+      data.nsEmployeeId = employee.breadwinner_ns__InternalId__c;
+      data.nsEmployeeName = employee.Name;
+      data.nsSoId = row.nid_record_parent_record__c;
+      data.comment = row.custrecord_repair_comments__c;
+      data.lastModified = row.LastModified__c;
+
+      commentData.add(data);
+    }
+
+    return commentData;
   }
 }
