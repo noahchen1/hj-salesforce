@@ -305,4 +305,62 @@ public with sharing class SalesOrderService {
     Integer nextNumericValue = Integer.valueOf(numericPart) + 1;
     return prefix + '_' + String.valueOf(nextNumericValue);
   }
+
+  public static List<ContentVersion> getAttachedFiles(
+    String concatenatedUrls
+  ) {
+    List<ContentVersion> cvs = new List<ContentVersion>();
+
+    if (String.isBlank(concatenatedUrls)) {
+      return cvs;
+    }
+
+    Http http = new Http();
+
+    for (String rawUrl : concatenatedUrls.split(',')) {
+      String url = rawUrl.trim();
+
+      if (String.isBlank(url)) {
+        continue;
+      }
+
+      HttpRequest req = new HttpRequest();
+      req.setEndpoint(url);
+      req.setMethod('GET');
+
+      HttpResponse res = http.send(req);
+
+      if (res.getStatusCode() < 200 || res.getStatusCode() >= 300) {
+        System.debug(
+          'File download failed. Status=' + res.getStatus() + ', URL=' + url
+        );
+
+        continue;
+      }
+
+      String fileName = Helpers.getFileNameFromContentDisposition(
+        res.getHeader('Content-Disposition')
+      );
+
+      if (String.isBlank(fileName)) {
+        fileName = 'downloaded-file';
+      }
+
+      String title = Helpers.getTitleFromFileName(fileName);
+
+      ContentVersion cv = new ContentVersion();
+      cv.Title = title;
+      cv.PathOnClient = fileName;
+      cv.VersionData = res.getBodyAsBlob();
+      cv.IsMajorVersion = true;
+
+      cvs.add(cv);
+    }
+
+    if (!cvs.isEmpty()) {
+      insert cvs;
+    }
+
+    return cvs;
+  }
 }

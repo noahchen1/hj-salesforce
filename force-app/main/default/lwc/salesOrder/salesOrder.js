@@ -14,6 +14,7 @@ import getCommentData from "@salesforce/apex/CommentController.getCommentData";
 import getNoteData from "@salesforce/apex/NsNoteController.getNoteData";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
+import getAttachedFiles from "@salesforce/apex/SalesOrderController.getAttachedFiles";
 
 import LightningAlert from "lightning/alert";
 import LightningConfirm from "lightning/confirm";
@@ -840,7 +841,30 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         salesOrderId: this.recordId
       });
 
-      console.log(JSON.stringify(noteData));
+      const attachmentUrls = data.attachmentUrls;
+
+      const response = await getAttachedFiles({
+        concatenatedUrls: attachmentUrls
+      });
+
+      // [
+      //   {
+      //     Title: "2025-06-13-150705",
+      //     PathOnClient: "2025-06-13-150705.jpg",
+      //     VersionData: "BLOB(734860 bytes)",
+      //     IsMajorVersion: true,
+      //     Id: "068WJ00000GGZS7YAP"
+      //   },
+      //   {
+      //     Title: "2025-06-13-150655",
+      //     PathOnClient: "2025-06-13-150655.jpg",
+      //     VersionData: "BLOB(630304 bytes)",
+      //     IsMajorVersion: true,
+      //     Id: "068WJ00000GGZS8YAP"
+      //   }
+      // ];
+
+      console.log(JSON.stringify(response));
 
       const isSpecialOrder = !isBlank(data.specialOrderItemType);
       const isRepairOrder = !isBlank(data.repairType);

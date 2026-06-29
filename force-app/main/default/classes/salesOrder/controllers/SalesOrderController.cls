@@ -49,4 +49,11 @@ public with sharing class SalesOrderController {
   public static String getInquiryId(String custNsInternalId) {
     return SalesOrderService.getInquiryId(custNsInternalId);
   }
+
+  @AuraEnabled
+  public static List<ContentVersion> getAttachedFiles(
+    String concatenatedUrls
+  ) {
+    return SalesOrderService.getAttachedFiles(concatenatedUrls);
+  }
 }

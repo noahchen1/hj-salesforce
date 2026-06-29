@@ -77,6 +77,8 @@ public with sharing class SalesOrderDataModel {
     public String dateOpened;
     @AuraEnabled
     public String datePromised;
+    @AuraEnabled
+    public String attachmentUrls;
 
     @AuraEnabled
     public String inquiryModel;

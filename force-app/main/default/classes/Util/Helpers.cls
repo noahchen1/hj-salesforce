@@ -103,4 +103,35 @@ public with sharing class Helpers {
   public static String normalizeString(String str) {
     return String.isBlank(str) ? null : str.trim().toLowerCase();
   }
+
+  public static String getFileNameFromContentDisposition(
+    String contentDisposition
+  ) {
+    if (String.isBlank(contentDisposition)) {
+      return null;
+    }
+
+    Pattern p = Pattern.compile('filename="?([^";]+)"?');
+    Matcher m = p.matcher(contentDisposition);
+
+    if (m.find()) {
+      return m.group(1);
+    }
+
+    return null;
+  }
+
+  public static String getTitleFromFileName(String fileName) {
+    if (String.isBlank(fileName)) {
+      return 'downloaded-file';
+    }
+
+    Integer dotIndex = fileName.lastIndexOf('.');
+
+    if (dotIndex > 0) {
+      return fileName.substring(0, dotIndex);
+    }
+
+    return fileName;
+  }
 }

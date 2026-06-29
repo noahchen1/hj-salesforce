@@ -322,6 +322,12 @@ public with sharing class SalesOrderMapper {
 
         continue;
       }
+
+      if (cf.scriptId == 'custbody_repair_attach_urls') {
+        result.attachmentUrls = cf.value;
+
+        continue;
+      }
     }
   }
 
