@@ -1,11 +1,12 @@
 public with sharing class NsNoteController {
   @AuraEnabled(cacheable=false)
   public static String saveNote(
+    String nsInternalId,
     String nsEmployeeId,
     String nsSoId,
     String content
   ) {
-    return NsNoteService.saveNote(nsEmployeeId, nsSoId, content);
+    return NsNoteService.saveNote(nsInternalId, nsEmployeeId, nsSoId, content);
   }
 
   @AuraEnabled(cacheable=false)

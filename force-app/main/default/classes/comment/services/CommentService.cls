@@ -1,19 +1,23 @@
 public with sharing class CommentService {
   public static String saveComment(
+    String nsInternalId,
     String nsEmployeeId,
     String nsSoId,
     String comment
   ) {
     CommentValidator.validateSaveRequest(nsEmployeeId, nsSoId, comment);
+    Boolean isUpdate = String.isNotBlank(nsInternalId);
 
     Map<String, Object> commentRequest = CommentPayloadBuilder.buildCreateRequest(
+      nsInternalId,
       nsEmployeeId,
       nsSoId,
       comment
     );
 
     Map<String, Object> requestPayload = CommentPayloadBuilder.buildCreatePayload(
-      commentRequest
+      commentRequest,
+      isUpdate
     );
 
     System.debug(

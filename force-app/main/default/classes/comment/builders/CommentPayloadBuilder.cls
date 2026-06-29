@@ -1,11 +1,16 @@
 public with sharing class CommentPayloadBuilder {
   public static Map<String, Object> buildCreateRequest(
+    String nsInternalId,
     String nsEmployeeId,
     String nsSoId,
     String comment
   ) {
     Map<String, Object> requestMap = new Map<String, Object>();
     List<Object> customObjectCustomFieldList = new List<Object>();
+
+    if (String.isNotBlank(nsInternalId)) {
+      requestMap.put('internalId', nsInternalId);
+    }
 
     requestMap.put(
       'owner',
@@ -37,18 +42,25 @@ public with sharing class CommentPayloadBuilder {
   }
 
   public static Map<String, Object> buildCreatePayload(
-    Map<String, Object> commentRequest
+    Map<String, Object> commentRequest,
+    Boolean isUpdate
   ) {
     Map<String, Object> requestJsonMap = new Map<String, Object>{
       'customObjectRecords' => new List<Object>{ commentRequest },
       'customObjectID' => '110'
     };
 
-    return new Map<String, Object>{
-      'version' => '1.0',
-      'action' => 'createCustomObjectRecord',
-      'requestJSON' => JSON.serialize(requestJsonMap)
-    };
+    return isUpdate
+      ? new Map<String, Object>{
+          'version' => '1.0',
+          'action' => 'updateCustomObjectRecord',
+          'requestJSON' => JSON.serialize(requestJsonMap)
+        }
+      : new Map<String, Object>{
+          'version' => '1.0',
+          'action' => 'createCustomObjectRecord',
+          'requestJSON' => JSON.serialize(requestJsonMap)
+        };
   }
 
   public static Map<String, Object> buildReadRequest(String nsSoId) {
@@ -66,7 +78,9 @@ public with sharing class CommentPayloadBuilder {
     };
   }
 
-  public static Map<String, Object> buildReadPayload(Map<String, Object> request) {
+  public static Map<String, Object> buildReadPayload(
+    Map<String, Object> request
+  ) {
     return new Map<String, Object>{
       'version' => '1.0',
       'action' => 'readCustomObjectRecord',

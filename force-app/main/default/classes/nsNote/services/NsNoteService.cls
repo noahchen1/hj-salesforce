@@ -1,19 +1,23 @@
 public with sharing class NsNoteService {
   public static String saveNote(
+    String nsInternalId,
     String nsEmployeeId,
     String nsSoId,
     String content
   ) {
     NsNoteValidator.validateSaveRequest(nsEmployeeId, nsSoId, content);
+    Boolean isUpdate = String.isNotBlank(nsInternalId);
 
     Map<String, Object> noteReqeust = NsNotePayloadBuilder.buildSaveRequest(
+      nsInternalId,
       nsEmployeeId,
       nsSoId,
       content
     );
 
     Map<String, Object> requestPayload = NsNotePayloadBuilder.buildSavePayload(
-      noteReqeust
+      noteReqeust,
+      isUpdate
     );
 
     System.debug(
@@ -64,7 +68,7 @@ public with sharing class NsNoteService {
         custrecord_note_history_content__c,
         custrecord_note_history_lastmodifydate__c
       FROM nco_notes_history__c
-      WHERE InternalId__c = '2401394'
+      WHERE custrecord_note_history_transaction__c = :soNsInternalId
     ];
 
     if (noteRows.isEmpty()) {
@@ -86,7 +90,10 @@ public with sharing class NsNoteService {
       FROM breadwinner_ns__BW_Employee__c
       WHERE breadwinner_ns__InternalId__c IN :employeeIds
     ]) {
-      employeesByInternalId.put(employee.breadwinner_ns__InternalId__c, employee);
+      employeesByInternalId.put(
+        employee.breadwinner_ns__InternalId__c,
+        employee
+      );
     }
 
     List<NsNoteDataModel.NsNoteData> noteData = new List<NsNoteDataModel.NsNoteData>();
