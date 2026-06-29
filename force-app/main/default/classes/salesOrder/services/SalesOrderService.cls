@@ -310,6 +310,7 @@ public with sharing class SalesOrderService {
     String concatenatedUrls
   ) {
     List<ContentVersion> cvs = new List<ContentVersion>();
+    Set<String> fileNames = new Set<String>();
 
     if (String.isBlank(concatenatedUrls)) {
       return cvs;
@@ -355,10 +356,53 @@ public with sharing class SalesOrderService {
       cv.IsMajorVersion = true;
 
       cvs.add(cv);
+      fileNames.add(fileName);
     }
 
     if (!cvs.isEmpty()) {
-      insert cvs;
+      Map<String, Id> existingDocumentIdsByFileName = new Map<String, Id>();
+
+      for (ContentVersion existingCv : [
+        SELECT ContentDocumentId, PathOnClient
+        FROM ContentVersion
+        WHERE IsLatest = TRUE AND PathOnClient IN :fileNames
+        ORDER BY CreatedDate DESC
+      ]) {
+        if (
+          !existingDocumentIdsByFileName.containsKey(existingCv.PathOnClient)
+        ) {
+          existingDocumentIdsByFileName.put(
+            existingCv.PathOnClient,
+            existingCv.ContentDocumentId
+          );
+        }
+      }
+
+      for (ContentVersion cv : cvs) {
+        Id existingDocumentId = existingDocumentIdsByFileName.get(
+          cv.PathOnClient
+        );
+
+        if (existingDocumentId != null) {
+          cv.ContentDocumentId = existingDocumentId;
+        }
+
+        insert cv;
+
+        if (!existingDocumentIdsByFileName.containsKey(cv.PathOnClient)) {
+          ContentVersion insertedCv = [
+            SELECT ContentDocumentId
+            FROM ContentVersion
+            WHERE Id = :cv.Id
+            LIMIT 1
+          ];
+
+          existingDocumentIdsByFileName.put(
+            cv.PathOnClient,
+            insertedCv.ContentDocumentId
+          );
+        }
+      }
     }
 
     return cvs;
