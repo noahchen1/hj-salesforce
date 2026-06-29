@@ -7,12 +7,18 @@ public with sharing class NsNoteDataModel {
     public String nsEmployeeId;
 
     @AuraEnabled
+    public String nsEmployeeName;
+
+    @AuraEnabled
     public String nsSoId;
 
     @AuraEnabled
     public String content;
 
-    @AuraENabled
-    public String lastModified;
+    @AuraEnabled
+    public Date lastModified;
+
+    public NsNoteData() {
+    }
   }
 }

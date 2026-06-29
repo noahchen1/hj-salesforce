@@ -11,6 +11,7 @@ import saveNote from "@salesforce/apex/NsNoteController.saveNote";
 import getOrderData from "@salesforce/apex/SalesOrderController.getOrderData";
 import getInstructionData from "@salesforce/apex/InstructionController.getInstructionData";
 import getCommentData from "@salesforce/apex/CommentController.getCommentData";
+import getNoteData from "@salesforce/apex/NsNoteController.getNoteData";
 import getOrder from "@salesforce/apex/SalesOrderController.getOrder";
 import getSubsidiaryLocations from "@salesforce/apex/DropdownDataController.getSubsidiaryLocations";
 
@@ -172,6 +173,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   get comment() {
     return this.template.querySelector("c-sales-order-comments");
+  }
+
+  get note() {
+    return this.template.querySelector("c-sales-order-notes");
   }
 
   get isSpecialOrder() {
@@ -831,7 +836,11 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         salesOrderId: this.recordId
       });
 
-      console.log(JSON.stringify(commentData));
+      const noteData = await getNoteData({
+        salesOrderId: this.recordId
+      });
+
+      console.log(JSON.stringify(noteData));
 
       const isSpecialOrder = !isBlank(data.specialOrderItemType);
       const isRepairOrder = !isBlank(data.repairType);
@@ -914,13 +923,16 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       this.lineItems?.loadRows(mappedRows);
       this.instruction?.setRows(instructionData);
       this.comment?.setRows(commentData);
+      this.note?.setRows(noteData);
 
       this.setAddressState({
         shippingAddressState: data.shippingAddress || {},
         billingAddressState: data.billingAddress || {}
       });
       this.setLineItems(mappedRows || []);
+      this.setInstructions(instructionData || []);
       this.setComments(commentData || []);
+      this.setNotes(noteData || []);
 
       await this.fetchCustomerAddresses({
         nsCompanyId: data.nsCompanyId,
