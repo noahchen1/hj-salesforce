@@ -58,7 +58,7 @@ public with sharing class CommentService {
     ];
 
     if (commentRows.isEmpty()) {
-      throw new AuraHandledException('Could not find related comments');
+      return new List<CommentDataModel.CommentData>();
     }
 
     Set<String> ownerNames = new Set<String>();

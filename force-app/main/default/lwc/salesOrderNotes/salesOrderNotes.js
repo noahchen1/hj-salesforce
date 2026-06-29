@@ -75,6 +75,12 @@ export default class SalesOrderNotes extends LightningElement {
   setRows(rows) {
     const sourceRows = rows || [];
 
+    if (sourceRows.length === 0) {
+      this.reset();
+
+      return;
+    }
+
     this.rows = sourceRows.map((row, index) => {
       const rowId = row.id || index + 1;
 

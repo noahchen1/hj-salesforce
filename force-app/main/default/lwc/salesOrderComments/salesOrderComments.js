@@ -79,6 +79,12 @@ export default class SalesOrderComments extends LightningElement {
   setRows(rows) {
     const sourceRows = rows || [];
 
+    if (sourceRows.length === 0) {
+      this.reset();
+
+      return;
+    }
+
     this.rows = sourceRows.map((row, index) => {
       const rowId = row.id || index + 1;
 
@@ -103,6 +109,7 @@ export default class SalesOrderComments extends LightningElement {
 
   @api
   reset() {
+    console.log("comment reset called!");
     this.rows = [
       this.createRow({ id: 1, showAction: true, disableRemove: true })
     ];

@@ -72,7 +72,7 @@ public with sharing class NsNoteService {
     ];
 
     if (noteRows.isEmpty()) {
-      throw new AuraHandledException('Could not find related notes');
+      return new List<NsNoteDataModel.NsNoteData>();
     }
 
     Set<String> employeeIds = new Set<String>();

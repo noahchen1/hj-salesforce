@@ -59,7 +59,7 @@ public with sharing class InstructionService {
     ];
 
     if (instructionRows.isEmpty()) {
-      throw new AuraHandledException('Could not find related instructions');
+      return new List<InstructionDataModel.InstructionData>();
     }
 
     Set<String> ownerNames = new Set<String>();
