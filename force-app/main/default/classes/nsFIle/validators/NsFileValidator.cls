@@ -23,6 +23,14 @@ public with sharing class NsFileValidator {
     if (String.isBlank(fileData.name)) {
       throw Helpers.buildAuraException('File name is required.');
     }
+
+    if (String.isBlank(fileData.fileUrl)) {
+      throw Helpers.buildAuraException('File URL is required.');
+    }
+
+    if (!fileData.fileUrl.toLowerCase().startsWith('http')) {
+      throw Helpers.buildAuraException('File URL must be absolute.');
+    }
   }
 
   public static void validateRawResponse(Map<String, Object> response) {

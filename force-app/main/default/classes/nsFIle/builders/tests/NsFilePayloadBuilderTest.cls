@@ -9,6 +9,7 @@ private class NsFilePayloadBuilderTest {
     Map<String, Object> request = NsFilePayloadBuilder.buildUploadRequest(
       'Test',
       base64Content,
+      null,
       '800',
       'Test.pdf'
     );
@@ -30,6 +31,7 @@ private class NsFilePayloadBuilderTest {
     Map<String, Object> request = NsFilePayloadBuilder.buildUploadRequest(
       'Test',
       base64Content,
+      null,
       '800',
       'Test.pdf'
     );
@@ -40,5 +42,22 @@ private class NsFilePayloadBuilderTest {
 
     System.assertEquals(payload.get('action'), 'uploadFile');
     System.assert(payload.get('requestJSON') != null);
+  }
+
+  @isTest
+  static void buildUploadRequest_contentUrl_success() {
+    Map<String, Object> request = NsFilePayloadBuilder.buildUploadRequest(
+      'Test',
+      null,
+      'https://example.com/Test.pdf',
+      '800',
+      'Test.pdf'
+    );
+
+    System.assertEquals(
+      'https://example.com/Test.pdf',
+      (String) request.get('contentURL')
+    );
+    System.assertEquals(null, request.get('content'));
   }
 }

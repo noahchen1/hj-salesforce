@@ -180,6 +180,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     return this.template.querySelector("c-sales-order-notes");
   }
 
+  get attachment() {
+    return this.template.querySelector("c-sales-order-attachments");
+  }
+
   get isSpecialOrder() {
     return this.formState.orderType === "special";
   }
@@ -733,12 +737,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       const fileIds = await Promise.all(
         attachments
           .filter(
-            ({ name, documentId, contentVersionId, contentBodyId, mimeType }) =>
-              !isBlank(name) &&
-              !isBlank(documentId) &&
-              !isBlank(contentVersionId) &&
-              !isBlank(contentBodyId) &&
-              !isBlank(mimeType)
+            ({ name, contentVersionId, fileUrl }) =>
+              !isBlank(name) && !isBlank(contentVersionId) && !isBlank(fileUrl)
           )
           .map(async (file) => {
             const fileId = await uploadFile({
@@ -746,8 +746,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
               folderInternalId: "29448",
               fileDataJson: JSON.stringify(file)
             });
-
-            console.log("file added:", JSON.parse(fileId));
 
             return fileId;
           })
@@ -827,47 +825,23 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   async loadOrder() {
     try {
-      const data = await getOrderData({ salesOrderId: this.recordId });
+      const [orderData, instructionData, commentData, noteData] =
+        await Promise.all([
+          getOrderData({ salesOrderId: this.recordId }),
+          getInstructionData({
+            salesOrderId: this.recordId
+          }),
+          getCommentData({
+            salesOrderId: this.recordId
+          }),
+          getNoteData({
+            salesOrderId: this.recordId
+          })
+        ]);
 
-      const instructionData = await getInstructionData({
-        salesOrderId: this.recordId
-      });
-
-      const commentData = await getCommentData({
-        salesOrderId: this.recordId
-      });
-
-      const noteData = await getNoteData({
-        salesOrderId: this.recordId
-      });
-
-      const attachmentUrls = data.attachmentUrls;
-
-      const response = await getAttachedFiles({
-        concatenatedUrls: attachmentUrls
-      });
-
-      // [
-      //   {
-      //     Title: "2025-06-13-150705",
-      //     PathOnClient: "2025-06-13-150705.jpg",
-      //     VersionData: "BLOB(734860 bytes)",
-      //     IsMajorVersion: true,
-      //     Id: "068WJ00000GGZS7YAP"
-      //   },
-      //   {
-      //     Title: "2025-06-13-150655",
-      //     PathOnClient: "2025-06-13-150655.jpg",
-      //     VersionData: "BLOB(630304 bytes)",
-      //     IsMajorVersion: true,
-      //     Id: "068WJ00000GGZS8YAP"
-      //   }
-      // ];
-
-      console.log(JSON.stringify(response));
-
-      const isSpecialOrder = !isBlank(data.specialOrderItemType);
-      const isRepairOrder = !isBlank(data.repairType);
+      const isSpecialOrder = !isBlank(orderData.specialOrderItemType);
+      const isRepairOrder = !isBlank(orderData.repairType);
+      const hasAttachments = !isBlank(orderData.attachmentUrls);
 
       this.updateFormState({
         orderType: isRepairOrder
@@ -875,30 +849,31 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
           : isSpecialOrder
             ? "special"
             : "sales",
-        custNsInternalId: data.customerNsId ?? "",
-        date: data.orderDate ?? null,
-        salesRep1: data.salesRep1NsId ?? "",
-        salesRep2: data.salesRep2NsId ?? "",
-        memo: data.memo ?? "",
-        paymentTerm: data.termNsId ?? "",
-        subsidiary: data.subsidiaryNsId ?? "",
-        location: data.locationNsId ?? ""
+        custNsInternalId: orderData.customerNsId ?? "",
+        date: orderData.orderDate ?? null,
+        salesRep1: orderData.salesRep1NsId ?? "",
+        salesRep2: orderData.salesRep2NsId ?? "",
+        memo: orderData.memo ?? "",
+        paymentTerm: orderData.termNsId ?? "",
+        subsidiary: orderData.subsidiaryNsId ?? "",
+        location: orderData.locationNsId ?? ""
       });
 
-      this.soNsInternalId = data.soNsInternalId ?? "";
-      this.accountId = data.accountId ?? "";
+      this.soNsInternalId = orderData.soNsInternalId ?? "";
+      this.accountId = orderData.accountId ?? "";
 
       if (isSpecialOrder) {
         this.updateFormState({
-          specialDate: data.specialDate ?? null,
-          needByDate: data.needByDate ?? null,
-          specialOrderItemType: data.specialOrderItemType ?? "",
-          specialOrderVendor: data.specialOrderVendorNsId ?? "",
-          specialOrderRequestedVendor: data.specialOrderRequestedVendor ?? "",
-          specialOrderComments: data.specialOrderComments ?? "",
-          specialOrderNotes: data.specialOrderNotes ?? "",
-          specialOrderMemoOrSold: data.specialOrderMemoOrSold ?? "",
-          specialOrderStatus: data.specialOrderStatus ?? ""
+          specialDate: orderData.specialDate ?? null,
+          needByDate: orderData.needByDate ?? null,
+          specialOrderItemType: orderData.specialOrderItemType ?? "",
+          specialOrderVendor: orderData.specialOrderVendorNsId ?? "",
+          specialOrderRequestedVendor:
+            orderData.specialOrderRequestedVendor ?? "",
+          specialOrderComments: orderData.specialOrderComments ?? "",
+          specialOrderNotes: orderData.specialOrderNotes ?? "",
+          specialOrderMemoOrSold: orderData.specialOrderMemoOrSold ?? "",
+          specialOrderStatus: orderData.specialOrderStatus ?? ""
         });
       } else {
         this.updateFormState({
@@ -916,16 +891,16 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
       if (isRepairOrder) {
         this.updateFormState({
-          repairType: data.repairType ?? null,
-          repairStation: data.repairStation ?? null,
-          repairPerson: data.repairPerson ?? null,
-          repairLocation: data.repairLocation ?? null,
-          repairVendor: data.repairVendor ?? null,
-          shipRepairTo: data.shipRepairTo ?? null,
-          repairDescription: data.repairDescription ?? null,
-          extendedDescription: data.extendedDescription ?? null,
-          dateOpened: data.dateOpened ?? null,
-          datePromised: data.datePromised ?? null
+          repairType: orderData.repairType ?? null,
+          repairStation: orderData.repairStation ?? null,
+          repairPerson: orderData.repairPerson ?? null,
+          repairLocation: orderData.repairLocation ?? null,
+          repairVendor: orderData.repairVendor ?? null,
+          shipRepairTo: orderData.shipRepairTo ?? null,
+          repairDescription: orderData.repairDescription ?? null,
+          extendedDescription: orderData.extendedDescription ?? null,
+          dateOpened: orderData.dateOpened ?? null,
+          datePromised: orderData.datePromised ?? null
         });
       } else {
         this.updateFormState({
@@ -942,36 +917,49 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         });
       }
 
-      this.addressSection?.loadFromOrderData(data);
-      const mappedRows = this.lineItems?.getMappedRows(data.lineItems);
+      this.addressSection?.loadFromOrderData(orderData);
+      const mappedRows = this.lineItems?.getMappedRows(orderData.lineItems);
       this.lineItems?.loadRows(mappedRows);
       this.instruction?.setRows(instructionData);
       this.comment?.setRows(commentData);
       this.note?.setRows(noteData);
 
+      if (hasAttachments) {
+        const attachmentUrls = orderData.attachmentUrls;
+
+        const fileData = await getAttachedFiles({
+          concatenatedUrls: attachmentUrls
+        });
+
+        await this.attachment?.setRows(fileData);
+
+        console.log(JSON.stringify(this.formState.attachments));
+      }
+
       this.setAddressState({
-        shippingAddressState: data.shippingAddress || {},
-        billingAddressState: data.billingAddress || {}
+        shippingAddressState: orderData.shippingAddress || {},
+        billingAddressState: orderData.billingAddress || {}
       });
-      this.setLineItems(mappedRows || []);
-      this.setInstructions(instructionData || []);
-      this.setComments(commentData || []);
-      this.setNotes(noteData || []);
+      // this.setLineItems(mappedRows || []);
+      // this.setInstructions(instructionData || []);
+      // this.setComments(commentData || []);
+      // this.setNotes(noteData || []);
+      // this.setAttachments(fileData || []);
 
       await this.fetchCustomerAddresses({
-        nsCompanyId: data.nsCompanyId,
+        nsCompanyId: orderData.nsCompanyId,
         location: this.formState.location,
         skipSelection: true
       });
 
-      this.header?.setLookupValue("customer", data.customerName ?? "");
-      this.header?.setLookupValue("salesRep1", data.salesRep1Name ?? "");
-      this.header?.setLookupValue("salesRep2", data.salesRep2Name ?? "");
+      this.header?.setLookupValue("customer", orderData.customerName ?? "");
+      this.header?.setLookupValue("salesRep1", orderData.salesRep1Name ?? "");
+      this.header?.setLookupValue("salesRep2", orderData.salesRep2Name ?? "");
 
       if (isSpecialOrder) {
         this.header?.setLookupValue(
           "specialOrderVendor",
-          data.specialOrderVendorName
+          orderData.specialOrderVendorName
         );
       } else {
         this.header?.setLookupValue("specialOrderVendor", "");
@@ -980,15 +968,15 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       if (isRepairOrder) {
         this.header?.setLookupValue(
           "repairPerson",
-          data.repairPersonName ?? ""
+          orderData.repairPersonName ?? ""
         );
         this.header?.setLookupValue(
           "repairVendor",
-          data.repairVendorName ?? ""
+          orderData.repairVendorName ?? ""
         );
         this.header?.setLookupValue(
           "shipRepairTo",
-          data.shipRepairToName ?? ""
+          orderData.shipRepairToName ?? ""
         );
       } else {
         this.header?.setLookupValue("repairPerson", "");

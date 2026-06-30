@@ -306,14 +306,15 @@ public with sharing class SalesOrderService {
     return prefix + '_' + String.valueOf(nextNumericValue);
   }
 
-  public static List<ContentVersion> getAttachedFiles(
+  public static List<NsFileDataModel.UploadSourceFile> getAttachedFiles(
     String concatenatedUrls
   ) {
+    List<NsFileDataModel.UploadSourceFile> files = new List<NsFileDataModel.UploadSourceFile>();
     List<ContentVersion> cvs = new List<ContentVersion>();
     Set<String> fileNames = new Set<String>();
 
     if (String.isBlank(concatenatedUrls)) {
-      return cvs;
+      return files;
     }
 
     Http http = new Http();
@@ -389,6 +390,8 @@ public with sharing class SalesOrderService {
 
         insert cv;
 
+        Id contentDocumentId = existingDocumentId;
+
         if (!existingDocumentIdsByFileName.containsKey(cv.PathOnClient)) {
           ContentVersion insertedCv = [
             SELECT ContentDocumentId
@@ -401,10 +404,19 @@ public with sharing class SalesOrderService {
             cv.PathOnClient,
             insertedCv.ContentDocumentId
           );
+
+          contentDocumentId = insertedCv.ContentDocumentId;
         }
+
+        NsFileDataModel.UploadSourceFile file = new NsFileDataModel.UploadSourceFile();
+        file.name = cv.PathOnClient;
+        file.documentId = String.valueOf(contentDocumentId);
+        file.contentVersionId = String.valueOf(cv.Id);
+
+        files.add(file);
       }
     }
 
-    return cvs;
+    return files;
   }
 }

@@ -51,7 +51,7 @@ public with sharing class SalesOrderController {
   }
 
   @AuraEnabled
-  public static List<ContentVersion> getAttachedFiles(
+  public static List<NsFileDataModel.UploadSourceFile> getAttachedFiles(
     String concatenatedUrls
   ) {
     return SalesOrderService.getAttachedFiles(concatenatedUrls);

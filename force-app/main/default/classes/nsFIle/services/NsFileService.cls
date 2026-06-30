@@ -10,28 +10,9 @@ public with sharing class NsFileService {
 
     NsFileValidator.validateUploadRequest(caption, folderInternalId, fileData);
 
-    ContentVersion sourceVersion;
-    try {
-      sourceVersion = [
-        SELECT Id, VersionData
-        FROM ContentVersion
-        WHERE Id = :fileData.contentVersionId
-        LIMIT 1
-      ];
-    } catch (Exception ex) {
-      throw Helpers.buildAuraException(
-        'Unable to load Salesforce file content from ContentVersion: ' +
-        ex.getMessage()
-      );
-    }
-
-    String encodedContent = EncodingUtil.base64Encode(
-      sourceVersion.VersionData
-    );
-
     Map<String, Object> nsFileRequest = NsFilePayloadBuilder.buildUploadRequest(
       caption,
-      encodedContent,
+      fileData.fileUrl,
       folderInternalId,
       fileData.name
     );
@@ -57,5 +38,31 @@ public with sharing class NsFileService {
     );
 
     return file.internalId;
+  }
+
+  @AuraEnabled(cacheable=false)
+  public static String createContentDistributionUrl(
+    String fileName,
+    Id contentVersionId
+  ) {
+    ContentDistribution distribution = new ContentDistribution(
+      Name = fileName,
+      ContentVersionId = contentVersionId,
+      PreferencesAllowOriginalDownload = true,
+      PreferencesAllowViewInBrowser = true,
+      PreferencesLinkLatestVersion = true,
+      PreferencesNotifyOnVisit = false
+    );
+
+    insert distribution;
+
+    distribution = [
+      SELECT ContentDownloadUrl, DistributionPublicUrl
+      FROM ContentDistribution
+      WHERE Id = :distribution.Id
+      LIMIT 1
+    ];
+
+    return distribution.ContentDownloadUrl;
   }
 }

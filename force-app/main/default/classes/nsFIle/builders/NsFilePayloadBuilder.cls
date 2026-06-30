@@ -1,15 +1,19 @@
 public with sharing class NsFilePayloadBuilder {
   public static Map<String, Object> buildUploadRequest(
     String caption,
-    String content,
+    String contentUrl,
     String folderInternalId,
     String name
   ) {
     Map<String, Object> nsFile = new Map<String, Object>();
 
     nsFile.put('caption', caption);
-    nsFile.put('content', content);
-    nsFile.put('folder', new Map<String, Object>{ 'internalId' => folderInternalId });
+    nsFile.put('contentURL', contentUrl);
+
+    nsFile.put(
+      'folder',
+      new Map<String, Object>{ 'internalId' => folderInternalId }
+    );
     nsFile.put('name', name);
 
     return nsFile;

@@ -1,6 +1,6 @@
 @isTest
 private class NsFileControllerTest {
-  private static String createUploadSourceFileJson() {
+  private static String createUploadSourceFileJson(Boolean includeFileUrl) {
     ContentVersion version = new ContentVersion(
       Title = 'STD claim packet',
       PathOnClient = 'STD claim packet.pdf',
@@ -9,7 +9,7 @@ private class NsFileControllerTest {
     insert version;
 
     version = [
-      SELECT Id, ContentDocumentId, ContentBodyId
+      SELECT Id, ContentDocumentId
       FROM ContentVersion
       WHERE Id = :version.Id
       LIMIT 1
@@ -18,10 +18,12 @@ private class NsFileControllerTest {
     Map<String, Object> fileData = new Map<String, Object>{
       'name' => 'STD claim packet.pdf',
       'documentId' => (String) version.ContentDocumentId,
-      'contentVersionId' => (String) version.Id,
-      'contentBodyId' => (String) version.ContentBodyId,
-      'mimeType' => 'application/pdf'
+      'contentVersionId' => (String) version.Id
     };
+
+    if (includeFileUrl) {
+      fileData.put('fileUrl', 'https://example.com/STD-claim-packet.pdf');
+    }
 
     return JSON.serialize(fileData);
   }
@@ -33,17 +35,35 @@ private class NsFileControllerTest {
       'responseJSON' => '{"status":"200","errors":[],"fileInternalId":"1876"}'
     };
 
-    String fileDataJson = createUploadSourceFileJson();
+    String fileDataJson = createUploadSourceFileJson(true);
 
-    NsFileDataModel.UploadFileResult result = NsFileController.uploadFile(
-      'Test',
-      '800',
-      fileDataJson
+    String result = NsFileController.uploadFile('Test', '800', fileDataJson);
+
+    System.assertNotEquals(null, result);
+    System.assertEquals('1876', result);
+  }
+
+  @isTest
+  static void createContentDistributionUrl_success() {
+    ContentVersion version = new ContentVersion(
+      Title = 'STD claim packet',
+      PathOnClient = 'STD claim packet.pdf',
+      VersionData = Blob.valueOf('fake-pdf-bytes')
+    );
+    insert version;
+
+    String result = NsFileService.createContentDistributionUrl(
+      'STD claim packet.pdf',
+      version.Id
     );
 
     System.assertNotEquals(null, result);
-    System.assertEquals('200', result.status);
-    System.assertEquals('1876', result.internalId);
-    System.assertEquals(null, result.fileName);
+    System.assertEquals(
+      1,
+      [
+        SELECT COUNT()
+        FROM ContentDistribution
+      ]
+    );
   }
 }

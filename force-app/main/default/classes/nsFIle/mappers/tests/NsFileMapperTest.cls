@@ -7,8 +7,7 @@ private class NsFileMapperTest {
         'name' => 'STD claim packet.pdf',
         'documentId' => '069WJ00000F8LeXYAV',
         'contentVersionId' => '068WJ00000FyskrYAB',
-        'contentBodyId' => '05TWJ00000PvrCU2AZ',
-        'mimeType' => 'application/pdf'
+        'fileUrl' => 'https://example.com/STD-claim-packet.pdf'
       }
     );
 
@@ -19,7 +18,9 @@ private class NsFileMapperTest {
     System.assertEquals('STD claim packet.pdf', result.name);
     System.assertEquals('069WJ00000F8LeXYAV', result.documentId);
     System.assertEquals('068WJ00000FyskrYAB', result.contentVersionId);
-    System.assertEquals('05TWJ00000PvrCU2AZ', result.contentBodyId);
-    System.assertEquals('application/pdf', result.mimeType);
+    System.assertEquals(
+      'https://example.com/STD-claim-packet.pdf',
+      result.fileUrl
+    );
   }
 }

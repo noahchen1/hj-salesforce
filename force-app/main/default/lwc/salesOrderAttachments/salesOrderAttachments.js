@@ -1,15 +1,13 @@
 import { LightningElement, api } from "lwc";
 import { deleteRecord } from "lightning/uiRecordApi";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import createContentDistributionUrl from "@salesforce/apex/NsFileService.createContentDistributionUrl";
 
 const BASE_ROW = Object.freeze({
-  name: "",
-  documentId: "",
-  contentVersionId: "",
-  contentBodyId: "",
-  mimeType: "",
-  fileUrl: "",
-  downloadUrl: ""
+  name: null,
+  documentId: null,
+  contentVersionId: null,
+  fileUrl: null
 });
 
 export default class SalesOrderAttachments extends LightningElement {
@@ -30,6 +28,52 @@ export default class SalesOrderAttachments extends LightningElement {
 
   @api getRows() {
     return [...this.rows];
+  }
+
+  @api
+  reset() {
+    this.rows = [];
+    this.nextRowId = 0;
+    this.emitAttachmentChange();
+  }
+
+  @api
+  async setRows(rows) {
+    const sourceRows = rows || [];
+
+    if (sourceRows.length === 0) {
+      this.reset();
+
+      return;
+    }
+
+    try {
+      this.rows = await Promise.all(
+        sourceRows.map(async sourceRow => {
+          const fileUrl = await createContentDistributionUrl({
+            fileName: sourceRow.name,
+            contentVersionId: sourceRow.contentVersionId
+          });
+
+          const row = this.createRow({
+            overrides: {
+              name: sourceRow.name,
+              documentId: sourceRow.documentId,
+              contentVersionId: sourceRow.contentVersionId,
+              fileUrl: fileUrl
+            }
+          });
+
+          return row;
+        })
+      );
+
+      this.nextRowId = this.rows.length + 1;
+
+      this.emitAttachmentChange();
+    } catch (error) {
+      this.showContentUrlError(error);
+    }
   }
 
   emitAttachmentChange() {
@@ -58,32 +102,37 @@ export default class SalesOrderAttachments extends LightningElement {
   async handleUploadFinished(e) {
     const uploadedFiles = e.detail.files;
 
-    const newRows = uploadedFiles.map((file) => {
-      const fileUrl = `/lightning/r/ContentDocument/${file.documentId}/view`;
-      const downloadUrl = `https://hamiltonjewelers--full.sandbox.file.force.com/sfc/servlet.shepherd/version/download/${file.contentVersionId}`;
+    try {
+      const newRows = await Promise.all(
+        uploadedFiles.map(async (file) => {
+          const fileUrl = await createContentDistributionUrl({
+            fileName: file.name,
+            contentVersionId: file.contentVersionId
+          });
 
-      const row = this.createRow({
-        overrides: {
-          name: file.name,
-          documentId: file.documentId,
-          contentVersionId: file.contentVersionId,
-          contentBodyId: file.contentBodyId,
-          mimeType: file.mimeType,
-          fileUrl: fileUrl,
-          downloadUrl: downloadUrl
-        }
-      });
+          const row = this.createRow({
+            overrides: {
+              name: file.name,
+              documentId: file.documentId,
+              contentVersionId: file.contentVersionId,
+              fileUrl: fileUrl
+            }
+          });
 
-      return row;
-    });
+          return row;
+        })
+      );
 
-    this.rows = [...this.rows, ...newRows];
+      this.rows = [...this.rows, ...newRows];
 
-    this.emitAttachmentChange();
+      this.emitAttachmentChange();
+    } catch (error) {
+      console.error("Error creating file URL:", error);
+    }
   }
 
-  async handleRemoveClick(event) {
-    const { rowId, documentId } = event.currentTarget.dataset;
+  async handleRemoveClick(e) {
+    const { rowId, documentId } = e.currentTarget.dataset;
 
     try {
       await deleteRecord(documentId);

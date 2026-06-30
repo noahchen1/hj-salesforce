@@ -5,6 +5,7 @@ private class NsFileValidatorTest {
     NsFileDataModel.UploadSourceFile fileData = new NsFileDataModel.UploadSourceFile();
     fileData.contentVersionId = '068WJ00000FyskrYAB';
     fileData.name = 'Test.pdf';
+    fileData.fileUrl = 'https://example.com/Test.pdf';
 
     NsFileValidator.validateUploadRequest('Test', '800', fileData);
   }
@@ -15,6 +16,7 @@ private class NsFileValidatorTest {
       NsFileDataModel.UploadSourceFile fileData = new NsFileDataModel.UploadSourceFile();
       fileData.contentVersionId = '068WJ00000FyskrYAB';
       fileData.name = 'Test.pdf';
+      fileData.fileUrl = 'https://example.com/Test.pdf';
 
       NsFileValidator.validateUploadRequest(null, '800', fileData);
     } catch (AuraHandledException e) {
@@ -31,6 +33,7 @@ private class NsFileValidatorTest {
       NsFileDataModel.UploadSourceFile fileData = new NsFileDataModel.UploadSourceFile();
       fileData.contentVersionId = '068WJ00000FyskrYAB';
       fileData.name = 'Test.pdf';
+      fileData.fileUrl = 'https://example.com/Test.pdf';
 
       NsFileValidator.validateUploadRequest('Test', null, fileData);
     } catch (AuraHandledException e) {
@@ -48,6 +51,39 @@ private class NsFileValidatorTest {
     } catch (AuraHandledException e) {
       System.assert(
         e.getMessage().contains('Salesforce file metadata is required'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void validateUploadRequest_missingFileUrl() {
+    try {
+      NsFileDataModel.UploadSourceFile fileData = new NsFileDataModel.UploadSourceFile();
+      fileData.contentVersionId = '068WJ00000FyskrYAB';
+      fileData.name = 'Test.pdf';
+
+      NsFileValidator.validateUploadRequest('Test', '800', fileData);
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage().contains('File URL is required'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void validateUploadRequest_relativeFileUrl() {
+    try {
+      NsFileDataModel.UploadSourceFile fileData = new NsFileDataModel.UploadSourceFile();
+      fileData.contentVersionId = '068WJ00000FyskrYAB';
+      fileData.name = 'Test.pdf';
+      fileData.fileUrl = '/lightning/r/ContentDocument/069/view';
+
+      NsFileValidator.validateUploadRequest('Test', '800', fileData);
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage().contains('File URL must be absolute'),
         'Unexpected error: ' + e.getMessage()
       );
     }

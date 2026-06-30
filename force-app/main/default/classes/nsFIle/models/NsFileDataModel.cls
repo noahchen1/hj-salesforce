@@ -10,10 +10,7 @@ public with sharing class NsFileDataModel {
     public String contentVersionId;
 
     @AuraEnabled
-    public String contentBodyId;
-
-    @AuraEnabled
-    public String mimeType;
+    public String fileUrl;
 
     public UploadSourceFile() {
     }
