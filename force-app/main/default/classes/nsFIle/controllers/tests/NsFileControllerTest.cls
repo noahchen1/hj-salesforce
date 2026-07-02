@@ -29,6 +29,26 @@ private class NsFileControllerTest {
   }
 
   @isTest
+  static void createSalesforceFile_success() {
+    NsFileDataModel.UploadSourceFile result = NsFileController.createSalesforceFile(
+      'photo.jpg',
+      EncodingUtil.base64Encode(Blob.valueOf('fake-image-bytes'))
+    );
+
+    System.assertEquals('photo.jpg', result.name);
+    System.assertNotEquals(null, result.documentId);
+    System.assertNotEquals(null, result.contentVersionId);
+    System.assertEquals(
+      1,
+      [
+        SELECT COUNT()
+        FROM ContentVersion
+        WHERE Id = :result.contentVersionId
+      ]
+    );
+  }
+
+  @isTest
   static void uploadFile_success() {
     NetSuiteClient.testResponse = new Map<String, Object>{
       'validRequest' => true,

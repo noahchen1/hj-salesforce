@@ -1,6 +1,6 @@
 <template>
   <div class="table-section">
-    <div>
+    <div class="upload-actions">
       <lightning-file-upload
         label=""
         name="fileUploader"
@@ -8,7 +8,36 @@
         multiple
       >
       </lightning-file-upload>
+      <lightning-button
+        label="Take Photo"
+        icon-name="utility:photo"
+        onclick={handleTakePhotoClick}
+        disabled={isSavingPhoto}
+      ></lightning-button>
     </div>
+    <template if:true={isCameraOpen}>
+      <section class="camera-panel" aria-label="Camera preview">
+        <div class="camera-preview">
+          <video class="camera-video"></video>
+          <canvas class="camera-canvas"></canvas>
+        </div>
+
+        <div class="camera-actions">
+          <lightning-button
+            label="Cancel"
+            onclick={handleCancelCameraClick}
+            disabled={isSavingPhoto}
+          ></lightning-button>
+          <lightning-button
+            label="Capture"
+            variant="brand"
+            icon-name="utility:photo"
+            onclick={handleCapturePhotoClick}
+            disabled={isSavingPhoto}
+          ></lightning-button>
+        </div>
+      </section>
+    </template>
     <div class="table-scroll">
       <table class="order-table sales-order-table">
         <colgroup>

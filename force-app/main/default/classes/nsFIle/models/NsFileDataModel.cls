@@ -14,6 +14,16 @@ public with sharing class NsFileDataModel {
 
     public UploadSourceFile() {
     }
+
+    public UploadSourceFile(
+      String name,
+      String documentId,
+      String contentVersionId
+    ) {
+      this.name = name;
+      this.documentId = documentId;
+      this.contentVersionId = contentVersionId;
+    }
   }
 
   public class UploadFileResult {

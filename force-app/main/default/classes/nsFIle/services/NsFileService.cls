@@ -1,4 +1,43 @@
 public with sharing class NsFileService {
+  public static NsFileDataModel.UploadSourceFile createSalesforceFile(
+    String fileName,
+    String base64Data
+  ) {
+    if (String.isBlank(fileName)) {
+      throw Helpers.buildAuraException('File name is required.');
+    }
+
+    if (String.isBlank(base64Data)) {
+      throw Helpers.buildAuraException('File data is required.');
+    }
+
+    Integer extensionIndex = fileName.lastIndexOf('.');
+    String title = extensionIndex > 0
+      ? fileName.substring(0, extensionIndex)
+      : fileName;
+
+    ContentVersion version = new ContentVersion(
+      Title = title,
+      PathOnClient = fileName,
+      VersionData = EncodingUtil.base64Decode(base64Data)
+    );
+
+    insert version;
+
+    version = [
+      SELECT Id, ContentDocumentId
+      FROM ContentVersion
+      WHERE Id = :version.Id
+      LIMIT 1
+    ];
+
+    return new NsFileDataModel.UploadSourceFile(
+      fileName,
+      version.ContentDocumentId,
+      version.Id
+    );
+  }
+
   public static String uploadFile(
     String caption,
     String folderInternalId,
