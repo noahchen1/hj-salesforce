@@ -30,6 +30,7 @@ export default class SalesOrderBody extends LightningElement {
   @api repairPerson;
   @api repairLocation;
   @api repairVendor;
+  @api phoneNumber;
   @api isEstimateRequired;
   @api isEstimateRequiredOverAmt;
   @api requiredAmt;

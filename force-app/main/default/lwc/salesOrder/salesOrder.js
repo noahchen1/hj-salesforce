@@ -59,6 +59,7 @@ const DEFAULT_FORM_STATE = Object.freeze({
   repairLocation: "",
   repairVendor: "",
   shipRepairTo: "",
+  phoneNumber: "",
   repairDescription: "",
   extendedDescription: "",
   dateOpened: null,
@@ -770,7 +771,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       if (!isBlank(orderRecordId) && this.isRepairOrder) {
         const instructionSaves = instructions
           .filter(
-            ({ nsEmployeeId, instruction, internalId }) =>
+            ({ nsEmployeeId, instruction }) =>
               !isBlank(nsEmployeeId) && !isBlank(instruction)
           )
           .map(async ({ nsEmployeeId, instruction, internalId }) => {
