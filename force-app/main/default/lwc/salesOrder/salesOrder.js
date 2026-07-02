@@ -565,6 +565,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.header?.setLookupValue("customer", "");
     this.header?.setLookupValue("salesRep1", "");
     this.header?.setLookupValue("salesRep2", "");
+    this.header?.setLookupValue("specialOrderVendor", "");
+    this.header?.setLookupValue("repairPerson", "");
+    this.header?.setLookupValue("repairVendor", "");
+    this.header?.setLookupValue("shipRepairTo", "");
 
     if (this.parentRecordId) {
       await Promise.all([
