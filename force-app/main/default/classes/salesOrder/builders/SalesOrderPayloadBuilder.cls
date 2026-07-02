@@ -66,39 +66,7 @@ public with sharing class SalesOrderPayloadBuilder {
 
     requestMap.put(
       'customFieldList',
-      new Map<String, Object>{
-        'customField' => buildCustomFields(
-          saveParams.orderType,
-          saveParams.salesRep2,
-          saveParams.specialDate,
-          saveParams.needByDate,
-          saveParams.specialOrderItemType,
-          saveParams.specialOrderVendor,
-          saveParams.specialOrderRequestedVendor,
-          saveParams.specialOrderComments,
-          saveParams.specialOrderNotes,
-          saveParams.specialOrderMemoOrSold,
-          saveParams.repairType,
-          saveParams.repairStation,
-          saveParams.repairPerson,
-          saveParams.repairLocation,
-          saveParams.repairVendor,
-          saveParams.shipRepairTo,
-          saveParams.repairDescription,
-          saveParams.extendedDescription,
-          saveParams.dateOpened,
-          saveParams.datePromised,
-          saveParams.inquiryModel,
-          saveParams.inquiryName,
-          saveParams.inquiryLink,
-          saveParams.inquiryPersonalMsg,
-          saveParams.inquiryIsSendEmail,
-          saveParams.inquiryIsPrority,
-          saveParams.inquiryIsOpenDial,
-          saveParams.inquiryId,
-          saveParams.fileIds
-        )
-      }
+      new Map<String, Object>{ 'customField' => buildCustomFields(saveParams) }
     );
 
     Map<String, Object> itemList = new Map<String, Object>{
@@ -174,41 +142,47 @@ public with sharing class SalesOrderPayloadBuilder {
   }
 
   private static List<Object> buildCustomFields(
-    String orderType,
-    String salesRep2,
-    Date specialOrderDate,
-    Date needByDate,
-    String specialOrderItemType,
-    String specialORderVendor,
-    String specialOrderRequestedVendor,
-    String specialOrderComments,
-    String specialOrderNotes,
-    String specialOrderMemoOrSold,
-    String repairType,
-    String repairStation,
-    String repairPerson,
-    String repairLocation,
-    String repairVendor,
-    String shipRepairTo,
-    String repairDescription,
-    String extendedDescription,
-    Date dateOpened,
-    Date datePromised,
-    String inquiryModel,
-    String inquiryName,
-    String inquiryLink,
-    String inquiryPersonalMsg,
-    Boolean inquiryIsSendEmail,
-    Boolean inquiryIsPrority,
-    Boolean inquiryIsOpenDial,
-    String inquiryId,
-    String fileIds
+    SalesOrderParamModel.SalesOrderSaveParam saveParams
   ) {
     List<Object> customFields = new List<Object>();
 
     SalesOrderTypeContext orderTypeContext = SalesOrderTypeContext.fromOrderType(
-      orderType
+      saveParams.orderType
     );
+
+    String salesRep2 = saveParams.salesRep2;
+    Date specialOrderDate = saveParams.specialDate;
+    Date needByDate = saveParams.needByDate;
+    String specialOrderItemType = saveParams.specialOrderItemType;
+    String specialOrderVendor = saveParams.specialOrderVendor;
+    String specialOrderRequestedVendor = saveParams.specialOrderRequestedVendor;
+    String specialOrderComments = saveParams.specialOrderComments;
+    String specialOrderNotes = saveParams.specialOrderNotes;
+    String specialOrderMemoOrSold = saveParams.specialOrderMemoOrSold;
+    String repairType = saveParams.repairType;
+    String repairStation = saveParams.repairStation;
+    String repairPerson = saveParams.repairPerson;
+    String repairLocation = saveParams.repairLocation;
+    String repairVendor = saveParams.repairVendor;
+    String shipRepairTo = saveParams.shipRepairTo;
+    String phoneNumber = saveParams.phoneNumber;
+    String itemValue = saveParams.itemValue;
+    String repairDescription = saveParams.repairDescription;
+    String extendedDescription = saveParams.extendedDescription;
+    Date dateOpened = saveParams.dateOpened;
+    Date datePromised = saveParams.datePromised;
+    Boolean isEstimateRequired = saveParams.isEstimateRequired;
+    Boolean isEstimateRequiredOverAmt = saveParams.isEstimateRequiredOverAmt;
+    String requiredAmt = saveParams.requiredAmt;
+    String inquiryModel = saveParams.inquiryModel;
+    String inquiryName = saveParams.inquiryName;
+    String inquiryLink = saveParams.inquiryLink;
+    String inquiryPersonalMsg = saveParams.inquiryPersonalMsg;
+    Boolean inquiryIsSendEmail = saveParams.inquiryIsSendEmail;
+    Boolean inquiryIsPrority = saveParams.inquiryIsPrority;
+    Boolean inquiryIsOpenDial = saveParams.inquiryIsOpenDial;
+    String inquiryId = saveParams.inquiryId;
+    String fileIds = saveParams.fileIds;
 
     customFields.add(
       new Map<String, Object>{
@@ -259,12 +233,12 @@ public with sharing class SalesOrderPayloadBuilder {
         );
       }
 
-      if (String.isNotBlank(specialORderVendor)) {
+      if (String.isNotBlank(specialOrderVendor)) {
         customFields.add(
           new Map<String, Object>{
             'fieldType' => 'select',
             'scriptId' => 'custbody_special_order_vendor',
-            'valueLookup' => lookupByInternalId(specialORderVendor)
+            'valueLookup' => lookupByInternalId(specialOrderVendor)
           }
         );
       }
@@ -469,6 +443,26 @@ public with sharing class SalesOrderPayloadBuilder {
         );
       }
 
+      if (String.isNotBlank(phoneNumber)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_contact_number',
+            'value' => phoneNumber
+          }
+        );
+      }
+
+      if (String.isNotBlank(itemValue)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody2',
+            'value' => itemValue
+          }
+        );
+      }
+
       if (String.isNotBlank(repairDescription)) {
         customFields.add(
           new Map<String, Object>{
@@ -505,6 +499,36 @@ public with sharing class SalesOrderPayloadBuilder {
             'fieldType' => 'date',
             'scriptId' => 'enddate',
             'value' => Helpers.toUnixSeconds(datePromised)
+          }
+        );
+      }
+
+      if (isEstimateRequired != null) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'boolean',
+            'scriptId' => 'custbody_estimate_req',
+            'value' => isEstimateRequired
+          }
+        );
+      }
+
+      if (isEstimateRequiredOverAmt != null) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'boolean',
+            'scriptId' => 'custbody_estimate_over_amt',
+            'value' => isEstimateRequiredOverAmt
+          }
+        );
+      }
+
+      if (String.isNotBlank(requiredAmt)) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'string',
+            'scriptId' => 'custbody_over_amt',
+            'value' => requiredAmt
           }
         );
       }

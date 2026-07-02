@@ -51,6 +51,10 @@ public with sharing class SalesOrderParamModel {
     @AuraEnabled
     public String shipRepairTo;
     @AuraEnabled
+    public String phoneNumber;
+    @AuraEnabled
+    public String itemValue;
+    @AuraEnabled
     public String repairDescription;
     @AuraEnabled
     public String extendedDescription;
@@ -58,6 +62,12 @@ public with sharing class SalesOrderParamModel {
     public Date dateOpened;
     @AuraEnabled
     public Date datePromised;
+    @AuraEnabled
+    public Boolean isEstimateRequired;
+    @AuraEnabled
+    public Boolean isEstimateRequiredOverAmt;
+    @AuraEnabled
+    public String requiredAmt;
     @AuraEnabled
     public String fileIds;
     @AuraEnabled

@@ -25,6 +25,8 @@ public with sharing class SalesOrderService {
         saveParams.inquiryName,
         saveParams.inquiryLink,
         saveParams.inquiryIsPrority,
+        saveParams.isEstimateRequiredOverAmt,
+        saveParams.requiredAmt,
         saveParams.lineItemsJson
       );
 

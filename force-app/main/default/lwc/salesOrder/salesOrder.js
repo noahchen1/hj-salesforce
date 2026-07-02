@@ -714,10 +714,15 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       repairLocation: this.formState.repairLocation,
       repairVendor: this.formState.repairVendor,
       shipRepairTo: this.formState.shipRepairTo,
+      phoneNumber: this.formState.phoneNumber,
+      itemValue: this.formState.itemValue,
       repairDescription: this.formState.repairDescription,
       extendedDescription: this.formState.extendedDescription,
       dateOpened: this.formState.dateOpened,
       datePromised: this.formState.datePromised,
+      isEstimateRequired: this.formState.isEstimateRequired,
+      isEstimateRequiredOverAmt: this.formState.isEstimateRequiredOverAmt,
+      requiredAmt: this.formState.requiredAmt,
       shippingAddressJson: JSON.stringify(shippingAddressState),
       billingAddressJson: JSON.stringify(billingAddressState),
       lineItemsJson: JSON.stringify(lineItems)
@@ -761,6 +766,8 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         fileIds: fileIds.join(",")
       };
 
+      console.log(JSON.stringify(fullPayload));
+
       const soNsInternalId = await saveSalesOrder({
         saveParamJson: JSON.stringify(fullPayload)
       });
@@ -791,8 +798,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
             ({ nsEmployeeId, comment }) =>
               !isBlank(nsEmployeeId) && !isBlank(comment)
           )
-          .map(async ({ nsEmployeeId, comment }) => {
+          .map(async ({ nsEmployeeId, comment, internalId }) => {
             const commentId = await saveComment({
+              nsInternalId: internalId,
               nsEmployeeId,
               nsSoId: soNsInternalId,
               comment
@@ -805,8 +813,9 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
           .filter(
             ({ nsEmployeeId, memo }) => !isBlank(nsEmployeeId) && !isBlank(memo)
           )
-          .map(async ({ nsEmployeeId, memo }) => {
+          .map(async ({ nsEmployeeId, memo, internalId }) => {
             const noteId = await saveNote({
+              nsInternalId: internalId,
               nsEmployeeId,
               nsSoId: soNsInternalId,
               content: memo
@@ -902,10 +911,16 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
           repairLocation: orderData.repairLocation ?? null,
           repairVendor: orderData.repairVendor ?? null,
           shipRepairTo: orderData.shipRepairTo ?? null,
+          phoneNumber: orderData.phoneNumber ?? null,
+          itemValue: orderData.itemValue ?? null,
           repairDescription: orderData.repairDescription ?? null,
           extendedDescription: orderData.extendedDescription ?? null,
           dateOpened: orderData.dateOpened ?? null,
-          datePromised: orderData.datePromised ?? null
+          datePromised: orderData.datePromised ?? null,
+          isEstimateRequired: orderData.isEstimateRequired ?? false,
+          isEstimateRequiredOverAmt:
+            orderData.isEstimateRequiredOverAmt ?? false,
+          requiredAmt: orderData.requiredAmt ?? null
         });
       } else {
         this.updateFormState({
@@ -915,10 +930,15 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
           repairLocation: null,
           repairVendor: null,
           shipRepairTo: null,
+          phoneNumber: null,
+          itemValue: null,
           repairDescription: null,
           extendedDescription: null,
           dateOpened: null,
-          datePromised: null
+          datePromised: null,
+          isEstimateRequired: false,
+          isEstimateRequiredOverAmt: false,
+          requiredAmt: null
         });
       }
 
@@ -1120,6 +1140,20 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
             "Special Order Vendor # format is invalid. Expected: M#####-####."
           );
         }
+      }
+    }
+
+    if (orderType === "repair") {
+      const hasRequiredAmt = !isBlank(payload.requiredAmt);
+
+      if (payload.isEstimateRequiredOverAmt && !hasRequiredAmt) {
+        throw new Error("Estimate Required If Over $ requires an amount.");
+      }
+
+      if (!payload.isEstimateRequiredOverAmt && hasRequiredAmt) {
+        throw new Error(
+          "Estimate Required If Over $ must be checked when an amount is entered."
+        );
       }
     }
   }

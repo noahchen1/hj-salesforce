@@ -29,6 +29,8 @@ public with sharing class SalesOrderValidator {
     String inquiryName,
     String inquiryLink,
     Boolean inquiryIsPrority,
+    Boolean isEstimateRequiredOverAmt,
+    String requiredAmt,
     String lineItemsJson
   ) {
     SalesOrderTypeContext orderTypeContext = SalesOrderTypeContext.fromOrderType(
@@ -73,6 +75,22 @@ public with sharing class SalesOrderValidator {
       String.isBlank(inquiryType))
     ) {
       throw Helpers.buildAuraException('Missing required inquiry parameters.');
+    }
+
+    if (orderTypeContext.isRepairOrder) {
+      Boolean hasRequiredAmt = String.isNotBlank(requiredAmt);
+
+      if (isEstimateRequiredOverAmt == true && !hasRequiredAmt) {
+        throw Helpers.buildAuraException(
+          'Estimate Required If Over $ requires an amount.'
+        );
+      }
+
+      if (isEstimateRequiredOverAmt != true && hasRequiredAmt) {
+        throw Helpers.buildAuraException(
+          'Estimate Required If Over $ must be checked when an amount is entered.'
+        );
+      }
     }
 
     List<SalesOrderDataModel.LineItem> items = SalesOrderMapper.deserializeLineItems(

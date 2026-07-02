@@ -70,6 +70,10 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String shipRepairToName;
     @AuraEnabled
+    public String phoneNumber;
+    @AuraEnabled
+    public String itemValue;
+    @AuraEnabled
     public String repairDescription;
     @AuraEnabled
     public String extendedDescription;
@@ -77,6 +81,12 @@ public with sharing class SalesOrderDataModel {
     public String dateOpened;
     @AuraEnabled
     public String datePromised;
+    @AuraEnabled
+    public Boolean isEstimateRequired;
+    @AuraEnabled
+    public Boolean isEstimateRequiredOverAmt;
+    @AuraEnabled
+    public String requiredAmt;
     @AuraEnabled
     public String attachmentUrls;
 

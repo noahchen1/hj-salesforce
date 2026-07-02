@@ -311,6 +311,18 @@ public with sharing class SalesOrderMapper {
         continue;
       }
 
+      if (cf.scriptId == 'custbody_contact_number') {
+        result.phoneNumber = cf.value;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody2') {
+        result.itemValue = cf.value;
+
+        continue;
+      }
+
       if (cf.scriptId == 'custbody_repair_description') {
         result.repairDescription = cf.value;
 
@@ -319,6 +331,24 @@ public with sharing class SalesOrderMapper {
 
       if (cf.scriptId == 'custbody_extended_description') {
         result.extendedDescription = cf.value;
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_estimate_req') {
+        result.isEstimateRequired = Boolean.valueOf(cf.value);
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_estimate_over_amt') {
+        result.isEstimateRequiredOverAmt = Boolean.valueOf(cf.value);
+
+        continue;
+      }
+
+      if (cf.scriptId == 'custbody_over_amt') {
+        result.requiredAmt = cf.value;
 
         continue;
       }
