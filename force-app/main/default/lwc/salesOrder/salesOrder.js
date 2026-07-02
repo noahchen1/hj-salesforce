@@ -60,6 +60,7 @@ const DEFAULT_FORM_STATE = Object.freeze({
   repairVendor: "",
   shipRepairTo: "",
   phoneNumber: "",
+  itemValue: "",
   repairDescription: "",
   extendedDescription: "",
   dateOpened: null,
