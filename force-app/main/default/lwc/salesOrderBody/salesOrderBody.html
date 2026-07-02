@@ -358,6 +358,29 @@
         value={datePromised}
         onchange={handleInputChange}
       ></lightning-input>
+      <lightning-input
+        label="Estimate Required"
+        type="checkbox"
+        data-type="isEstimateRequired"
+        checked={isEstimateRequired}
+        onchange={handleInputChange}
+      ></lightning-input>
+      <div class="required-amt-container">
+        <lightning-input
+          label="Estimate Required If Over $"
+          type="checkbox"
+          data-type="isEstimateRequiredOverAmt"
+          checked={isEstimateRequiredOverAmt}
+          onchange={handleInputChange}
+        ></lightning-input>
+        <lightning-input
+          type="text"
+          data-type="requiredAmt"
+          value={requiredAmt}
+          onchange={handleInputChange}
+          variant="label-hidden"
+        ></lightning-input>
+      </div>
     </div>
   </template>
 </template>

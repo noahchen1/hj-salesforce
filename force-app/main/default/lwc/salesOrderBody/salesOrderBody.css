@@ -17,3 +17,9 @@
   font-weight: bold;
   padding: 8px;
 }
+
+.required-amt-container {
+  display: flex;
+  justify-content: start;
+  align-items: start;
+}

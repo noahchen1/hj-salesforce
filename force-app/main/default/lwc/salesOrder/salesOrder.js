@@ -63,6 +63,9 @@ const DEFAULT_FORM_STATE = Object.freeze({
   extendedDescription: "",
   dateOpened: null,
   datePromised: null,
+  isEstimateRequired: false,
+  isEstimateRequiredOverAmt: false,
+  requiredAmt: null,
   subsidiary: "",
   address: {
     shippingAddressState: {},

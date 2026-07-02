@@ -30,6 +30,9 @@ export default class SalesOrderBody extends LightningElement {
   @api repairPerson;
   @api repairLocation;
   @api repairVendor;
+  @api isEstimateRequired;
+  @api isEstimateRequiredOverAmt;
+  @api requiredAmt;
   @api shipRepairTo;
   @api repairDescription;
   @api extendedDescription;
@@ -294,10 +297,13 @@ export default class SalesOrderBody extends LightningElement {
   }
 
   handleInputChange(e) {
+    const isCheckBox = e.target.type === "checkbox";
     const type = e.target.dataset.type;
+    const value = isCheckBox ? e.target.checked : e.target.value;
+
     this.dispatchEvent(
       new CustomEvent("fieldchange", {
-        detail: { field: type, value: e.target.value }
+        detail: { field: type, value: value }
       })
     );
   }
