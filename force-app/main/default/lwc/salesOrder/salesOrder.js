@@ -23,6 +23,9 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import COMPANY_NAME from "@salesforce/schema/breadwinner_ns__BW_Company__c.Name";
 import PAYMENT_TERM from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__TermsName__c";
 import ACCOUNT_ID from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__Salesforce_Account__c";
+import PHONE from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__Phone__c";
+import MOBILE from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__MobilePhone__c";
+import HOME_PHONE from "@salesforce/schema/breadwinner_ns__BW_Company__c.breadwinner_ns__HomePhone__c";
 import getObjectName from "@salesforce/apex/SalesOrderController.getObjectName";
 import getNsCompanyFromAccount from "@salesforce/apex/SalesOrderController.getNsCompanyFromAccount";
 import getCustomerAddresses from "@salesforce/apex/DropdownDataController.getCustomerAddresses";
@@ -310,16 +313,31 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
   @wire(getRecord, {
     recordId: "$selectedNsCompanyId",
-    fields: [COMPANY_NAME, PAYMENT_TERM, ACCOUNT_ID]
+    fields: [COMPANY_NAME, PAYMENT_TERM, ACCOUNT_ID, PHONE, MOBILE, HOME_PHONE]
   })
   wiredCustomerData({ data, error }) {
     if (data && this.selectedNsCompanyId != null) {
       const companyName = getFieldValue(data, COMPANY_NAME);
       const paymentTermText = getFieldValue(data, PAYMENT_TERM);
       const accountId = getFieldValue(data, ACCOUNT_ID);
+      const phone = getFieldValue(data, PHONE);
+      const mobile = getFieldValue(data, MOBILE);
+      const homePhone = getFieldValue(data, HOME_PHONE);
+      const contact = !isBlank(phone)
+        ? phone
+        : !isBlank(mobile)
+          ? mobile
+          : !isBlank(homePhone)
+            ? homePhone
+            : "";
 
       if (companyName) {
         this.header?.setLookupValue("customer", companyName);
+      }
+
+      console.log(JSON.stringify(contact));
+      if (!isBlank(contact)) {
+        this.formState.phoneNumber = contact;
       }
 
       if (paymentTermText) {
@@ -555,6 +573,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       },
       lineItems: []
     };
+
     this.accountId = this.recordId || "";
     this.selectedNsCompanyId = undefined;
     this.locationOptions = [];
@@ -562,6 +581,11 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
 
     this.lineItems?.reset();
     this.addressSection?.reset();
+    this.instruction?.reset();
+    this.comment?.reset();
+    this.note?.reset();
+    this.attachment?.reset();
+
     this.header?.setLookupValue("customer", "");
     this.header?.setLookupValue("salesRep1", "");
     this.header?.setLookupValue("salesRep2", "");
@@ -961,8 +985,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         });
 
         await this.attachment?.setRows(fileData);
-
-        console.log(JSON.stringify(this.formState.attachments));
       }
 
       this.setAddressState({

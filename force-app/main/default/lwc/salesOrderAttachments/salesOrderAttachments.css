@@ -7,8 +7,12 @@
 .upload-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 13px;
   margin-bottom: 12px;
+}
+
+.take-photo-btn {
+  margin-top: 11px;
 }
 
 .camera-input {

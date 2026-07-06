@@ -155,8 +155,6 @@ export default class SalesOrderAttachments extends LightningElement {
         audio: false
       });
 
-      console.log(JSON.stringify(this.cameraStream));
-
       this.isCameraOpen = true;
       await Promise.resolve();
       this.attachCameraStream();

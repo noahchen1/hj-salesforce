@@ -160,8 +160,6 @@ export default class NsAddressForm extends NavigationMixin(LightningElement) {
         (address) => address.internalId === this.addressNsInternalId
       );
 
-      console.log(JSON.stringify(selectedAddresses));
-
       if (selectedAddresses.length > 0) {
         const selectedAddress = selectedAddresses[0];
 
@@ -202,7 +200,6 @@ export default class NsAddressForm extends NavigationMixin(LightningElement) {
         defaultShipping: this.isDefaultShipping
       };
 
-      console.log(JSON.stringify(addressPaylod));
       this.isLoading = true;
 
       const result = await saveCustomer({
