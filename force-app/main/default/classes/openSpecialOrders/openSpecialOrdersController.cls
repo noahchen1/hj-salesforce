@@ -57,7 +57,7 @@ public with sharing class OpenSpecialOrdersController {
         'breadwinner_ns__BW_Line_Item__c ' +
         'WHERE ' +
         'breadwinner_ns__Sales_Order__r.ncf_body_special_item_type__c != NULL ' +
-        'AND breadwinner_ns__Sales_Order__r.ncf_body_special_statuses__c NOT IN (\'Order Complete\', \'Canceled\')';
+        'AND breadwinner_ns__Sales_Order__r.breadwinner_ns__Status__c NOT IN (\'Closed\', \'Billed\')';
 
       if (String.isNotBlank(salesRep)) {
         query += ' AND breadwinner_ns__Sales_Order__r.breadwinner_ns__SalesRepName__c = :salesRep';
