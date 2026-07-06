@@ -1,0 +1,226 @@
+<template>
+    
+    <div class="filters-grid">
+
+        <!-- Column 1 -->
+        <div class="column">
+            <c-searchable-picklist
+                label="Location"
+                placeholder="Location..."
+                options={preferredLocationOptions}
+                onchange={handlePreferredLocationChange}>
+            </c-searchable-picklist>
+
+            <lightning-input
+                type="text"
+                label="Item Number"
+                onchange={handleNameSeachChange}
+                placeholder="Part of Item Number...">
+            </lightning-input>
+
+            <lightning-input 
+                type="number"
+                step="0.01"
+                onkeydown={handleNumberKeydown}
+                label="Min Price"
+                onchange={handleMinPriceChange}
+                placeholder="Min price...">
+            </lightning-input>
+
+            <lightning-input 
+                type="number"
+                step="0.01"
+                onkeydown={handleNumberKeydown}
+                label="Max Price"
+                onchange={handleMaxPriceChange}
+                placeholder="Max price...">
+            </lightning-input>
+
+            <lightning-input 
+                type="number"
+                step="0.001"
+                label="Total Carat Weight - Min"
+                onchange={handleCaratWeightMinChange}
+                placeholder="Total Carat Weight - Min...">
+            </lightning-input>
+
+            <lightning-input 
+                type="number"
+                step="0.001"
+                label="Total Carat Weight - Max"
+                onchange={handleCaratWeightMaxChange}
+                placeholder="Total Carat Weight - Max...">
+            </lightning-input>
+
+            <lightning-input 
+                type="text"
+                label="Display Name"
+                onchange={handleDisplayNameChange}
+                placeholder="Display Name...">
+            </lightning-input>
+
+            <c-searchable-picklist
+                label="Preferred Vendor"
+                placeholder="Preferred Vendor..."
+                options={preferredVendorOptions}
+                onchange={handlePreferredVendorChange}>
+            </c-searchable-picklist>
+        </div>
+
+        <!-- Column 2 -->
+        <div class="column">
+            <lightning-combobox
+                label="Promo Code"
+                placeholder="Promo Code..."
+                options={promoCodeOptions}
+                onchange={handlePromoCodeChange} >
+            </lightning-combobox>
+
+            <lightning-input 
+                class="toggle-input"
+                type="toggle" 
+                message-toggle-active=""
+                message-toggle-inactive=""
+                onchange={handleIsSerializedChange}
+                label="Is Serialized">
+            </lightning-input>
+
+            <c-searchable-picklist
+                label="Group Code"
+                placeholder="Group Code..."
+                options={groupCodeOptions}
+                onchange={handleGroupCodeChange}>
+            </c-searchable-picklist>
+
+            <lightning-combobox
+                label="Division Name"
+                placeholder="Division Name..."
+                options={divisionNameOptions}
+                onchange={handleDivisionNameChange}>
+            </lightning-combobox>
+
+            <c-searchable-picklist
+                label="Merchandise Dept"
+                placeholder="Merchandise Dept..."
+                options={merchandiseDeptOptions}
+                onchange={handleMerchandiseDeptChange}>
+            </c-searchable-picklist>
+
+            <lightning-combobox
+                label="Owner Type"
+                placeholder="Owner Type..."
+                options={ownerTypeOptions}
+                onchange={handleOwnerTypeChange}>
+            </lightning-combobox>
+
+            <!-- <lightning-input 
+                type="toggle" 
+                class="toggle-input"
+                message-toggle-active=""
+                message-toggle-inactive=""
+                onchange={handleOnWebsiteChange}
+                label="On Website">
+            </lightning-input> -->
+
+            <lightning-input 
+                type="toggle" 
+                class="toggle-input"
+                message-toggle-active=""
+                message-toggle-inactive=""
+                onchange={handleOnHandQty}
+                label="On Hand > 0">
+            </lightning-input>
+        </div>
+
+        <!-- Column 3 -->
+        <div class="column">
+            <lightning-combobox
+                label="Center Stone Shape..."
+                placeholder="Center Stone Shape"
+                options={centerStoneShapeOptions}
+                onchange={handleCenterStoneShapeChange}>
+            </lightning-combobox>
+
+            <lightning-input 
+                type="number"
+                step="0.001"
+                label="Center Stone Length - Min..."
+                onchange={handleCenterStoneLengthMinChange}
+                placeholder="Center Stone Length - Min...">
+            </lightning-input>
+
+            <lightning-input 
+                type="number"
+                step="0.001"
+                label="Center Stone Length - Max..."
+                onchange={handleCenterStoneLengthMaxChange}
+                placeholder="Center Stone Length - Max...">
+            </lightning-input>
+
+            <lightning-combobox
+                label="Metal Type"
+                placeholder="Metal Type..."
+                options={metalTypeOptions}
+                onchange={handleMetalTypeChange}>
+            </lightning-combobox>
+
+            <lightning-input 
+                type="number"
+                step="0.001"
+                label="Center Stone Weight - Min..."
+                onchange={handleCenterStoneWeightMinChange}
+                placeholder="Center Stone Weight - Min...">
+            </lightning-input>
+
+            <lightning-input 
+                type="number"
+                step="0.001"
+                label="Center Stone Weight - Max..."
+                onchange={handleCenterStoneWeightMaxChange}
+                placeholder="Center Stone Weight - Max...">
+            </lightning-input>
+
+            <lightning-combobox
+                label="Center Stone Clarity..."
+                placeholder="Center Stone Clarity"
+                options={centerStoneClarityOptions}
+                onchange={handleCenterStoneClarityChange}>
+            </lightning-combobox>
+
+            <lightning-input 
+                type="toggle" 
+                class="toggle-input"
+                message-toggle-active=""
+                message-toggle-inactive=""
+                onchange={handleRollUpSubitemsChange}
+                label="Roll up subitems">
+            </lightning-input>
+        </div>
+    </div>
+
+
+    <div class="slds-is-relative">
+        <lightning-spinner if:true={showSpinner} alternative-text="Loading" size="medium"></lightning-spinner>
+        
+        <div class={hasTotalsClass}>
+            <div class="table-container">
+                <c-extended-data-table
+                    key-field="id"
+                    columns={columns}
+                    data={data}
+                    hide-checkbox-column="true"
+                    sorted-by={sortedBy}
+                    sorted-direction={sortDirection}
+                    onsort={handleSort}>
+                </c-extended-data-table>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <lightning-button 
+                label="Load More" 
+                onclick={handleLoadMore}>
+            </lightning-button>
+        </div>
+    </div>
+</template>
