@@ -17,6 +17,34 @@ public with sharing class OpenSpecialOrdersController {
     String sortDirection
   ) {
     try {
+      String userId = UserInfo.getUserId();
+
+      User currentUser = [
+        SELECT breadwinner_ns__NetSuite_Employee_NS_Internal_ID__c
+        FROM User
+        WHERE Id = :userId
+        LIMIT 1
+      ];
+
+      String nsInternalId = currentUser.breadwinner_ns__NetSuite_Employee_NS_Internal_ID__c;
+
+      Set<String> specialOrderManagers = new Set<String>{
+        '1483',
+        '137052',
+        '1504',
+        '250949',
+        '279256',
+        '479740',
+        '270193',
+        '386189',
+        '187027',
+        '326033'
+      };
+
+      Boolean isSpecialOrderManager = specialOrderManagers.contains(
+        nsInternalId
+      );
+
       Map<String, String> sortFieldMap = new Map<String, String>{
         'customer' => 'breadwinner_ns__Sales_Order__r.breadwinner_ns__Entity__r.Name',
         'specialDate' => 'breadwinner_ns__Sales_Order__r.ncf_body_special_date__c',
@@ -56,8 +84,11 @@ public with sharing class OpenSpecialOrdersController {
         'FROM ' +
         'breadwinner_ns__BW_Line_Item__c ' +
         'WHERE ' +
-        'breadwinner_ns__Sales_Order__r.ncf_body_special_item_type__c != NULL ' +
-        'AND breadwinner_ns__Sales_Order__r.breadwinner_ns__Status__c NOT IN (\'Closed\', \'Billed\')';
+        'breadwinner_ns__Sales_Order__r.ncf_body_special_item_type__c != NULL';
+
+      if (!isSpecialOrderManager) {
+        query += ' AND breadwinner_ns__Sales_Order__r.breadwinner_ns__Status__c NOT IN (\'Closed\', \'Billed\')';
+      }
 
       if (String.isNotBlank(salesRep)) {
         query += ' AND breadwinner_ns__Sales_Order__r.breadwinner_ns__SalesRepName__c = :salesRep';
