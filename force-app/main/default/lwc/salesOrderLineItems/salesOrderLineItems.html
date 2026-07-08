@@ -385,8 +385,8 @@
             <thead>
               <tr>
                 <th scope="col">Item</th>
+                <th scope="col">Repair Needed</th>
                 <th scope="col">Display Name</th>
-                <th scope="col">Image</th>
                 <th scope="col">Quantity</th>
                 <th scope="col">Rate</th>
                 <th scope="col">Amount</th>
@@ -410,6 +410,18 @@
                     ></c-lookup-input>
                   </td>
                   <td>
+                    <lightning-combobox
+                      data-field="isRepairNeeded"
+                      data-index={index}
+                      value={row.isRepairNeeded}
+                      variant="label-hidden"
+                      options={isRepairNeededOptions}
+                      onchange={handleRowChange}
+                      onfocus={handleFocus}
+                      required
+                    ></lightning-combobox>
+                  </td>
+                  <td>
                     <lightning-input
                       data-index={index}
                       data-field="displayName"
@@ -421,9 +433,6 @@
                       onfocus={handleFocus}
                       readonly
                     ></lightning-input>
-                  </td>
-                  <td>
-                    <img src={row.imageUrl} alt="" class="item-image" />
                   </td>
                   <td>
                     <lightning-input
@@ -507,7 +516,7 @@
               </template>
               <template if:true={hasRows}>
                 <tr class="row-action-row">
-                  <td colspan="8">
+                  <td colspan="9">
                     <div class="row-action-container">
                       <lightning-button
                         label="Add Row"

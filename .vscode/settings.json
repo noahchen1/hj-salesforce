@@ -7,5 +7,5 @@
   },
   "xml.preferences.showSchemaDocumentationType": "none",
   "salesforce.einsteinForDevelopers.enableAutocompletions": false,
-  "salesforce.agentforceVibesAutocomplete.enableAutocompletions": true
+  "salesforce.agentforceVibesAutocomplete.enableAutocompletions": false
 }

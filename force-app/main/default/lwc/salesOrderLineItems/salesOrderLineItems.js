@@ -16,21 +16,22 @@ import ITEM_TYPE from "@salesforce/schema/breadwinner_ns__BW_Item__c.breadwinner
 import { SELLABLE_SPECIAL_ALLOWED_STATUSES } from "c/salesOrderUtils";
 
 const BASE_ROW = Object.freeze({
-  item: "",
-  itemName: "",
-  displayName: "",
-  quantityAvailable: "",
-  quantityBackordered: "",
-  specialOrderItem: "",
-  specialOrderVendorNum: "",
-  imageUrl: "",
-  quantity: "",
-  rate: "",
-  amount: "",
-  quotedPrice: "",
-  line: "",
+  item: null,
+  itemName: null,
+  displayName: null,
+  quantityAvailable: null,
+  quantityBackordered: null,
+  specialOrderItem: null,
+  specialOrderVendorNum: null,
+  imageUrl: null,
+  quantity: null,
+  rate: null,
+  amount: null,
+  quotedPrice: null,
+  line: null,
   isDiscount: false,
-  itemType: ""
+  isRepairNeeded: "",
+  itemType: null
 });
 
 export default class SalesOrderLineItems extends LightningElement {
@@ -87,6 +88,13 @@ export default class SalesOrderLineItems extends LightningElement {
 
   get isActiveRowRemoveDisabled() {
     return this.rows.length <= 1 || this.activeRowIndex === 0;
+  }
+
+  get isRepairNeededOptions() {
+    return [
+      { label: "Optional", value: "1" },
+      { label: "Required", value: "2" }
+    ];
   }
 
   createRow({
@@ -192,6 +200,7 @@ export default class SalesOrderLineItems extends LightningElement {
       const itemName = line.itemName ?? "";
       const isDiscount = itemName === "Store Discount";
       const lineNum = line.line ?? "";
+      const isRepairNeeded = line.isRepairNeeded ?? "";
 
       return this.createRow({
         id: rowId,
@@ -212,6 +221,7 @@ export default class SalesOrderLineItems extends LightningElement {
           amount,
           quotedPrice,
           line: lineNum,
+          isRepairNeeded,
           isDiscount
         }
       });
@@ -251,6 +261,7 @@ export default class SalesOrderLineItems extends LightningElement {
   validateFields() {
     const inputs = [
       ...this.template.querySelectorAll("lightning-input"),
+      ...this.template.querySelectorAll("lightning-combobox"),
       ...this.template.querySelectorAll("c-lookup-input")
     ];
 
@@ -365,7 +376,6 @@ export default class SalesOrderLineItems extends LightningElement {
     const type = e.target.dataset.type;
     const searchKey = e.detail.searchKey;
     const input = e.target;
-    const index = Number(e.target.dataset.index);
 
     if (searchKey.length > 1) {
       input.setLoading(true);
@@ -455,7 +465,6 @@ export default class SalesOrderLineItems extends LightningElement {
     const selectedId = e.detail.id;
     const selectedNsId = e.detail.nsId;
     const index = Number(e.target.dataset.index);
-    const input = e.target;
     const isDiscount = selectedName === "Store Discount";
 
     if (isDiscount) {
@@ -597,6 +606,7 @@ export default class SalesOrderLineItems extends LightningElement {
     const updatedRows = [...this.rows];
     const row = updatedRows[index];
     const isInventoryItem = row.itemType === "Inventory Item";
+
     if (field === "quantity" && isInventoryItem && !this.isSpecialOrder) {
       if (!row.isDiscount) {
         const itemIsAvailable = await checkOnHand({
@@ -730,6 +740,7 @@ export default class SalesOrderLineItems extends LightningElement {
         rate: "",
         amount: "",
         quotedPrice: "",
+        isRepairNeeded: "",
         isDiscount: false
       };
 
