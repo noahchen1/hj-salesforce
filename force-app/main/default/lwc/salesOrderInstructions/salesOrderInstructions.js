@@ -45,7 +45,9 @@ export default class SalesOrderInstructions extends LightningElement {
   }
 
   get isActiveRowRemoveDisabled() {
-    return this.rows.length <= 1 || this.activeRowIndex === 0;
+    return (
+      this.rows.length <= 1 || this.rows[this.activeRowIndex]?.disableRemove
+    );
   }
 
   disconnectedCallback() {
@@ -105,7 +107,7 @@ export default class SalesOrderInstructions extends LightningElement {
       return this.createRow({
         id: rowId,
         showAction: index === 0,
-        disableRemove: index === 0,
+        disableRemove: true,
         overrides: {
           internalId: row.internalId,
           nsEmployee: row.nsEmployeeName,
@@ -183,6 +185,11 @@ export default class SalesOrderInstructions extends LightningElement {
 
   removeRow(e) {
     const index = Number(e.target.dataset.index);
+
+    if (this.rows[index]?.disableRemove) {
+      return;
+    }
+
     const updatedRows = [...this.rows];
     const removeCount = updatedRows[index + 1]?.isDiscount ? 2 : 1;
     updatedRows.splice(index, removeCount);
