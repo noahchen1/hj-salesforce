@@ -705,11 +705,11 @@ export default class SalesOrderLineItems extends LightningElement {
     updatedRows.splice(index, removeCount);
 
     const nextActiveIndex = Math.max(0, index - 1);
-    updatedRows.forEach((row, idx) => {
+    this.rows = updatedRows.map((row, idx) => {
       row.showAction = idx === nextActiveIndex;
-    });
 
-    this.rows = updatedRows;
+      return row;
+    });
     this.emitLineItemsChange();
   }
 
