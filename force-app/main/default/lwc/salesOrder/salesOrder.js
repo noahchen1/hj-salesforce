@@ -487,6 +487,11 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     this.setAttachments(e.detail?.rows || []);
   }
 
+  handleAttachmentLoadingChange(e) {
+    this.isLoading = e.detail?.isLoading || false;
+    this.loadingMessage = e.detail?.message || "";
+  }
+
   handleHeaderComboboxChange(e) {
     const { name, value } = e.detail;
 

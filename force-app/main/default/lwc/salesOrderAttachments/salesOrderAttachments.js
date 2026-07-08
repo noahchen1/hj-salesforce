@@ -15,9 +15,14 @@ export default class SalesOrderAttachments extends LightningElement {
   rows = [];
   nextRowId = 0;
   isSavingPhoto = false;
+  isRemovingFile = false;
   hasConfiguredCameraInput = false;
   isCameraOpen = false;
   cameraStream;
+
+  get isLoading() {
+    return this.isSavingPhoto || this.isRemovingFile;
+  }
 
   get isSalesOrder() {
     return this.orderType === "sales";
@@ -90,6 +95,17 @@ export default class SalesOrderAttachments extends LightningElement {
       new CustomEvent("attachmentchange", {
         detail: {
           rows: this.getRows()
+        }
+      })
+    );
+  }
+
+  emitLoadingChange({ isLoading, message = "" }) {
+    this.dispatchEvent(
+      new CustomEvent("attachmentloadingchange", {
+        detail: {
+          isLoading,
+          message
         }
       })
     );
@@ -211,11 +227,13 @@ export default class SalesOrderAttachments extends LightningElement {
     canvas.height = video.videoHeight;
     canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const [prefix, base64Data] = canvas
-      .toDataURL("image/jpeg", 0.92)
-      .split(",");
+    const [, base64Data] = canvas.toDataURL("image/jpeg", 0.92).split(",");
 
     this.isSavingPhoto = true;
+    this.emitLoadingChange({
+      isLoading: true,
+      message: "Capturing photo..."
+    });
 
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -237,6 +255,7 @@ export default class SalesOrderAttachments extends LightningElement {
       console.error("Error saving camera photo:", error);
     } finally {
       this.isSavingPhoto = false;
+      this.emitLoadingChange({ isLoading: false });
     }
   }
 
@@ -286,6 +305,12 @@ export default class SalesOrderAttachments extends LightningElement {
   async handleRemoveClick(e) {
     const { rowId, documentId } = e.currentTarget.dataset;
 
+    this.isRemovingFile = true;
+    this.emitLoadingChange({
+      isLoading: true,
+      message: "Removing photo..."
+    });
+
     try {
       await deleteRecord(documentId);
 
@@ -300,6 +325,9 @@ export default class SalesOrderAttachments extends LightningElement {
       );
 
       console.error("Error deleting file:", error);
+    } finally {
+      this.isRemovingFile = false;
+      this.emitLoadingChange({ isLoading: false });
     }
 
     this.emitAttachmentChange();
