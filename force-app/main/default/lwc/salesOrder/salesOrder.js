@@ -37,7 +37,7 @@ import { isBlank } from "c/utils";
 
 const DEFAULT_FORM_STATE = Object.freeze({
   custNsInternalId: "",
-  date: new Date().toISOString(),
+  date: new Date().toLocaleDateString("en-CA"),
   runningUserName: "",
   runningUserId: "",
   salesRep1: "",
@@ -66,7 +66,7 @@ const DEFAULT_FORM_STATE = Object.freeze({
   itemValue: "",
   repairDescription: "",
   extendedDescription: "",
-  dateOpened: new Date().toISOString(),
+  dateOpened: new Date().toLocaleDateString("en-CA"),
   datePromised: null,
   isEstimateRequired: false,
   isEstimateRequiredOverAmt: false,
@@ -558,12 +558,14 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         {
           itemId: 180918,
           itemName: "RW0614006_486",
-          displayName: "NOT INCLUDED IN"
+          displayName: "NOT INCLUDED IN",
+          amount: 0
         },
         {
           itemId: 180917,
           itemName: "RW0614006_485",
-          displayName: "INCLUDED WITH SERVICE"
+          displayName: "INCLUDED WITH SERVICE",
+          amount: 0
         }
       ];
 
