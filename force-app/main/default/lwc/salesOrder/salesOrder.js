@@ -66,7 +66,7 @@ const DEFAULT_FORM_STATE = Object.freeze({
   itemValue: "",
   repairDescription: "",
   extendedDescription: "",
-  dateOpened: null,
+  dateOpened: new Date().toISOString(),
   datePromised: null,
   isEstimateRequired: false,
   isEstimateRequiredOverAmt: false,
@@ -272,6 +272,15 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
           state.specialOrderVendor) &&
         state.specialOrderMemoOrSold
       );
+    } else if (state.orderType === "repair") {
+      return !(
+        state.custNsInternalId &&
+        state.salesRep1 &&
+        state.subsidiary &&
+        state.location &&
+        state.date &&
+        state.repairType
+      );
     }
 
     return false;
@@ -335,7 +344,6 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
         this.header?.setLookupValue("customer", companyName);
       }
 
-      console.log(JSON.stringify(contact));
       if (!isBlank(contact)) {
         this.formState.phoneNumber = contact;
       }
@@ -530,18 +538,48 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
       const item = itemMap[value] || null;
 
       if (item) {
-        this.lineItems?.setSpecialItem(item);
+        this.lineItems?.setItems([item]);
       }
     }
 
     if (name === "subsidiary" && this.formState.subsidiary !== value) {
       this.setFormField("location", "");
-      // this.lineItems?.reset();
     }
 
-    // if (name === "location" && this.location !== value) {
-    //   this.lineItems?.reset();
-    // }
+    if (name === "repairType" && value === "6") {
+      const location = this.formState.location;
+
+      const items = [
+        {
+          itemId: 180918,
+          itemName: "RW0614006_486",
+          displayName: "NOT INCLUDED IN"
+        },
+        {
+          itemId: 180917,
+          itemName: "RW0614006_485",
+          displayName: "INCLUDED WITH SERVICE"
+        }
+      ];
+
+      if (location === "28" || location === "18") {
+        items.push({
+          itemId: 181236,
+          itemName: "MS7808I",
+          displayName: "Shipping & Insurance (NJ)",
+          amount: 100
+        });
+      } else if (location === "25" || location === "26") {
+        items.push({
+          itemId: 194373,
+          itemName: "MS78082",
+          displayName: "Shipping & Insurance (FL)",
+          amount: 100
+        });
+      }
+
+      this.lineItems?.setItems(items);
+    }
 
     this.setFormField(name, value);
   }

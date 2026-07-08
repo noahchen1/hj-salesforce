@@ -231,27 +231,38 @@ export default class SalesOrderLineItems extends LightningElement {
   }
 
   @api
-  setSpecialItem({ itemId, itemName }) {
-    const newRow = this.createRow({
-      id: 1,
-      overrides: {
-        item: itemId,
-        itemName,
-        quantity: 1,
-        showAction: true,
-        disableRemove: true
-      }
-    });
+  setItems(items) {
+    if (items.length === 0) return;
 
-    this.rows = [newRow];
-    this.nextRowId = 2;
+    this.rows = items.map(({ itemId, itemName, displayName, amount }, index) =>
+      this.createRow({
+        id: index + 1,
+        showAction: index === 0,
+        disableRemove: index === 0,
+        overrides: {
+          item: itemId ?? "",
+          itemName: itemName ?? "",
+          displayName: displayName ?? "",
+          quantity: 1,
+          rate: amount ?? "",
+          amount: amount ?? ""
+        }
+      })
+    );
+
+    this.nextRowId = this.rows.length + 1;
+    this.selectedItemId = null;
+    this.selectedItemRowIndex = null;
+
     this.pendingLookupSelections = {
-      item: [itemName || ""]
+      item: this.rows.map((row) => row.itemName || "")
     };
 
     if (this.isSpecialOrder) {
-      this.pendingLookupSelections.specialOrderItem = [""];
-      this.pendingLookupSelections.specialOrderVendorNum = [""];
+      this.pendingLookupSelections.specialOrderItem = this.rows.map(() => "");
+      this.pendingLookupSelections.specialOrderVendorNum = this.rows.map(
+        () => ""
+      );
     }
 
     this.emitLineItemsChange();

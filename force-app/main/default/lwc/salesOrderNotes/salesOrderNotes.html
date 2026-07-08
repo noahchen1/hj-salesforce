@@ -5,13 +5,11 @@
         <colgroup>
           <col class="owner-col" />
           <col class="memo-col" />
-          <col class="date-col" />
         </colgroup>
         <thead>
           <tr>
             <th scope="col">Owner</th>
             <th scope="col">Memo</th>
-            <th scope="col">Date Last Modified</th>
           </tr>
         </thead>
         <tbody>
@@ -39,18 +37,6 @@
                   oninput={handleRowChange}
                   onchange={handleRowChange}
                 ></lightning-textarea>
-              </td>
-              <td>
-                <lightning-input
-                  data-index={index}
-                  data-field="dateLastModified"
-                  value={row.dateLastModified}
-                  type="datetime"
-                  placeholder=""
-                  onfocus={handleFocus}
-                  onchange={handleRowChange}
-                  readonly
-                ></lightning-input>
               </td>
             </tr>
           </template>

@@ -21,15 +21,11 @@
 }
 
 .commnet-col {
-  width: 50%;
+  width: 90%;
 }
 
 .owner-col {
   width: 10%;
-}
-
-.date-col {
-  width: 40%;
 }
 
 .order-table th,
