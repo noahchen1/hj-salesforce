@@ -578,9 +578,9 @@ public with sharing class SalesOrderPayloadBuilder {
         itemMap.put('line', lineItem.line);
       }
 
-      if (orderTypeContext.isSpecialOrder || orderTypeContext.isInquiryOrder) {
-        List<Object> customFields = new List<Object>();
+      List<Object> customFields = new List<Object>();
 
+      if (orderTypeContext.isSpecialOrder || orderTypeContext.isInquiryOrder) {
         if (String.isNotBlank(lineItem.specialOrderItem)) {
           customFields.add(
             new Map<String, Object>{
@@ -610,7 +610,22 @@ public with sharing class SalesOrderPayloadBuilder {
             }
           );
         }
+      }
 
+      if (
+        orderTypeContext.isRepairOrder &&
+        String.isNotBlank(lineItem.isRepairNeeded)
+      ) {
+        customFields.add(
+          new Map<String, Object>{
+            'fieldType' => 'select',
+            'scriptId' => 'custcol_repair_needed',
+            'valueLookup' => lookupByInternalId(lineItem.isRepairNeeded)
+          }
+        );
+      }
+
+      if (!customFields.isEmpty()) {
         itemMap.put(
           'customFieldList',
           new Map<String, Object>{ 'customField' => customFields }

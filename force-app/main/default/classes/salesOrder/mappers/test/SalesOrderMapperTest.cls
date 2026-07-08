@@ -27,6 +27,7 @@ private class SalesOrderMapperTest {
     SalesOrderDataModel.LineItem li = new SalesOrderDataModel.LineItem();
     li.id = 1;
     li.item = 'ITEM123';
+    li.isRepairNeeded = '2';
     items.add(li);
     String json = JSON.serialize(items);
 
@@ -36,6 +37,7 @@ private class SalesOrderMapperTest {
 
     System.assertEquals(1, result.size());
     System.assertEquals('ITEM123', result[0].item);
+    System.assertEquals('2', result[0].isRepairNeeded);
   }
 
   @isTest
@@ -211,12 +213,19 @@ private class SalesOrderMapperTest {
     itemDisplayName.scriptId = 'custcol_itemdisname';
     itemDisplayName.value = 'Custom Display Name';
 
+    SalesOrderResModel.CustomField repairNeeded = new SalesOrderResModel.CustomField();
+    repairNeeded.scriptId = 'custcol_repair_needed';
+    SalesOrderResModel.RecordRef repairNeededValue = new SalesOrderResModel.RecordRef();
+    repairNeededValue.internalId = '2';
+    repairNeeded.valueLookup = repairNeededValue;
+
     SalesOrderResModel.CustomFieldList licfl = new SalesOrderResModel.CustomFieldList();
     licfl.customField = new List<SalesOrderResModel.CustomField>{
       licf,
       specialOrderNumber,
       specialQuotedPrice,
-      itemDisplayName
+      itemDisplayName,
+      repairNeeded
     };
     item.customFieldList = licfl;
     SalesOrderResModel.ItemList itemList = new SalesOrderResModel.ItemList();
@@ -267,6 +276,7 @@ private class SalesOrderMapperTest {
     System.assertEquals('SKU123', mapped.lineItems[0].specialOrderItem);
     System.assertEquals('PO-7788', mapped.lineItems[0].specialOrderVendorNum);
     System.assertEquals('123.45', mapped.lineItems[0].quotedPrice);
+    System.assertEquals('2', mapped.lineItems[0].isRepairNeeded);
     System.assertEquals('Custom Display Name', mapped.lineItems[0].displayName);
   }
 }

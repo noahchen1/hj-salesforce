@@ -1,5 +1,20 @@
 @isTest
 private class SalesOrderPayloadBuilderTest {
+  private static SalesOrderParamModel.SalesOrderSaveParam baseParams(
+    String orderType
+  ) {
+    SalesOrderParamModel.SalesOrderSaveParam params = new SalesOrderParamModel.SalesOrderSaveParam();
+    params.orderType = orderType;
+    params.soNsInternalId = '15231';
+    params.custNsInternalId = '12345';
+    params.salesRep1 = 'Sales Rep1';
+    params.subsidiary = 'Princeton';
+    params.location = 'Princeton';
+    params.termsNsInternalId = '115';
+    params.memo = 'some memo';
+    return params;
+  }
+
   @isTest
   static void buildSaveRequest_success() {
     SalesOrderDataModel.Address shipping = new SalesOrderDataModel.Address();
@@ -24,39 +39,12 @@ private class SalesOrderPayloadBuilderTest {
       item
     };
 
-    Date orderDate = Date.today();
-
     Map<String, Object> req = SalesOrderPayloadBuilder.buildSaveRequest(
-      'sales',
-      '15231',
-      '12345',
-      orderDate,
-      'Sales Rep1',
-      null,
-      'Princeton',
-      'Princeton',
-      '115',
-      'some memo',
-      Date.today(),
-      Date.today(),
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
+      baseParams('sales'),
       shipping,
       billing,
       items,
+      null,
       false
     );
 
@@ -92,51 +80,49 @@ private class SalesOrderPayloadBuilderTest {
 
   @isTest
   static void buildSaveRequest_specialOrder() {
-    SalesOrderDataModel.Address shipping = new SalesOrderDataModel.Address();
-    SalesOrderDataModel.Address billing = new SalesOrderDataModel.Address();
+    SalesOrderParamModel.SalesOrderSaveParam params = baseParams('special');
+    params.soNsInternalId = 'SO-2';
+    params.custNsInternalId = 'CUST-2';
+    params.salesRep1 = 'SR2';
+    params.salesRep2 = 'SR3';
+    params.subsidiary = 'SUB2';
+    params.location = 'LOC2';
+    params.termsNsInternalId = 'T2';
+    params.memo = 'Memo2';
+    params.specialDate = Date.today();
+    params.needByDate = Date.today();
+    params.specialOrderItemType = 'ITYPE';
+    params.specialOrderVendor = 'VEND';
+    params.specialOrderRequestedVendor = 'REQVEND';
+    params.specialOrderComments = 'COMMENTS';
+    params.specialOrderNotes = 'NOTES';
+    params.specialOrderMemoOrSold = 'MEMO';
+    params.inquiryModel = 'Daytona';
+    params.inquiryName = 'Black Dial';
+    params.inquiryLink = 'https://example.com/daytona';
+    params.inquiryIsPrority = true;
+    params.inquiryIsOpenDial = true;
+    params.inquiryIsSendEmail = false;
+
     SalesOrderDataModel.LineItem item = new SalesOrderDataModel.LineItem();
     item.item = '456';
     item.specialOrderItem = 'SOI';
     item.specialOrderVendorNum = 'VNUM';
     item.quotedPrice = '99.99';
+
     List<SalesOrderDataModel.LineItem> items = new List<SalesOrderDataModel.LineItem>{
       item
     };
 
-    Date today = Date.today();
     Map<String, Object> req = SalesOrderPayloadBuilder.buildSaveRequest(
-      'special',
-      'SO-2',
-      'CUST-2',
-      today,
-      'SR2',
-      'SR3',
-      'SUB2',
-      'LOC2',
-      'T2',
-      'Memo2',
-      today,
-      today,
-      'ITYPE',
-      'VEND',
-      'REQVEND',
-      'COMMENTS',
-      'NOTES',
-      'MEMO',
-      'Daytona',
-      'Black Dial',
-      'https://example.com/daytona',
-      null,
-      true,
-      true,
-      false,
-      null,
-      null,
-      shipping,
-      billing,
+      params,
+      new SalesOrderDataModel.Address(),
+      new SalesOrderDataModel.Address(),
       items,
+      null,
       true
     );
+
     System.assertEquals(
       true,
       ((Map<String, Object>) req.get('itemList')).get('replaceAll')
@@ -165,6 +151,49 @@ private class SalesOrderPayloadBuilderTest {
     System.assert(
       itemMap.containsKey('customFieldList'),
       'Special order item should have customFieldList'
+    );
+  }
+
+  @isTest
+  static void buildSaveRequest_repairOrderIncludesRepairNeededLineField() {
+    SalesOrderParamModel.SalesOrderSaveParam params = baseParams('repair');
+
+    SalesOrderDataModel.LineItem item = new SalesOrderDataModel.LineItem();
+    item.item = '789';
+    item.rate = '10.00';
+    item.quantity = '1';
+    item.isRepairNeeded = '2';
+
+    Map<String, Object> req = SalesOrderPayloadBuilder.buildSaveRequest(
+      params,
+      null,
+      null,
+      new List<SalesOrderDataModel.LineItem>{ item },
+      null,
+      false
+    );
+
+    List<Object> itemObjs = (List<Object>) ((Map<String, Object>) req.get(
+        'itemList'
+      ))
+      .get('item');
+    Map<String, Object> itemMap = (Map<String, Object>) itemObjs[0];
+    List<Object> customFields = (List<Object>) ((Map<String, Object>) itemMap.get(
+        'customFieldList'
+      ))
+      .get('customField');
+
+    System.assertEquals(1, customFields.size());
+    Map<String, Object> repairNeededField = (Map<String, Object>) customFields[0];
+    System.assertEquals('select', repairNeededField.get('fieldType'));
+    System.assertEquals(
+      'custcol_repair_needed',
+      repairNeededField.get('scriptId')
+    );
+    System.assertEquals(
+      '2',
+      ((Map<String, Object>) repairNeededField.get('valueLookup'))
+        .get('internalId')
     );
   }
 

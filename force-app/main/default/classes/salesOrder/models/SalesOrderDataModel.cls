@@ -130,6 +130,8 @@ public with sharing class SalesOrderDataModel {
     @AuraEnabled
     public String quotedPrice;
     @AuraEnabled
+    public String isRepairNeeded;
+    @AuraEnabled
     public String line;
     @AuraEnabled
     public String quantityAvailable;

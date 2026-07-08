@@ -451,6 +451,13 @@ public with sharing class SalesOrderMapper {
         continue;
       }
 
+      if (cf.scriptId == 'custcol_repair_needed') {
+        target.isRepairNeeded = cf.valueLookup != null
+          ? cf.valueLookup.internalId
+          : cf.value;
+        continue;
+      }
+
       if (cf.scriptId == 'custcol_itemdisname') {
         target.displayName = cf.value;
       }
