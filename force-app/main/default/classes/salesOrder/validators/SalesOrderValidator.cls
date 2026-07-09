@@ -118,7 +118,11 @@ public with sharing class SalesOrderValidator {
         );
       }
 
-      if (!orderTypeContext.isInquiryOrder && String.isBlank(item.amount)) {
+      if (
+        !orderTypeContext.isInquiryOrder &&
+        !orderTypeContext.isRepairOrder &&
+        String.isBlank(item.amount)
+      ) {
         throw Helpers.buildAuraException(
           'Line item ' + (i + 1) + ': amount is required.'
         );
