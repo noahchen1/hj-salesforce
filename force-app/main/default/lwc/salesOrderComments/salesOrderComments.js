@@ -112,7 +112,7 @@ export default class SalesOrderComments extends LightningElement {
   @api
   reset() {
     this.rows = [
-      this.createRow({ id: 1, showAction: true, disableRemove: true })
+      this.createRow({ id: 1, showAction: true, disableRemove: false })
     ];
 
     this.nextRowId = 2;
