@@ -153,21 +153,20 @@ export default class SalesOrderComments extends LightningElement {
     }, 400);
   }
 
-  addRow(e) {
-    const index = Number(e.target.dataset.index);
-
+  addRow() {
     try {
       const newRow = this.createRow();
+      const newRowIndex = this.rows.length;
 
       const updatedRows = [...this.rows];
-      updatedRows.splice(index + 1, 0, newRow);
+      updatedRows.push(newRow);
       updatedRows.forEach((row, idx) => {
-        row.showAction = idx === index + 1;
+        row.showAction = idx === newRowIndex;
       });
       this.rows = updatedRows;
       this.emitCommentChange();
     } catch (error) {
-      console.error(`Error adding row at index ${index}`, error);
+      console.error("Error adding row", error);
     }
   }
 
