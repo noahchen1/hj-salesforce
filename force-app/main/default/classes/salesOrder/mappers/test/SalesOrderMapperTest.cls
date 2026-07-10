@@ -164,6 +164,78 @@ private class SalesOrderMapperTest {
     salesRep2.valueLookup.name = 'Sales Rep 2';
     salesRep2.valueLookup.internalId = 'SR456';
 
+    SalesOrderResModel.CustomField phoneNumber = new SalesOrderResModel.CustomField();
+    phoneNumber.scriptId = 'custbody_contact_number';
+    phoneNumber.value = '609-555-0100';
+    SalesOrderResModel.CustomField itemValue = new SalesOrderResModel.CustomField();
+    itemValue.scriptId = 'custbody2';
+    itemValue.value = '1200';
+    SalesOrderResModel.CustomField estimateRequired = new SalesOrderResModel.CustomField();
+    estimateRequired.scriptId = 'custbody_estimate_req';
+    estimateRequired.value = 'true';
+    SalesOrderResModel.CustomField estimateOverAmount = new SalesOrderResModel.CustomField();
+    estimateOverAmount.scriptId = 'custbody_estimate_over_amt';
+    estimateOverAmount.value = 'true';
+    SalesOrderResModel.CustomField requiredAmount = new SalesOrderResModel.CustomField();
+    requiredAmount.scriptId = 'custbody_over_amt';
+    requiredAmount.value = '250';
+
+    SalesOrderResModel.CustomField inquiryModel = new SalesOrderResModel.CustomField();
+    inquiryModel.scriptId = 'custbody_inquiry_model';
+    inquiryModel.value = 'Daytona';
+    SalesOrderResModel.CustomField inquiryName = new SalesOrderResModel.CustomField();
+    inquiryName.scriptId = 'custbody_inquiry_name';
+    inquiryName.value = 'Black Dial';
+    SalesOrderResModel.CustomField inquiryLink = new SalesOrderResModel.CustomField();
+    inquiryLink.scriptId = 'custbody_inquiry_link';
+    inquiryLink.value = 'https://example.com/daytona';
+    SalesOrderResModel.CustomField inquiryPriority = new SalesOrderResModel.CustomField();
+    inquiryPriority.scriptId = 'custbody_inquiry_is_priority';
+    inquiryPriority.value = 'true';
+    SalesOrderResModel.CustomField inquiryOpenDial = new SalesOrderResModel.CustomField();
+    inquiryOpenDial.scriptId = 'custbody_inquiry_is_open_dial';
+    inquiryOpenDial.value = 'true';
+
+    SalesOrderResModel.CustomField repairType = new SalesOrderResModel.CustomField();
+    repairType.scriptId = 'custbody1';
+    repairType.valueLookup = new SalesOrderResModel.RecordRef();
+    repairType.valueLookup.internalId = 'TYPE-1';
+    SalesOrderResModel.CustomField repairStation = new SalesOrderResModel.CustomField();
+    repairStation.scriptId = 'custbody_repair_station';
+    repairStation.valueLookup = new SalesOrderResModel.RecordRef();
+    repairStation.valueLookup.internalId = 'STATION-1';
+    SalesOrderResModel.CustomField repairPerson = new SalesOrderResModel.CustomField();
+    repairPerson.scriptId = 'custbody_repair_person';
+    repairPerson.valueLookup = new SalesOrderResModel.RecordRef();
+    repairPerson.valueLookup.internalId = 'PERSON-1';
+    repairPerson.valueLookup.name = 'Repair Person';
+    SalesOrderResModel.CustomField repairLocation = new SalesOrderResModel.CustomField();
+    repairLocation.scriptId = 'custbody_repair_location';
+    repairLocation.valueLookup = new SalesOrderResModel.RecordRef();
+    repairLocation.valueLookup.internalId = 'REPAIR-LOC-1';
+    SalesOrderResModel.CustomField repairVendor = new SalesOrderResModel.CustomField();
+    repairVendor.scriptId = 'custbody_repair_vendor';
+    repairVendor.valueLookup = new SalesOrderResModel.RecordRef();
+    repairVendor.valueLookup.internalId = 'REPAIR-VENDOR-1';
+    repairVendor.valueLookup.name = 'Repair Vendor';
+    SalesOrderResModel.CustomField shipRepairTo = new SalesOrderResModel.CustomField();
+    shipRepairTo.scriptId = 'custbody_shiprepairto';
+    shipRepairTo.valueLookup = new SalesOrderResModel.RecordRef();
+    shipRepairTo.valueLookup.internalId = 'SHIP-TO-1';
+    shipRepairTo.valueLookup.name = 'Ship Repair To';
+    SalesOrderResModel.CustomField repairDescription = new SalesOrderResModel.CustomField();
+    repairDescription.scriptId = 'custbody_repair_description';
+    repairDescription.value = 'Repair description';
+    SalesOrderResModel.CustomField extendedDescription = new SalesOrderResModel.CustomField();
+    extendedDescription.scriptId = 'custbody_extended_description';
+    extendedDescription.value = 'Extended description';
+    SalesOrderResModel.CustomField attachmentUrls = new SalesOrderResModel.CustomField();
+    attachmentUrls.scriptId = 'custbody_repair_attach_urls';
+    attachmentUrls.value = 'https://example.com/a.pdf,https://example.com/b.pdf';
+    SalesOrderResModel.CustomField repairOrder = new SalesOrderResModel.CustomField();
+    repairOrder.scriptId = 'custbody_repair_order';
+    repairOrder.value = 'true';
+
     SalesOrderResModel.CustomFieldList customFieldList = new SalesOrderResModel.CustomFieldList();
     customFieldList.customField = new List<SalesOrderResModel.CustomField>{
       isSpecialOrder,
@@ -176,7 +248,27 @@ private class SalesOrderMapperTest {
       specialComments,
       specialMerchNote,
       specialMemoSold,
-      specialStatuses
+      specialStatuses,
+      phoneNumber,
+      itemValue,
+      estimateRequired,
+      estimateOverAmount,
+      requiredAmount,
+      inquiryModel,
+      inquiryName,
+      inquiryLink,
+      inquiryPriority,
+      inquiryOpenDial,
+      repairType,
+      repairStation,
+      repairPerson,
+      repairLocation,
+      repairVendor,
+      shipRepairTo,
+      repairDescription,
+      extendedDescription,
+      attachmentUrls,
+      repairOrder
     };
     so.customFieldList = customFieldList;
 
@@ -219,13 +311,18 @@ private class SalesOrderMapperTest {
     repairNeededValue.internalId = '2';
     repairNeeded.valueLookup = repairNeededValue;
 
+    SalesOrderResModel.CustomField itemType = new SalesOrderResModel.CustomField();
+    itemType.scriptId = 'custcol_itemtypee';
+    itemType.value = 'Watch';
+
     SalesOrderResModel.CustomFieldList licfl = new SalesOrderResModel.CustomFieldList();
     licfl.customField = new List<SalesOrderResModel.CustomField>{
       licf,
       specialOrderNumber,
       specialQuotedPrice,
       itemDisplayName,
-      repairNeeded
+      repairNeeded,
+      itemType
     };
     item.customFieldList = licfl;
     SalesOrderResModel.ItemList itemList = new SalesOrderResModel.ItemList();
@@ -250,7 +347,7 @@ private class SalesOrderMapperTest {
     System.assertEquals('CUST123', mapped.customerNsId);
     System.assertNotEquals(null, mapped.nsCompanyId);
     System.assertNotEquals(null, mapped.accountId);
-    System.assertEquals('special', mapped.orderType);
+    System.assertEquals('repair', mapped.orderType);
     System.assertEquals('2024-05-13', mapped.specialDate);
     System.assertEquals('2024-05-14', mapped.needByDate);
     System.assertEquals('TYPE01', mapped.specialOrderItemType);
@@ -266,6 +363,31 @@ private class SalesOrderMapperTest {
     System.assertEquals('STATUS01', mapped.specialOrderStatus);
     System.assertEquals('Sales Rep 2', mapped.salesRep2Name);
     System.assertEquals('SR456', mapped.salesRep2NsId);
+    System.assertEquals('609-555-0100', mapped.phoneNumber);
+    System.assertEquals('1200', mapped.itemValue);
+    System.assertEquals(true, mapped.isEstimateRequired);
+    System.assertEquals(true, mapped.isEstimateRequiredOverAmt);
+    System.assertEquals('250', mapped.requiredAmt);
+    System.assertEquals('Daytona', mapped.inquiryModel);
+    System.assertEquals('Black Dial', mapped.inquiryName);
+    System.assertEquals('https://example.com/daytona', mapped.inquiryLink);
+    System.assertEquals(true, mapped.inquiryIsPrority);
+    System.assertEquals(true, mapped.inquiryIsOpenDial);
+    System.assertEquals('TYPE-1', mapped.repairType);
+    System.assertEquals('STATION-1', mapped.repairStation);
+    System.assertEquals('PERSON-1', mapped.repairPerson);
+    System.assertEquals('Repair Person', mapped.repairPersonName);
+    System.assertEquals('REPAIR-LOC-1', mapped.repairLocation);
+    System.assertEquals('REPAIR-VENDOR-1', mapped.repairVendor);
+    System.assertEquals('Repair Vendor', mapped.repairVendorName);
+    System.assertEquals('SHIP-TO-1', mapped.shipRepairTo);
+    System.assertEquals('Ship Repair To', mapped.shipRepairToName);
+    System.assertEquals('Repair description', mapped.repairDescription);
+    System.assertEquals('Extended description', mapped.extendedDescription);
+    System.assertEquals(
+      'https://example.com/a.pdf,https://example.com/b.pdf',
+      mapped.attachmentUrls
+    );
     System.assertEquals('Ship City', mapped.shippingAddress.city);
     System.assertEquals('Bill City', mapped.billingAddress.city);
     System.assertEquals(1, mapped.lineItems.size());
@@ -278,5 +400,6 @@ private class SalesOrderMapperTest {
     System.assertEquals('123.45', mapped.lineItems[0].quotedPrice);
     System.assertEquals('2', mapped.lineItems[0].isRepairNeeded);
     System.assertEquals('Custom Display Name', mapped.lineItems[0].displayName);
+    System.assertEquals('Watch', mapped.lineItems[0].itemType);
   }
 }

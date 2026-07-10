@@ -40,6 +40,8 @@ private class SalesOrderValidatorTest {
       null,
       null,
       null,
+      null,
+      null,
       buildLineItemsJson('186466', null, '20', '20', null)
     );
 
@@ -60,6 +62,8 @@ private class SalesOrderValidatorTest {
         'LOC-1',
         Date.today(),
         Date.today(),
+        null,
+        null,
         null,
         null,
         null,
@@ -101,6 +105,8 @@ private class SalesOrderValidatorTest {
         null,
         null,
         null,
+        null,
+        null,
         buildLineItemsJson('item', '2', '20', '40', null)
       );
       Test.stopTest();
@@ -133,6 +139,8 @@ private class SalesOrderValidatorTest {
       'Black Dial',
       'https://example.com/daytona',
       true,
+      null,
+      null,
       buildLineItemsJson('item', '1', '20', '20', null)
     );
     Test.stopTest();
@@ -152,6 +160,8 @@ private class SalesOrderValidatorTest {
         'LOC-1',
         Date.today(),
         Date.today(),
+        null,
+        null,
         null,
         null,
         null,
@@ -193,6 +203,8 @@ private class SalesOrderValidatorTest {
         null,
         null,
         null,
+        null,
+        null,
         JSON.serialize(new List<Object>())
       );
       Test.stopTest();
@@ -221,6 +233,8 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
+        null,
         null,
         null,
         null,
@@ -259,6 +273,8 @@ private class SalesOrderValidatorTest {
         null,
         null,
         null,
+        null,
+        null,
         buildLineItemsJson('item1', '2', null, null, null)
       );
       Test.stopTest();
@@ -287,6 +303,8 @@ private class SalesOrderValidatorTest {
         'Watch',
         'Rolex',
         '2',
+        null,
+        null,
         null,
         null,
         null,
@@ -325,6 +343,8 @@ private class SalesOrderValidatorTest {
         null,
         null,
         null,
+        null,
+        null,
         buildLineItemsJson('item1', null, '20', '20', null)
       );
       Test.stopTest();
@@ -357,6 +377,8 @@ private class SalesOrderValidatorTest {
       null,
       null,
       null,
+      null,
+      null,
       buildLineItemsJson('186466', null, '20', '20', null)
     );
     Test.stopTest();
@@ -384,12 +406,88 @@ private class SalesOrderValidatorTest {
         null,
         null,
         null,
+        null,
+        null,
         buildLineItemsJson('Special Order Item', '2', '20', '20', null)
       );
       Test.stopTest();
     } catch (AuraHandledException e) {
       System.assert(
         e.getMessage().contains('quotedPrice is required for special orders'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void validateParams_repairEstimateOverAmountMissingAmount() {
+    try {
+      Test.startTest();
+      SalesOrderValidator.validateParams(
+        'repair',
+        null,
+        '123565',
+        Date.today(),
+        'REP-1',
+        'SUB-1',
+        'LOC-1',
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        true,
+        null,
+        buildLineItemsJson('item1', '1', null, null, null)
+      );
+      Test.stopTest();
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage()
+          .contains('Estimate Required If Over $ requires an amount.'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void validateParams_repairAmountRequiresEstimateOverAmount() {
+    try {
+      Test.startTest();
+      SalesOrderValidator.validateParams(
+        'repair',
+        null,
+        '123565',
+        Date.today(),
+        'REP-1',
+        'SUB-1',
+        'LOC-1',
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        false,
+        '250',
+        buildLineItemsJson('item1', '1', null, null, null)
+      );
+      Test.stopTest();
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage()
+          .contains(
+            'Estimate Required If Over $ must be checked when an amount is entered.'
+          ),
         'Unexpected error: ' + e.getMessage()
       );
     }

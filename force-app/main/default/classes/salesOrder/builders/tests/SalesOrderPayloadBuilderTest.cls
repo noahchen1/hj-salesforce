@@ -157,6 +157,11 @@ private class SalesOrderPayloadBuilderTest {
   @isTest
   static void buildSaveRequest_repairOrderIncludesRepairNeededLineField() {
     SalesOrderParamModel.SalesOrderSaveParam params = baseParams('repair');
+    params.phoneNumber = '609-555-0100';
+    params.itemValue = '1200';
+    params.isEstimateRequired = true;
+    params.isEstimateRequiredOverAmt = true;
+    params.requiredAmt = '250';
 
     SalesOrderDataModel.LineItem item = new SalesOrderDataModel.LineItem();
     item.item = '789';
@@ -195,6 +200,30 @@ private class SalesOrderPayloadBuilderTest {
       ((Map<String, Object>) repairNeededField.get('valueLookup'))
         .get('internalId')
     );
+
+    List<Object> orderCustomFields = (List<Object>) ((Map<String, Object>) req.get(
+        'customFieldList'
+      ))
+      .get('customField');
+    Map<String, Object> valuesByScriptId = new Map<String, Object>();
+    for (Object customField : orderCustomFields) {
+      Map<String, Object> customFieldMap = (Map<String, Object>) customField;
+      valuesByScriptId.put(
+        (String) customFieldMap.get('scriptId'),
+        customFieldMap.get('value')
+      );
+    }
+    System.assertEquals(
+      '609-555-0100',
+      valuesByScriptId.get('custbody_contact_number')
+    );
+    System.assertEquals('1200', valuesByScriptId.get('custbody2'));
+    System.assertEquals(true, valuesByScriptId.get('custbody_estimate_req'));
+    System.assertEquals(
+      true,
+      valuesByScriptId.get('custbody_estimate_over_amt')
+    );
+    System.assertEquals('250', valuesByScriptId.get('custbody_over_amt'));
   }
 
   @isTest
