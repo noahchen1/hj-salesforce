@@ -3,6 +3,7 @@ private class CommentPayloadBuilderTest {
   @isTest
   static void buildSaveRequest_success() {
     Map<String, Object> request = CommentPayloadBuilder.buildCreateRequest(
+      '9988',
       '145',
       'SO-991',
       'Repair comment text'
@@ -23,7 +24,7 @@ private class CommentPayloadBuilderTest {
 
       String fieldId = (String) field.get('scriptId');
 
-      if (fieldId == 'custrecord1') {
+      if (fieldId == 'custrecord_parent_record') {
         String value = (String) field.get('value');
 
         System.assertEquals(value, 'SO-991');
@@ -40,16 +41,27 @@ private class CommentPayloadBuilderTest {
   @isTest
   static void buildSavePayload_success() {
     Map<String, Object> request = CommentPayloadBuilder.buildCreateRequest(
+      null,
       '145',
       'SO-991',
       'Repair comment text'
     );
 
     Map<String, Object> payload = CommentPayloadBuilder.buildCreatePayload(
-      request
+      request,
+      false
     );
 
     System.assertEquals(payload.get('action'), 'createCustomObjectRecord');
     System.assert(payload.get('requestJSON') != null);
+
+    Map<String, Object> updatePayload = CommentPayloadBuilder.buildCreatePayload(
+      request,
+      true
+    );
+    System.assertEquals(
+      updatePayload.get('action'),
+      'updateCustomObjectRecord'
+    );
   }
 }

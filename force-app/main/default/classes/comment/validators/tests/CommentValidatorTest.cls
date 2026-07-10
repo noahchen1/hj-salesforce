@@ -42,6 +42,23 @@ private class CommentValidatorTest {
   }
 
   @isTest
+  static void validateReadRequest_success() {
+    CommentValidator.validateReadRequest('SO123');
+  }
+
+  @isTest
+  static void validateReadRequest_missingSalesOrderId() {
+    try {
+      CommentValidator.validateReadRequest(null);
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage().contains('SO internal id is required'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
   static void validateRawResponse_nullResponse() {
     try {
       CommentValidator.validateRawResponse(null);
@@ -66,6 +83,30 @@ private class CommentValidatorTest {
       System.assert(
         e.getMessage()
           .contains('Invalid request: NetSuite rejected the payload.'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void validateRawResponse_requestJsonFallback() {
+    CommentValidator.validateRawResponse(
+      new Map<String, Object>{
+        'validRequest' => true,
+        'requestJSON' => '{"status":"200"}'
+      }
+    );
+  }
+
+  @isTest
+  static void validateRawResponse_emptyResponse() {
+    try {
+      CommentValidator.validateRawResponse(
+        new Map<String, Object>{ 'validRequest' => true }
+      );
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage().contains('NetSuite returned an empty response body'),
         'Unexpected error: ' + e.getMessage()
       );
     }
@@ -147,6 +188,24 @@ private class CommentValidatorTest {
     } catch (AuraHandledException e) {
       System.assert(
         e.getMessage().contains('No comment record returned in response'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void validateTypedBody_missingCommentInternalId() {
+    CommentResModel.ResponseJson body = new CommentResModel.ResponseJson();
+    body.status = '200';
+    body.customObjectRecords = new List<CommentResModel.CommentRecord>{
+      new CommentResModel.CommentRecord()
+    };
+
+    try {
+      CommentValidator.validateTypedBody(body);
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage().contains('Comment internal id was not returned'),
         'Unexpected error: ' + e.getMessage()
       );
     }
