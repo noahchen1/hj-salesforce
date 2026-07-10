@@ -3,6 +3,7 @@ private class InstructionPayloadBuilderTest {
   @isTest
   static void buildSaveRequest_success() {
     Map<String, Object> request = InstructionPayloadBuilder.buildSaveRequest(
+      '9988',
       '145',
       '123456',
       'Leave at loading dock'
@@ -41,16 +42,27 @@ private class InstructionPayloadBuilderTest {
   @isTest
   static void buildSavePayload_success() {
     Map<String, Object> request = InstructionPayloadBuilder.buildSaveRequest(
-      '12345',
+      null,
       '67890',
+      '12345',
       'This is an instruction!'
     );
 
     Map<String, Object> payload = InstructionPayloadBuilder.buildSavePayload(
-      request
+      request,
+      false
     );
 
     System.assertEquals(payload.get('action'), 'createCustomObjectRecord');
     System.assert(payload.get('requestJSON') != null);
+
+    Map<String, Object> updatePayload = InstructionPayloadBuilder.buildSavePayload(
+      request,
+      true
+    );
+    System.assertEquals(
+      updatePayload.get('action'),
+      'updateCustomObjectRecord'
+    );
   }
 }

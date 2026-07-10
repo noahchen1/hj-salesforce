@@ -62,29 +62,4 @@ public with sharing class InstructionPayloadBuilder {
           'requestJSON' => JSON.serialize(requestJsonMap)
         };
   }
-
-  public static Map<String, Object> buildReadRequest(String nsSoId) {
-    Map<String, Object> filters = new Map<String, Object>{
-      'custrecord1' => nsSoId
-    };
-
-    Map<String, Object> filterMap = new Map<String, Object>{
-      'where' => new Map<String, Object>{ 'keyValueMap' => filters }
-    };
-
-    return new Map<String, Object>{
-      'customObjectID' => '109',
-      'customParameters' => filterMap
-    };
-  }
-
-  public static Map<String, Object> buildReadPayload(
-    Map<String, Object> request
-  ) {
-    return new Map<String, Object>{
-      'version' => '1.0',
-      'action' => 'readCustomObjectRecord',
-      'requestJSON' => JSON.serialize(request)
-    };
-  }
 }

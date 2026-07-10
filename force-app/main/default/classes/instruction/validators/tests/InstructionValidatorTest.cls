@@ -89,6 +89,30 @@ private class InstructionValidatorTest {
   }
 
   @isTest
+  static void validateRawResponse_requestJsonFallback() {
+    InstructionValidator.validateRawResponse(
+      new Map<String, Object>{
+        'validRequest' => true,
+        'requestJSON' => '{"status":"200"}'
+      }
+    );
+  }
+
+  @isTest
+  static void validateRawResponse_emptyResponse() {
+    try {
+      InstructionValidator.validateRawResponse(
+        new Map<String, Object>{ 'validRequest' => true }
+      );
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage().contains('NetSuite returned an empty response body'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
   static void validateTypedBody_success() {
     InstructionResModel.ResponseJson body = new InstructionResModel.ResponseJson();
     InstructionResModel.InstructionRecord instruction = new InstructionResModel.InstructionRecord();
@@ -164,6 +188,24 @@ private class InstructionValidatorTest {
     } catch (AuraHandledException e) {
       System.assert(
         e.getMessage().contains('No instruction record returned in response'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void validateTypedBody_missingInstructionInternalId() {
+    InstructionResModel.ResponseJson body = new InstructionResModel.ResponseJson();
+    body.status = '200';
+    body.customObjectRecords = new List<InstructionResModel.InstructionRecord>{
+      new InstructionResModel.InstructionRecord()
+    };
+
+    try {
+      InstructionValidator.validateTypedBody(body);
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage().contains('Instruction internal id was not returned'),
         'Unexpected error: ' + e.getMessage()
       );
     }
