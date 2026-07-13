@@ -238,6 +238,18 @@ export default class OpenSpecialOrders extends LightningElement {
     this.pageNumber = 1;
   }
 
+  handleLookupBlur(e) {
+    const target = e.target;
+    const type = e.target.dataset.type;
+
+    if (type !== "vendornum") return;
+
+    const value = String(e.detail?.searchKey ?? "").trim();
+
+    this[type] = value;
+    target.setResults([]);
+  }
+
   handleHideRolexOrTudorChange(e) {
     this.hideRolexOrTudor = e.detail.value.filter((v) => v !== "Show All");
   }

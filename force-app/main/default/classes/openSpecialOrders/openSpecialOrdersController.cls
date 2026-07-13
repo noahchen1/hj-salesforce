@@ -115,9 +115,9 @@ public with sharing class OpenSpecialOrdersController {
       }
 
       if (String.isNotBlank(vendornum)) {
-        String vendornumUpper = vendornum.toUpperCase();
+        String vendornumUpper = vendornum.toUpperCase() + '%';
 
-        query += ' AND ncf_col_special_order_number__c = :vendornumUpper';
+        query += ' AND ncf_col_special_order_number__c LIKE :vendornumUpper';
       }
 
       if (showActiveOrdersOnly == true) {
