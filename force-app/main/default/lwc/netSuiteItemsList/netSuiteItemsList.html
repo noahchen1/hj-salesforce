@@ -122,6 +122,15 @@
                 label="On Website">
             </lightning-input> -->
 
+            <c-lookup-input
+                data-type="vendornum"
+                label="Vendor Number"
+                placeholder="Enter Vendor Number"
+                onsearch={handleLookupSearch}
+                onselect={handleLookupSelect}
+                onblur={handleLookupBlur}
+            ></c-lookup-input>
+
             <lightning-input 
                 type="toggle" 
                 class="toggle-input"

@@ -232,9 +232,12 @@ export default class OpenSpecialOrders extends LightningElement {
   }
 
   handleLookupSelect(e) {
+    clearTimeout(this.lookupBlurTimer);
+
     const type = e.target.dataset.type;
     const selectedName = e.detail.name;
     this[type] = selectedName;
+
     this.pageNumber = 1;
   }
 
@@ -246,8 +249,10 @@ export default class OpenSpecialOrders extends LightningElement {
 
     const value = String(e.detail?.searchKey ?? "").trim();
 
-    this[type] = value;
-    target.setResults([]);
+    this.lookupBlurTimer = setTimeout(() => {
+      this[type] = value;
+      target.setResults([]);
+    }, 150);
   }
 
   handleHideRolexOrTudorChange(e) {
