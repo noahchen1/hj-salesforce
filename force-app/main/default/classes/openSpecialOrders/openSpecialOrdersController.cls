@@ -28,6 +28,10 @@ public with sharing class OpenSpecialOrdersController {
 
       String nsInternalId = currentUser.breadwinner_ns__NetSuite_Employee_NS_Internal_ID__c;
 
+      Set<String> allowedLocations = Helpers.getLocations(
+        SalesOrderType.special
+      );
+
       Set<String> specialOrderManagers = new Set<String>{
         '1483',
         '137052',
@@ -104,6 +108,10 @@ public with sharing class OpenSpecialOrdersController {
 
       if (String.isNotBlank(location)) {
         query += ' AND breadwinner_ns__Sales_Order__r.breadwinner_ns__LocationName__c = :location';
+      }
+
+      if (allowedLocations != null && !allowedLocations.isEmpty()) {
+        query += ' AND breadwinner_ns__Sales_Order__r.breadwinner_ns__LocationName__c IN :allowedLocations';
       }
 
       if (String.isNotBlank(status)) {

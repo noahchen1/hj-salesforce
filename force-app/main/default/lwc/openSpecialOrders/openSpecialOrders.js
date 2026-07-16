@@ -8,7 +8,9 @@ import getSpecialOrderStatuses from "@salesforce/apex/DropdownDataController.get
 import getLocations from "@salesforce/apex/DropdownDataController.getLocations";
 import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
 import USER_ID from "@salesforce/user/Id";
-import USER_NAME_FIELD from "@salesforce/schema/User.Name";
+import FIRST_NAME_FIELD from "@salesforce/schema/User.FirstName";
+import MIDDLE_NAME_FIELD from "@salesforce/schema/User.MiddleName";
+import LAST_NAME_FIELD from "@salesforce/schema/User.LastName";
 import USER_ROLE_NAME_FIELD from "@salesforce/schema/User.UserRole.Name";
 import { getRecord, getFieldValue } from "lightning/uiRecordApi";
 
@@ -33,7 +35,12 @@ export default class OpenSpecialOrders extends LightningElement {
 
   @wire(getRecord, {
     recordId: USER_ID,
-    fields: [USER_NAME_FIELD, USER_ROLE_NAME_FIELD]
+    fields: [
+      USER_ROLE_NAME_FIELD,
+      FIRST_NAME_FIELD,
+      MIDDLE_NAME_FIELD,
+      LAST_NAME_FIELD
+    ]
   })
   userData;
 
@@ -285,7 +292,13 @@ export default class OpenSpecialOrders extends LightningElement {
     const roleName = getFieldValue(data, USER_ROLE_NAME_FIELD);
 
     if ((roleName || "").toLowerCase() === "sales associate") {
-      const userName = getFieldValue(data, USER_NAME_FIELD);
+      const firstName = getFieldValue(data, FIRST_NAME_FIELD);
+      const middleName = getFieldValue(data, MIDDLE_NAME_FIELD);
+      const lastName = getFieldValue(data, LAST_NAME_FIELD);
+
+      const userName = [firstName, middleName, lastName]
+        .filter((name) => name?.trim())
+        .join(" ");
 
       if (userName) {
         this.salesRep = userName;

@@ -205,8 +205,12 @@ export default class OpenRepairs extends LightningElement {
 
     const data = this.userData?.data;
     const roleName = getFieldValue(data, USER_ROLE_NAME_FIELD);
+    const parsedRoleName = (roleName || "").toLowerCase();
 
-    if ((roleName || "").toLowerCase() === "sales associate") {
+    if (
+      parsedRoleName === "sales associate" ||
+      parsedRoleName === "rolex liason"
+    ) {
       const userName = getFieldValue(data, USER_NAME_FIELD);
 
       if (userName) {

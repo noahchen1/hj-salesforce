@@ -134,4 +134,59 @@ public with sharing class Helpers {
 
     return fileName;
   }
+
+  public static Set<String> getLocations(SalesOrderType type) {
+    if (type != SalesOrderType.repair && type != SalesOrderType.special) {
+      return null;
+    }
+
+    Id userId = UserInfo.getUserId();
+
+    Boolean isNjManager =
+      [
+        SELECT COUNT()
+        FROM GroupMember
+        WHERE
+          Group.Type = 'Regular'
+          AND Group.DeveloperName = 'Managers_New_Jersey'
+          AND UserOrGroupId = :userId
+      ] > 0;
+
+    Boolean isAllManager =
+      [
+        SELECT COUNT()
+        FROM GroupMember
+        WHERE
+          Group.Type = 'Regular'
+          AND Group.DeveloperName = 'Managers_All'
+          AND UserOrGroupId = :userId
+      ] > 0;
+
+    Boolean isRolexLiason =
+      [
+        SELECT COUNT()
+        FROM GroupMember
+        WHERE
+          Group.Type = 'Regular'
+          AND Group.DeveloperName = 'Rolex_Liason'
+          AND UserOrGroupId = :userId
+      ] > 0;
+
+    if (isNjManager) {
+      return new Set<String>{ 'H1912', 'Princeton', 'Hamilton Home' };
+    }
+
+    if (isAllManager || (type == SalesOrderType.special && isRolexLiason)) {
+      return null;
+    }
+
+    User currentUser = [
+      SELECT Location__c
+      FROM User
+      WHERE Id = :userId
+      LIMIT 1
+    ];
+
+    return new Set<String>{ currentUser.Location__c };
+  }
 }

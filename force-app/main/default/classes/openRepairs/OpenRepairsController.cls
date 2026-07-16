@@ -34,6 +34,8 @@ public with sharing class OpenRepairsController {
         'ncf_body_repair_station__c, ncf_body1__c, Days_Open__c, breadwinner_ns__Status__c, breadwinner_ns__InternalId__c ' +
         'FROM breadwinner_ns__BW_Sales_Order__c WHERE ncf_body_repair_order__c = TRUE AND breadwinner_ns__Status__c NOT IN (\'Closed\', \'Billed\', \'Cancelled\')';
 
+      Set<String> allowedLocations = Helpers.getLocations(SalesOrderType.repair);
+
       if (String.isNotBlank(name)) {
         query += ' AND breadwinner_ns__Entity__r.Name = :name';
       }
@@ -44,6 +46,10 @@ public with sharing class OpenRepairsController {
 
       if (String.isNotBlank(station)) {
         query += ' AND ncf_body_repair_station__c = :station';
+      }
+
+      if (allowedLocations != null && !allowedLocations.isEmpty()) {
+        query += ' AND breadwinner_ns__LocationName__c IN :allowedLocations';
       }
 
       query += ' ORDER BY ' + sortField + ' ' + direction + ' NULLS LAST';

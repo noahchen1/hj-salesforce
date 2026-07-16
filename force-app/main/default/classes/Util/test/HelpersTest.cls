@@ -114,7 +114,11 @@ private class HelpersTest {
     AuraHandledException ex = Helpers.buildAuraException(message);
 
     System.assertNotEquals(null, ex, 'Exception should be returned');
-    System.assertEquals(message, ex.getMessage(), 'Exception message should match input');
+    System.assertEquals(
+      message,
+      ex.getMessage(),
+      'Exception message should match input'
+    );
   }
 
   @isTest
@@ -122,7 +126,110 @@ private class HelpersTest {
     System.assertEquals(null, Helpers.normalizeString(null));
     System.assertEquals(null, Helpers.normalizeString(''));
     System.assertEquals(null, Helpers.normalizeString('   '));
-    System.assertEquals('hello world', Helpers.normalizeString('  HeLLo WoRLD  '));
+    System.assertEquals(
+      'hello world',
+      Helpers.normalizeString('  HeLLo WoRLD  ')
+    );
     System.assertEquals('abc123', Helpers.normalizeString('ABC123'));
+  }
+
+  @isTest
+  static void testGetFileNameFromContentDisposition() {
+    System.assertEquals(null, Helpers.getFileNameFromContentDisposition(null));
+    System.assertEquals(
+      null,
+      Helpers.getFileNameFromContentDisposition('attachment')
+    );
+    System.assertEquals(
+      'document.pdf',
+      Helpers.getFileNameFromContentDisposition(
+        'attachment; filename="document.pdf"'
+      )
+    );
+    System.assertEquals(
+      'report final.csv',
+      Helpers.getFileNameFromContentDisposition(
+        'inline; filename=report final.csv; size=1024'
+      )
+    );
+  }
+
+  @isTest
+  static void testGetTitleFromFileName() {
+    System.assertEquals('downloaded-file', Helpers.getTitleFromFileName(null));
+    System.assertEquals('downloaded-file', Helpers.getTitleFromFileName('   '));
+    System.assertEquals(
+      'sales.order',
+      Helpers.getTitleFromFileName('sales.order.pdf')
+    );
+    System.assertEquals('readme', Helpers.getTitleFromFileName('readme'));
+    System.assertEquals(
+      '.gitignore',
+      Helpers.getTitleFromFileName('.gitignore')
+    );
+  }
+
+  @isTest
+  static void testGetLocations() {
+    System.assertEquals(null, Helpers.getLocations(SalesOrderType.sales));
+
+    User currentUser = [
+      SELECT Location__c
+      FROM User
+      WHERE Id = :UserInfo.getUserId()
+    ];
+
+    System.assertEquals(new Set<String>{'Worth Ave'}, Helpers.getLocations(SalesOrderType.repair));
+  }
+
+  @isTest
+  static void testGetLocationsForNjManager() {
+    Group managerGroup = [
+      SELECT Id
+      FROM Group
+      WHERE DeveloperName = 'Managers_New_Jersey' AND Type = 'Regular'
+    ];
+
+    insert new GroupMember(
+      GroupId = managerGroup.Id,
+      UserOrGroupId = UserInfo.getUserId()
+    );
+
+    System.assertEquals(
+      new Set<String>{ 'H1912', 'Princeton', 'Hamilton Home' },
+      Helpers.getLocations(SalesOrderType.repair)
+    );
+  }
+
+  @isTest
+  static void testGetLocationsForAllManager() {
+    Group managerGroup = [
+      SELECT Id
+      FROM Group
+      WHERE DeveloperName = 'Managers_All' AND Type = 'Regular'
+    ];
+
+    insert new GroupMember(
+      GroupId = managerGroup.Id,
+      UserOrGroupId = UserInfo.getUserId()
+    );
+
+    System.assertEquals(null, Helpers.getLocations(SalesOrderType.repair));
+  }
+
+  @isTest
+  static void testGetLocationsForRolexLiason() {
+    Group managerGroup = [
+      SELECT Id
+      FROM Group
+      WHERE DeveloperName = 'Rolex_Liason' AND Type = 'Regular'
+    ];
+
+    insert new GroupMember(
+      GroupId = managerGroup.Id,
+      UserOrGroupId = UserInfo.getUserId()
+    );
+
+    System.assertEquals(null, Helpers.getLocations(SalesOrderType.special));
   }
 }
