@@ -47,3 +47,10 @@ List<InstructionDataModel.InstructionData> instructionData = InstructionControll
 );
 
 System.debug('Instruction data: ' + instructionData);
+
+String messagingUserId = '0PAV9000009iuAzOAI';
+
+List<String> MessagingEndUserIds = new List<Id>();
+MessagingEndUserIds.add(messagingUserId);
+
+EnhancedMessagingService.sendMessage(MessagingEndUserIds);
