@@ -147,3 +147,10 @@ ncl_record_parent_record__c,
 custrecord_repair_comments__c,
 LastModified__c
 FROM nco_repair_comments__c
+
+
+SELECT FIELDS(ALL)
+FROM Log__c
+WHERE CreatedDate = TODAY
+ORDER BY CreatedDate DESC
+LIMIT 200
