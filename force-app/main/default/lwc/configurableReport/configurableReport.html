@@ -1,0 +1,87 @@
+<template>
+  <lightning-card title={title}>
+    <template if:true={isLoading}>
+      <lightning-spinner
+        alternative-text="Loading report"
+        size="medium"
+      ></lightning-spinner>
+    </template>
+
+    <div class="filters">
+      <template for:each={lookupFilters} for:item="filter">
+        <c-lookup-input
+          key={filter.key}
+          data-key={filter.key}
+          label={filter.label}
+          placeholder={filter.placeholder}
+          onsearch={handleLookupSearch}
+          onselect={handleLookupSelect}
+        ></c-lookup-input>
+      </template>
+
+      <template for:each={comboboxFilters} for:item="filter">
+        <lightning-combobox
+          key={filter.key}
+          data-key={filter.key}
+          label={filter.label}
+          value={filter.value}
+          options={filter.options}
+          onchange={handleValueChange}
+        ></lightning-combobox>
+      </template>
+
+      <template for:each={inputFilters} for:item="filter">
+        <lightning-input
+          key={filter.key}
+          data-key={filter.key}
+          type={filter.type}
+          label={filter.label}
+          value={filter.value}
+          checked={filter.value}
+          onchange={handleValueChange}
+        ></lightning-input>
+      </template>
+
+      <template for:each={multiSelectFilters} for:item="filter">
+        <c-multi-select
+          key={filter.key}
+          data-key={filter.key}
+          label={filter.label}
+          options={filter.options}
+          onchange={handleMultiSelectChange}
+        ></c-multi-select>
+      </template>
+    </div>
+
+    <template if:true={hasRows}>
+      <div class="datatable-container">
+        <lightning-datatable
+          key-field="id"
+          data={rows}
+          columns={columns}
+          hide-checkbox-column
+          onsort={handleSort}
+          sorted-by={sortBy}
+          sorted-direction={sortDirection}
+        ></lightning-datatable>
+        <div class="button-container">
+          <lightning-button
+            label="Previous"
+            onclick={previousPage}
+            disabled={isPreviousDisabled}
+          ></lightning-button>
+          <lightning-button
+            label="Next"
+            onclick={nextPage}
+            disabled={isNextDisabled}
+          ></lightning-button>
+        </div>
+      </div>
+    </template>
+    <template if:false={hasRows}>
+      <div class="slds-p-around_medium slds-text-align_center">
+        No data found.
+      </div>
+    </template>
+  </lightning-card>
+</template>

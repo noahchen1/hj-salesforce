@@ -1,0 +1,22 @@
+.filters,
+.datatable-container {
+  margin: 30px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.filters > * {
+  flex: 1 1 30%;
+  box-sizing: border-box;
+}
+
+.button-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 25px 0;
+}
