@@ -13,8 +13,7 @@ public class ReportValidator {
 
   private static final Pattern SELECT_FIELD_PATTERN = Pattern.compile(
     '^([A-Za-z_][A-Za-z0-9_]*' +
-      '(?:\\.[A-Za-z_][A-Za-z0-9_]*)*)' +
-      '(?:\\s+([A-Za-z_][A-Za-z0-9_]*))?$'
+      '(?:\\.[A-Za-z_][A-Za-z0-9_]*)*)$'
   );
 
   public static Schema.SObjectType getObjectType(String objectApiName) {
@@ -98,10 +97,7 @@ public class ReportValidator {
       );
     }
 
-    String alias = field.group(2);
-
-    return validateFieldPath(field.group(1), sourceType) +
-      (alias == null ? '' : ' ' + alias);
+    return validateFieldPath(field.group(1), sourceType);
   }
 
   private static Schema.DescribeFieldResult findRelationship(

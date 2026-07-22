@@ -2,7 +2,7 @@ import { LightningElement, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getUiDefinition from "@salesforce/apex/ReportDefinitionController.getUiDefinition";
 import runReport from "@salesforce/apex/ReportController.run";
-import searchLookup from "@salesforce/apex/ReportLookupController.search";
+import searchLookup from "@salesforce/apex/ReportController.search";
 
 export default class ConfigurableReport extends LightningElement {
   @api reportKey;
