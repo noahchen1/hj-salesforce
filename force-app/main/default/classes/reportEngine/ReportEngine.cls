@@ -19,7 +19,6 @@
 //   'desc'
 // );
 
-
 public with sharing class ReportEngine {
   private static final Integer DEFAULT_PAGE_SIZE = 20;
   private static final Integer MAX_PAGE_SIZE = 200;
@@ -56,6 +55,11 @@ public with sharing class ReportEngine {
     public Integer offsetSize;
   }
 
+  private class QueryParts {
+    private String soql;
+    private Map<String, Object> binds;
+  }
+
   @AuraEnabled(cacheable=true)
   public static ReportPage run(
     String reportKey,
@@ -77,17 +81,20 @@ public with sharing class ReportEngine {
 
     Integer safePageSize = pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
     safePageSize = Math.max(1, Math.min(safePageSize, MAX_PAGE_SIZE));
+
     Integer safeOffset = offsetSize == null ? 0 : Math.max(0, offsetSize);
+    Map<String, Object> safeFilters = null ? new Map<String, Object>() : filters;
 
     try {
       QueryParts parts = buildQuery(
         definition,
-        filters == null ? new Map<String, Object>() : filters,
+        safeFilters,
         safePageSize + 1,
         safeOffset,
         sortBy,
         sortDirection
       );
+
       List<SObject> results = Database.queryWithBinds(
         parts.soql,
         parts.binds,
@@ -99,9 +106,7 @@ public with sharing class ReportEngine {
 
       ReportPage page = new ReportPage();
       page.hasMore = results.size() > safePageSize;
-      page.rows = page.hasMore
-        ? takeFirst(results, safePageSize)
-        : results;
+      page.rows = page.hasMore ? takeFirst(results, safePageSize) : results;
       page.pageSize = safePageSize;
       page.offsetSize = safeOffset;
       return page;
@@ -128,10 +133,12 @@ public with sharing class ReportEngine {
     String sortDirection
   ) {
     Schema.SObjectType sourceType = getSourceType(definition.sourceObject);
+
     List<Object> selectConfig = deserializeList(
       definition.selectFieldsJson,
       'select fields'
     );
+    
     List<String> selectedFields = new List<String>();
     for (Object item : selectConfig) {
       selectedFields.add(
@@ -155,7 +162,7 @@ public with sharing class ReportEngine {
       sourceType,
       'base'
     );
-    
+
     addFilters(
       whereParts,
       binds,
@@ -396,10 +403,5 @@ public with sharing class ReportEngine {
       results.add(source[i]);
     }
     return results;
-  }
-
-  private class QueryParts {
-    private String soql;
-    private Map<String, Object> binds;
   }
 }

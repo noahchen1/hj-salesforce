@@ -1,8 +1,8 @@
 import { LightningElement, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getUiDefinition from "@salesforce/apex/ReportDefinitionController.getUiDefinition";
-import runReport from "@salesforce/apex/ReportEngine.run";
-import searchLookup from "@salesforce/apex/ReportLookupController.search";
+import runReport from "@salesforce/apex/ReportController.run";
+import searchLookup from "@salesforce/apex/ReportCon.search";
 
 export default class ConfigurableReport extends LightningElement {
   @api reportKey;
@@ -85,6 +85,7 @@ export default class ConfigurableReport extends LightningElement {
         sortBy: this.sortBy,
         sortDirection: this.sortDirection
       });
+      
       this.hasMore = page.hasMore;
       this.rows = (page.rows || []).map((row, index) =>
         this.mapRow(row, index)
