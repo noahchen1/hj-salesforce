@@ -111,6 +111,38 @@ public with sharing class FilterDataController {
   }
 
   @AuraEnabled(cacheable=true)
+  public static List<LookupResult> searchGroupCode(String input) {
+    List<LookupResult> results = new List<LookupResult>();
+
+    if (String.isBlank(input)) {
+      return results;
+    }
+
+    String searchPattern = input.trim() + '%';
+
+    try {
+      for (AggregateResult row : [
+        SELECT ncf_item_groupcode__c groupCode
+        FROM breadwinner_ns__BW_Item__c
+        WHERE ncf_item_groupcode__c LIKE :searchPattern
+        GROUP BY ncf_item_groupcode__c
+        ORDER BY ncf_item_groupcode__c
+        LIMIT 10
+      ]) {
+        String groupCode = (String) row.get('groupCode');
+
+        results.add(new LookupResult(groupCode, groupCode));
+      }
+
+      return results;
+    } catch (Exception e) {
+      throw new AuraHandledException(
+        'Unable to search group codes: ' + e.getMessage()
+      );
+    }
+  }
+
+  @AuraEnabled(cacheable=true)
   public static List<LookupResult> searchVendorNum(String input) {
     Set<String> vendorNumSet = new Set<String>();
     List<LookupResult> vendorNums = new List<LookupResult>();

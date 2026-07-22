@@ -8,6 +8,7 @@ import USER_PROFILE_NAME from "@salesforce/schema/User.Profile.Name";
 import initData from "@salesforce/apex/NetSuiteItemsListController.initData";
 import getFilteredNetSuiteItems from "@salesforce/apex/NetSuiteItemsListController.getFilteredNetSuiteItems";
 import searchVendorNum from "@salesforce/apex/FilterDataController.searchVendorNum";
+import searchGroupCode from "@salesforce/apex/FilterDataController.searchGroupCode";
 
 export default class NetSuiteItemsList extends LightningElement {
   get columns() {
@@ -569,7 +570,12 @@ export default class NetSuiteItemsList extends LightningElement {
       `c-lookup-input[data-type="${type}"]`
     );
 
-    const searchFn = searchVendorNum;
+    const searchFn =
+      type === "vendornum"
+        ? searchVendorNum
+        : type === "groupcode"
+          ? searchGroupCode
+          : null;
 
     if (searchKey.length > 1 && searchFn) {
       input.setLoading(true);

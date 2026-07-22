@@ -85,12 +85,21 @@
                 label="Is Serialized">
             </lightning-input>
 
-            <c-searchable-picklist
+            <!-- <c-searchable-picklist
                 label="Group Code"
                 placeholder="Group Code..."
                 options={groupCodeOptions}
                 onchange={handleGroupCodeChange}>
-            </c-searchable-picklist>
+            </c-searchable-picklist> -->
+
+            <c-lookup-input
+                data-type="groupcode"
+                label="Group Code"
+                placeholder="Group Code..."
+                onsearch={handleLookupSearch}
+                onselect={handleLookupSelect}
+                onblur={handleLookupBlur}
+            ></c-lookup-input>
 
             <lightning-combobox
                 label="Division Name"
