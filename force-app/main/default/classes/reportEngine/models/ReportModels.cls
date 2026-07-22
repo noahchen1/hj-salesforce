@@ -1,11 +1,11 @@
 public with sharing class ReportModels {
   public class ReportRequest {
-    String reportKey;
-    Map<String, Object> filters;
-    Integer pageSize;
-    Integer offsetSize;
-    String sortBy;
-    String sortDirection;
+    public String reportKey;
+    public Map<String, Object> filters;
+    public Integer pageSize;
+    public Integer offsetSize;
+    public String sortBy;
+    public String sortDirection;
   }
 
   public class FilterDefinition {

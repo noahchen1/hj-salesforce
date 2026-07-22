@@ -64,7 +64,13 @@ public with sharing class ReportService {
     ReportModels.ReportPage page = new ReportModels.ReportPage();
 
     page.hasMore = rows.size() > pageSize;
-    page.rows = page.hasMore ? rows.subList(0, pageSize) : rows;
+    page.rows = new List<SObject>();
+
+    Integer returnedCount = Math.min(rows.size(), pageSize);
+    for (Integer index = 0; index < returnedCount; index++) {
+      page.rows.add(rows[index]);
+    }
+    
     page.pageSize = pageSize;
     page.offsetSize = offsetSize;
 
