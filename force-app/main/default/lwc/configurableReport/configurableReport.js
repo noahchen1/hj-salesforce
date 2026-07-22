@@ -85,7 +85,7 @@ export default class ConfigurableReport extends LightningElement {
         sortBy: this.sortBy,
         sortDirection: this.sortDirection
       });
-      
+
       this.hasMore = page.hasMore;
       this.rows = (page.rows || []).map((row, index) =>
         this.mapRow(row, index)
@@ -110,11 +110,27 @@ export default class ConfigurableReport extends LightningElement {
     const key = event.target.dataset.key;
     const searchText = event.detail.searchKey;
     const input = event.target;
-    if (searchText.length < 2) {
-      input.setResults([]);
+
+    if (!searchText) {
+      const filter = this.filters.find((item) => item.key === key);
+
+      if (filter?.value) {
+        this.setFilterValue(key, "");
+      } else {
+        input.setResults([]);
+      }
+
       return;
     }
+
+    if (searchText.length < 2) {
+      input.setResults([]);
+
+      return;
+    }
+
     input.setLoading(true);
+    
     try {
       input.setResults(
         await searchLookup({
@@ -180,12 +196,14 @@ export default class ConfigurableReport extends LightningElement {
     delete result.source;
     delete result.urlTemplate;
     delete result.labelSource;
+
     if (column.type === "url" && column.labelSource) {
       result.typeAttributes = {
         label: { fieldName: `${column.fieldName}Label` },
         target: "_blank"
       };
     }
+
     return result;
   }
 
@@ -199,6 +217,7 @@ export default class ConfigurableReport extends LightningElement {
           /{{([^}]+)}}/g,
           (_, path) => this.readPath(sourceRow, path) || ""
         );
+
         row[`${column.fieldName}Label`] =
           this.readPath(sourceRow, column.labelSource) || "";
       } else {

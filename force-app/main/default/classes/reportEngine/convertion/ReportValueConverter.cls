@@ -7,17 +7,60 @@ public class ReportValueConverter {
     return convertSingle(value, valueType);
   }
 
-  private static List<Object> convertList(
-    List<Object> values,
-    String valueType
-  ) {
-    List<Object> result = new List<Object>();
+  private static Object convertList(List<Object> values, String valueType) {
+    String normalizedType = String.isBlank(valueType)
+      ? 'string'
+      : valueType.trim().toLowerCase();
 
-    for (Object value : values) {
-      result.add(convertSingle(value, valueType));
+    switch on normalizedType {
+      when 'date' {
+        List<Date> result = new List<Date>();
+        for (Object value : values)
+          result.add(Date.valueOf(String.valueOf(value)));
+        return result;
+      }
+      when 'datetime' {
+        List<Datetime> result = new List<Datetime>();
+        for (Object value : values)
+          result.add(Datetime.valueOf(String.valueOf(value)));
+        return result;
+      }
+      when 'integer' {
+        List<Integer> result = new List<Integer>();
+        for (Object value : values)
+          result.add(Integer.valueOf(String.valueOf(value)));
+        return result;
+      }
+      when 'long' {
+        List<Long> result = new List<Long>();
+        for (Object value : values)
+          result.add(Long.valueOf(String.valueOf(value)));
+        return result;
+      }
+      when 'decimal', 'currency', 'percent' {
+        List<Decimal> result = new List<Decimal>();
+        for (Object value : values)
+          result.add(Decimal.valueOf(String.valueOf(value)));
+        return result;
+      }
+      when 'boolean' {
+        List<Boolean> result = new List<Boolean>();
+        for (Object value : values)
+          result.add((Boolean) convertSingle(value, normalizedType));
+        return result;
+      }
+      when 'id', 'string' {
+        List<String> result = new List<String>();
+        for (Object value : values)
+          result.add(String.valueOf(value));
+        return result;
+      }
+      when else {
+        throw new AuraHandledException(
+          'Unsupported report filter value type: ' + valueType
+        );
+      }
     }
-
-    return result;
   }
 
   private static Object convertSingle(Object value, String valueType) {
@@ -45,7 +88,9 @@ public class ReportValueConverter {
         String normalized = String.valueOf(value).toLowerCase();
 
         if (normalized != 'true' && normalized != 'false') {
-          throw new AuraHandledException('Invalid Boolean report filter value.');
+          throw new AuraHandledException(
+            'Invalid Boolean report filter value.'
+          );
         }
 
         return normalized == 'true';
