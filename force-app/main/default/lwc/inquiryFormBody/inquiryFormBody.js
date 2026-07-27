@@ -12,7 +12,7 @@ export default class InquiryFormBody extends LightningElement {
   @api accountId;
 
   customer = "";
-  date = new Date().toISOString();
+  date = new Date().toLocaleDateString("en-CA");
   salesRep1 = "";
   salesRep2 = "";
   location = "";

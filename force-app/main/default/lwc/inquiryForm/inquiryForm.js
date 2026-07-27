@@ -132,7 +132,9 @@ export default class InquiryForm extends NavigationMixin(LightningElement) {
 
   async executeSave(payload) {
     try {
-      const soNsInternalId = await saveSalesOrder(payload);
+      const soNsInternalId = await saveSalesOrder({
+        saveParamJson: JSON.stringify(payload)
+      });
 
       this.soNsInternalId = soNsInternalId;
 
