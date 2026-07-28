@@ -50,7 +50,7 @@ public with sharing class InstructionService {
     List<nco_repair_instructions__c> instructionRows = [
       SELECT
         InternalId__c,
-        OwnerName__c,
+        Owner.Name,
         nid_record1__c,
         custrecord_instruction_comment__c,
         LastModified__c
@@ -65,8 +65,8 @@ public with sharing class InstructionService {
     Set<String> ownerNames = new Set<String>();
 
     for (nco_repair_instructions__c row : instructionRows) {
-      if (String.isNotBlank(row.OwnerName__c)) {
-        ownerNames.add(row.OwnerName__c);
+      if (String.isNotBlank(row.Owner.Name)) {
+        ownerNames.add(row.Owner.Name);
       }
     }
 
@@ -84,12 +84,12 @@ public with sharing class InstructionService {
 
     for (nco_repair_instructions__c row : instructionRows) {
       breadwinner_ns__BW_Employee__c employee = employeesByName.get(
-        row.OwnerName__c
+        row.Owner.Name
       );
 
       if (employee == null) {
         throw new AuraHandledException(
-          'Could not find NetSuite employee: ' + row.OwnerName__c
+          'Could not find NetSuite employee: ' + row.Owner.Name
         );
       }
 

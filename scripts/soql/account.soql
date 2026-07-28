@@ -155,3 +155,17 @@ WHERE CreatedDate = TODAY
 ORDER BY CreatedDate DESC
 LIMIT 200
 
+
+SELECT
+InternalId__c,
+Owner.Name,
+nid_record1__c,
+custrecord_instruction_comment__c,
+LastModified__c
+FROM nco_repair_instructions__c
+WHERE ncl_record1__c = 'a0hWJ0000076z3BYAQ'
+
+SELECT breadwinner_ns__InternalId__c, Name
+FROM breadwinner_ns__BW_Employee__c
+WHERE Name = 'John Krukowski'
+

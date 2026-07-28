@@ -192,6 +192,10 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
     return this.template.querySelector("c-sales-order-attachments");
   }
 
+  get isSalesOrder() {
+    return this.formState.orderType === "sales";
+  }
+
   get isSpecialOrder() {
     return this.formState.orderType === "special";
   }
