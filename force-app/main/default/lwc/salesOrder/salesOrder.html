@@ -21,6 +21,10 @@
         <div class="title">Special Order Form</div>
       </template>
 
+      <template if:true={isRepairOrder}>
+        <div class="title">Repair Order Form</div>
+      </template>
+
       <div class="btn-container">
         <lightning-button
           label="Save"

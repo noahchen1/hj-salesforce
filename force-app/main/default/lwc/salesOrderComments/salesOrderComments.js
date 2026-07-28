@@ -139,12 +139,19 @@ export default class SalesOrderComments extends LightningElement {
     clearTimeout(this.debounceTimer);
 
     this.debounceTimer = setTimeout(() => {
-      row[field] = value;
-      row.dateLastModified = new Date().toISOString();
+      if (value.length > 0) {
+        row[field] = value;
+        row.dateLastModified = new Date().toISOString();
 
-      if (this.runningUserName && this.runningUserId) {
-        row.nsEmployee = this.runningUserName;
-        row.nsEmployeeId = this.runningUserId;
+        if (this.runningUserName && this.runningUserId) {
+          row.nsEmployee = this.runningUserName;
+          row.nsEmployeeId = this.runningUserId;
+        }
+      } else {
+        updatedRows[index] = {
+          ...row,
+          ...BASE_ROW
+        };
       }
 
       this.rows = updatedRows;

@@ -154,3 +154,4 @@ FROM Log__c
 WHERE CreatedDate = TODAY
 ORDER BY CreatedDate DESC
 LIMIT 200
+
