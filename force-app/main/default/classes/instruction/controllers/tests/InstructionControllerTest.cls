@@ -52,14 +52,36 @@ private class InstructionControllerTest {
     );
     insert salesOrder;
 
-    insert new breadwinner_ns__BW_Employee__c(
-      Name = 'Instruction Employee',
+    breadwinner_ns__BW_Employee__c employee = new breadwinner_ns__BW_Employee__c(
       breadwinner_ns__InternalId__c = 'EMP-INSTRUCTION-001'
     );
+    insert employee;
+    employee = [
+      SELECT Name
+      FROM breadwinner_ns__BW_Employee__c
+      WHERE Id = :employee.Id
+    ];
+
+    User instructionOwner = new User(
+      Alias = 'insowner',
+      Email = 'instruction-owner@example.com',
+      EmailEncodingKey = 'UTF-8',
+      LastName = employee.Name,
+      LanguageLocaleKey = 'en_US',
+      LocaleSidKey = 'en_US',
+      ProfileId = UserInfo.getProfileId(),
+      TimeZoneSidKey = 'America/New_York',
+      UserName = 'instruction-owner-' +
+        DateTime.now().getTime() +
+        '@example.com'
+    );
+    System.runAs(new User(Id = UserInfo.getUserId())) {
+      insert instructionOwner;
+    }
 
     nco_repair_instructions__c instruction = new nco_repair_instructions__c(
       InternalId__c = 'INSTR-INSTRUCTION-001',
-      OwnerName__c = 'Instruction Employee',
+      OwnerId = instructionOwner.Id,
       nid_record1__c = 'SO-INSTRUCTION-001',
       custrecord_instruction_comment__c = 'Inspect clasp before delivery.',
       ncl_record1__c = salesOrder.Id
@@ -75,7 +97,7 @@ private class InstructionControllerTest {
     System.assertEquals(1, result.size());
     System.assertEquals('INSTR-INSTRUCTION-001', result[0].internalId);
     System.assertEquals('EMP-INSTRUCTION-001', result[0].nsEmployeeId);
-    System.assertEquals('Instruction Employee', result[0].nsEmployeeName);
+    System.assertEquals(employee.Name, result[0].nsEmployeeName);
     System.assertEquals('SO-INSTRUCTION-001', result[0].nsSoId);
     System.assertEquals(
       'Inspect clasp before delivery.',

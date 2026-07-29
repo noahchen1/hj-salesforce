@@ -23,4 +23,30 @@ private class NsFileMapperTest {
       result.fileUrl
     );
   }
+
+  @isTest
+  static void deserializeUploadSourceFile_missingJson() {
+    try {
+      NsFileMapper.deserializeUploadSourceFile('   ');
+      System.assert(false, 'Expected missing file metadata JSON to throw');
+    } catch (AuraHandledException e) {
+      System.assertEquals(
+        'Salesforce file metadata JSON is required.',
+        e.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void deserializeUploadSourceFile_invalidJson() {
+    try {
+      NsFileMapper.deserializeUploadSourceFile('not valid json');
+      System.assert(false, 'Expected invalid file metadata JSON to throw');
+    } catch (AuraHandledException e) {
+      System.assert(
+        e.getMessage().startsWith('Invalid file metadate payload:'),
+        'Unexpected error: ' + e.getMessage()
+      );
+    }
+  }
 }

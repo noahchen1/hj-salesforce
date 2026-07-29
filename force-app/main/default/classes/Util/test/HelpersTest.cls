@@ -171,15 +171,27 @@ private class HelpersTest {
 
   @isTest
   static void testGetLocations() {
-    System.assertEquals(null, Helpers.getLocations(SalesOrderType.sales));
+    User locationUser = new User(
+      Alias = 'locuser',
+      Email = 'helpers-location@example.com',
+      EmailEncodingKey = 'UTF-8',
+      LastName = 'Helpers Location',
+      LanguageLocaleKey = 'en_US',
+      LocaleSidKey = 'en_US',
+      Location__c = 'Worth Ave',
+      ProfileId = UserInfo.getProfileId(),
+      TimeZoneSidKey = 'America/New_York',
+      UserName = 'helpers-location-' + DateTime.now().getTime() + '@example.com'
+    );
+    insert locationUser;
 
-    User currentUser = [
-      SELECT Location__c
-      FROM User
-      WHERE Id = :UserInfo.getUserId()
-    ];
-
-    System.assertEquals(new Set<String>{'Worth Ave'}, Helpers.getLocations(SalesOrderType.repair));
+    System.runAs(locationUser) {
+      System.assertEquals(null, Helpers.getLocations(SalesOrderType.sales));
+      System.assertEquals(
+        new Set<String>{ 'Worth Ave' },
+        Helpers.getLocations(SalesOrderType.repair)
+      );
+    }
   }
 
   @isTest

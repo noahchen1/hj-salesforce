@@ -52,14 +52,34 @@ private class CommentControllerTest {
     );
     insert salesOrder;
 
-    insert new breadwinner_ns__BW_Employee__c(
-      Name = 'Comment Employee',
+    breadwinner_ns__BW_Employee__c employee = new breadwinner_ns__BW_Employee__c(
       breadwinner_ns__InternalId__c = 'EMP-COMMENT-001'
     );
+    insert employee;
+    employee = [
+      SELECT Name
+      FROM breadwinner_ns__BW_Employee__c
+      WHERE Id = :employee.Id
+    ];
+
+    User commentOwner = new User(
+      Alias = 'cmtowner',
+      Email = 'comment-owner@example.com',
+      EmailEncodingKey = 'UTF-8',
+      LastName = employee.Name,
+      LanguageLocaleKey = 'en_US',
+      LocaleSidKey = 'en_US',
+      ProfileId = UserInfo.getProfileId(),
+      TimeZoneSidKey = 'America/New_York',
+      UserName = 'comment-owner-' + DateTime.now().getTime() + '@example.com'
+    );
+    System.runAs(new User(Id = UserInfo.getUserId())) {
+      insert commentOwner;
+    }
 
     nco_repair_comments__c comment = new nco_repair_comments__c(
       InternalId__c = 'COMMENT-001',
-      OwnerName__c = 'Comment Employee',
+      OwnerId = commentOwner.Id,
       nid_record_parent_record__c = 'SO-COMMENT-001',
       custrecord_repair_comments__c = 'Repair comment text',
       ncl_record_parent_record__c = salesOrder.Id
@@ -75,7 +95,7 @@ private class CommentControllerTest {
     System.assertEquals(1, result.size());
     System.assertEquals('COMMENT-001', result[0].internalId);
     System.assertEquals('EMP-COMMENT-001', result[0].nsEmployeeId);
-    System.assertEquals('Comment Employee', result[0].nsEmployeeName);
+    System.assertEquals(employee.Name, result[0].nsEmployeeName);
     System.assertEquals('SO-COMMENT-001', result[0].nsSoId);
     System.assertEquals('Repair comment text', result[0].comment);
   }
