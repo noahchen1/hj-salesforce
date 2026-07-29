@@ -221,16 +221,20 @@ export default class SalesOrderAddress extends LightningElement {
 
     this.selectedShippingAddress =
       this.previousAddressSnapshot.selectedShippingAddress;
-    this.selectedBillingAddress =
-      this.previousAddressSnapshot.selectedBillingAddress;
     this.shippingAddress = this.previousAddressSnapshot.shippingAddress;
-    this.billingAddress = this.previousAddressSnapshot.billingAddress;
     this.shippingAddressState = {
       ...this.previousAddressSnapshot.shippingAddressState
     };
-    this.billingAddressState = {
-      ...this.previousAddressSnapshot.billingAddressState
-    };
+
+    if (isBlank(this.selectedBillingAddress)) {
+      this.selectedBillingAddress =
+        this.previousAddressSnapshot.selectedBillingAddress;
+      this.billingAddress = this.previousAddressSnapshot.billingAddress;
+      this.billingAddressState = {
+        ...this.previousAddressSnapshot.billingAddressState
+      };
+    }
+
     this.previousAddressSnapshot = null;
     this.emitAddressStateChange();
   }
@@ -368,9 +372,9 @@ export default class SalesOrderAddress extends LightningElement {
     fields: ADDRESS_FIELDS
   })
   wiredBillingAddressData({ data, error }) {
-    if (this.isInStorePickup) {
-      return;
-    }
+    // if (this.isInStorePickup) {
+    //   return;
+    // }
 
     if (data) {
       this.billingAddressState = buildStateFromRecord(data);
@@ -389,10 +393,6 @@ export default class SalesOrderAddress extends LightningElement {
   }
 
   handleComboboxChange(e) {
-    if (this.isInStorePickup) {
-      return;
-    }
-
     this[e.target.name] = e.target.value;
     this.emitAddressStateChange();
   }
