@@ -830,7 +830,7 @@ export default class SalesOrder extends NavigationMixin(LightningElement) {
           .map(async (file) => {
             const fileId = await uploadFile({
               caption: "Uploaded from salesforce",
-              folderInternalId: "29448",
+              folderInternalId: "265",
               fileDataJson: JSON.stringify(file)
             });
 

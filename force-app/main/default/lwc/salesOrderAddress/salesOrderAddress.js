@@ -167,6 +167,10 @@ export default class SalesOrderAddress extends LightningElement {
     return this.orderType === "special";
   }
 
+  get isRepairOrder() {
+    return this.orderType === "repair";
+  }
+
   @api
   get selectedLocation() {
     return this.location;
@@ -175,7 +179,7 @@ export default class SalesOrderAddress extends LightningElement {
   set selectedLocation(value) {
     this.location = value;
 
-    if (this.isSpecialOrder && value) {
+    if ((this.isSpecialOrder || this.isRepairOrder) && value) {
       this.isInStorePickup = true;
       this.applyInStorePickupAddress();
     }
