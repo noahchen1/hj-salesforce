@@ -160,8 +160,8 @@ private class SalesOrderPayloadBuilderTest {
   }
 
   @isTest
-  static void buildSaveRequest_nonSpecialOrderOmitsDisplayName() {
-    for (String orderType : new List<String>{ 'sales', 'repair', 'inquiry' }) {
+  static void buildSaveRequest_salesAndRepairOrdersOmitDisplayName() {
+    for (String orderType : new List<String>{ 'sales', 'repair' }) {
       SalesOrderDataModel.LineItem item = new SalesOrderDataModel.LineItem();
       item.item = '456';
       item.displayName = 'Display name should not be sent';
@@ -187,6 +187,33 @@ private class SalesOrderPayloadBuilderTest {
         'Display Name should not be sent for ' + orderType + ' orders'
       );
     }
+  }
+
+  @isTest
+  static void buildSaveRequest_inquiryOrderIncludesDisplayName() {
+    SalesOrderDataModel.LineItem item = new SalesOrderDataModel.LineItem();
+    item.item = '213841';
+    item.displayName = 'Inquiry item display name';
+
+    Map<String, Object> req = SalesOrderPayloadBuilder.buildSaveRequest(
+      baseParams('inquiry'),
+      null,
+      null,
+      new List<SalesOrderDataModel.LineItem>{ item },
+      'INQ-1',
+      false
+    );
+
+    List<Object> itemObjs = (List<Object>) ((Map<String, Object>) req.get(
+        'itemList'
+      ))
+      .get('item');
+    Map<String, Object> itemMap = (Map<String, Object>) itemObjs[0];
+
+    System.assertEquals(
+      'Inquiry item display name',
+      itemMap.get('description')
+    );
   }
 
   @isTest

@@ -581,7 +581,7 @@ public with sharing class SalesOrderPayloadBuilder {
       List<Object> customFields = new List<Object>();
 
       if (
-        orderTypeContext.isSpecialOrder &&
+        (orderTypeContext.isSpecialOrder || orderTypeContext.isInquiryOrder) &&
         String.isNotBlank(lineItem.displayName)
       ) {
         itemMap.put('description', lineItem.displayName);
