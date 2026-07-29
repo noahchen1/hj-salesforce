@@ -402,6 +402,7 @@ public with sharing class SalesOrderMapper {
       dto.quantity = it.quantity != null ? String.valueOf(it.quantity) : null;
       dto.rate = it.rate;
       dto.amount = it.amount != null ? String.valueOf(it.amount) : null;
+      dto.displayName = it.description;
       dto.line = it.line;
       dto.quantityAvailable = it.quantityAvailable != null
         ? String.valueOf(it.quantityAvailable)
@@ -459,7 +460,9 @@ public with sharing class SalesOrderMapper {
       }
 
       if (cf.scriptId == 'custcol_itemdisname') {
-        target.displayName = cf.value;
+        if (String.isBlank(target.displayName)) {
+          target.displayName = cf.value;
+        }
       }
 
       if (cf.scriptId == 'custcol_itemtypee') {

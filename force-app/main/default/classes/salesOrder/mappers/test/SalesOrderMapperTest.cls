@@ -288,6 +288,7 @@ private class SalesOrderMapperTest {
     item.quantity = 2;
     item.amount = 100;
     item.rate = '50';
+    item.description = 'Standard Display Name';
     item.line = '1';
     SalesOrderResModel.CustomField licf = new SalesOrderResModel.CustomField();
     licf.scriptId = 'custcol_special_sku';
@@ -399,7 +400,10 @@ private class SalesOrderMapperTest {
     System.assertEquals('PO-7788', mapped.lineItems[0].specialOrderVendorNum);
     System.assertEquals('123.45', mapped.lineItems[0].quotedPrice);
     System.assertEquals('2', mapped.lineItems[0].isRepairNeeded);
-    System.assertEquals('Custom Display Name', mapped.lineItems[0].displayName);
+    System.assertEquals(
+      'Standard Display Name',
+      mapped.lineItems[0].displayName
+    );
     System.assertEquals('Watch', mapped.lineItems[0].itemType);
   }
 }

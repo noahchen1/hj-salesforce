@@ -106,6 +106,7 @@ private class SalesOrderPayloadBuilderTest {
 
     SalesOrderDataModel.LineItem item = new SalesOrderDataModel.LineItem();
     item.item = '456';
+    item.displayName = 'Special order display name';
     item.specialOrderItem = 'SOI';
     item.specialOrderVendorNum = 'VNUM';
     item.quotedPrice = '99.99';
@@ -148,10 +149,44 @@ private class SalesOrderPayloadBuilderTest {
       '456',
       ((Map<String, Object>) itemMap.get('item')).get('internalId')
     );
+    System.assertEquals(
+      'Special order display name',
+      itemMap.get('description')
+    );
     System.assert(
       itemMap.containsKey('customFieldList'),
       'Special order item should have customFieldList'
     );
+  }
+
+  @isTest
+  static void buildSaveRequest_nonSpecialOrderOmitsDisplayName() {
+    for (String orderType : new List<String>{ 'sales', 'repair', 'inquiry' }) {
+      SalesOrderDataModel.LineItem item = new SalesOrderDataModel.LineItem();
+      item.item = '456';
+      item.displayName = 'Display name should not be sent';
+
+      Map<String, Object> req = SalesOrderPayloadBuilder.buildSaveRequest(
+        baseParams(orderType),
+        null,
+        null,
+        new List<SalesOrderDataModel.LineItem>{ item },
+        null,
+        false
+      );
+
+      List<Object> itemObjs = (List<Object>) ((Map<String, Object>) req.get(
+          'itemList'
+        ))
+        .get('item');
+      Map<String, Object> itemMap = (Map<String, Object>) itemObjs[0];
+
+      System.assertEquals(
+        false,
+        itemMap.containsKey('description'),
+        'Display Name should not be sent for ' + orderType + ' orders'
+      );
+    }
   }
 
   @isTest

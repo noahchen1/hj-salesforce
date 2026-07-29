@@ -69,6 +69,10 @@ export default class SalesOrderLineItems extends LightningElement {
     return this.orderType === "special";
   }
 
+  get isDisplayNameReadOnly() {
+    return !this.isSpecialOrder;
+  }
+
   get isRepairOrder() {
     return this.orderType === "repair";
   }
@@ -559,12 +563,19 @@ export default class SalesOrderLineItems extends LightningElement {
 
     const results = await getValue({
       recordName: "breadwinner_ns__BW_Item__c",
-      fieldNames: ["breadwinner_ns__VendorName__c", "Base_Price__c"],
+      fieldNames: [
+        "breadwinner_ns__VendorName__c",
+        "Base_Price__c",
+        "breadwinner_ns__DisplayName__c"
+      ],
       recordId: selectedId
     });
 
+    console.log(JSON.stringify(results));
+
     const vendorNum = results.breadwinner_ns__VendorName__c;
     const basePrice = results.Base_Price__c;
+    const displayName = results.breadwinner_ns__DisplayName__c;
     const updates = { specialOrderItem: selectedName };
 
     if (this.hasValue(vendorNum)) {
@@ -578,6 +589,10 @@ export default class SalesOrderLineItems extends LightningElement {
       updates.amount = basePrice;
     }
 
+    if (this.hasValue(displayName)) {
+      updates.displayName = displayName;
+    }
+
     this.updateRowFields(index, updates);
   }
 
@@ -588,12 +603,13 @@ export default class SalesOrderLineItems extends LightningElement {
 
     const results = await getValue({
       recordName: "breadwinner_ns__BW_Item__c",
-      fieldNames: ["Name", "Base_Price__c"],
+      fieldNames: ["Name", "Base_Price__c", "breadwinner_ns__DisplayName__c"],
       recordId: selectedId
     });
 
     const name = results.Name;
     const basePrice = results.Base_Price__c;
+    const displayName = results.breadwinner_ns__DisplayName__c;
     const updates = { specialOrderVendorNum: selectedName };
 
     if (this.hasValue(name)) {
@@ -605,6 +621,10 @@ export default class SalesOrderLineItems extends LightningElement {
       updates.quotedPrice = basePrice;
       updates.rate = basePrice;
       updates.amount = basePrice;
+    }
+
+    if (this.hasValue(displayName)) {
+      updates.displayName = displayName;
     }
 
     this.updateRowFields(index, updates);
