@@ -141,42 +141,47 @@ public with sharing class Helpers {
     }
 
     Id userId = UserInfo.getUserId();
+    Set<String> relevantGroupNames = new Set<String>{
+      'Managers_All',
+      'Managers_New_Jersey',
+      'Rolex_Liason'
+    };
 
-    Boolean isNjManager =
-      [
-        SELECT COUNT()
-        FROM GroupMember
-        WHERE
-          Group.Type = 'Regular'
-          AND Group.DeveloperName = 'Managers_New_Jersey'
-          AND UserOrGroupId = :userId
-      ] > 0;
+    if (type == SalesOrderType.repair) {
+      relevantGroupNames.addAll(
+        new Set<String>{ 'Service_Managers_NJ', 'Service_Manager_PBG' }
+      );
+    }
 
-    Boolean isAllManager =
-      [
-        SELECT COUNT()
-        FROM GroupMember
-        WHERE
-          Group.Type = 'Regular'
-          AND Group.DeveloperName = 'Managers_All'
-          AND UserOrGroupId = :userId
-      ] > 0;
+    Set<String> userGroupNames = getUserGroupNames(userId, relevantGroupNames);
 
-    Boolean isRolexLiason =
-      [
-        SELECT COUNT()
-        FROM GroupMember
-        WHERE
-          Group.Type = 'Regular'
-          AND Group.DeveloperName = 'Rolex_Liason'
-          AND UserOrGroupId = :userId
-      ] > 0;
+    if (type == SalesOrderType.repair) {
+      Set<String> serviceLocations = new Set<String>();
 
-    if (isNjManager) {
+      if (userGroupNames.contains('Service_Managers_NJ')) {
+        serviceLocations.addAll(
+          new Set<String>{ 'H1912', 'Princeton', 'Hamilton Home' }
+        );
+      }
+
+      if (userGroupNames.contains('Service_Manager_PBG')) {
+        serviceLocations.add('Palm Beach Gardens');
+      }
+
+      if (!serviceLocations.isEmpty()) {
+        return serviceLocations;
+      }
+    }
+
+    if (userGroupNames.contains('Managers_New_Jersey')) {
       return new Set<String>{ 'H1912', 'Princeton', 'Hamilton Home' };
     }
 
-    if (isAllManager || (type == SalesOrderType.special && isRolexLiason)) {
+    if (
+      userGroupNames.contains('Managers_All') ||
+      (type == SalesOrderType.special &&
+      userGroupNames.contains('Rolex_Liason'))
+    ) {
       return null;
     }
 
@@ -188,5 +193,92 @@ public with sharing class Helpers {
     ];
 
     return new Set<String>{ currentUser.Location__c };
+  }
+
+  //   public static Set<String> getLocations(SalesOrderType type) {
+  //   if (type != SalesOrderType.repair && type != SalesOrderType.special) {
+  //     return null;
+  //   }
+
+  //   Id userId = UserInfo.getUserId();
+
+  //   Boolean isNjManager =
+  //     [
+  //       SELECT COUNT()
+  //       FROM GroupMember
+  //       WHERE
+  //         Group.Type = 'Regular'
+  //         AND Group.DeveloperName = 'Managers_New_Jersey'
+  //         AND UserOrGroupId = :userId
+  //     ] > 0;
+
+  //   Boolean isAllManager =
+  //     [
+  //       SELECT COUNT()
+  //       FROM GroupMember
+  //       WHERE
+  //         Group.Type = 'Regular'
+  //         AND Group.DeveloperName = 'Managers_All'
+  //         AND UserOrGroupId = :userId
+  //     ] > 0;
+
+  //   Boolean isRolexLiason =
+  //     [
+  //       SELECT COUNT()
+  //       FROM GroupMember
+  //       WHERE
+  //         Group.Type = 'Regular'
+  //         AND Group.DeveloperName = 'Rolex_Liason'
+  //         AND UserOrGroupId = :userId
+  //     ] > 0;
+
+  //   if (isNjManager) {
+  //     return new Set<String>{ 'H1912', 'Princeton', 'Hamilton Home' };
+  //   }
+
+  //   if (isAllManager || (type == SalesOrderType.special && isRolexLiason)) {
+  //     return null;
+  //   }
+
+  //   User currentUser = [
+  //     SELECT Location__c
+  //     FROM User
+  //     WHERE Id = :userId
+  //     LIMIT 1
+  //   ];
+
+  //   return new Set<String>{ currentUser.Location__c };
+  // }
+
+  private static Set<String> getUserGroupNames(
+    Id userId,
+    Set<String> relevantGroupNames
+  ) {
+    Set<String> groupNames = new Set<String>();
+    Set<Id> checkedMemberIds = new Set<Id>();
+    Set<Id> memberIdsToCheck = new Set<Id>{ userId };
+
+    while (!memberIdsToCheck.isEmpty()) {
+      checkedMemberIds.addAll(memberIdsToCheck);
+      Set<Id> parentGroupIds = new Set<Id>();
+
+      for (GroupMember membership : [
+        SELECT GroupId, Group.DeveloperName
+        FROM GroupMember
+        WHERE Group.Type = 'Regular' AND UserOrGroupId IN :memberIdsToCheck
+      ]) {
+        if (relevantGroupNames.contains(membership.Group.DeveloperName)) {
+          groupNames.add(membership.Group.DeveloperName);
+        }
+
+        if (!checkedMemberIds.contains(membership.GroupId)) {
+          parentGroupIds.add(membership.GroupId);
+        }
+      }
+
+      memberIdsToCheck = parentGroupIds;
+    }
+
+    return groupNames;
   }
 }

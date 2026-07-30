@@ -196,52 +196,234 @@ private class HelpersTest {
 
   @isTest
   static void testGetLocationsForNjManager() {
-    Group managerGroup = [
-      SELECT Id
-      FROM Group
-      WHERE DeveloperName = 'Managers_New_Jersey' AND Type = 'Regular'
-    ];
+    User locationUser = createLocationUser('njmgr', 'Worth Ave');
+    Group managerGroup = getOrCreateGroup(
+      'Managers - New Jersey',
+      'Managers_New_Jersey'
+    );
 
     insert new GroupMember(
       GroupId = managerGroup.Id,
-      UserOrGroupId = UserInfo.getUserId()
+      UserOrGroupId = locationUser.Id
     );
 
-    System.assertEquals(
-      new Set<String>{ 'H1912', 'Princeton', 'Hamilton Home' },
-      Helpers.getLocations(SalesOrderType.repair)
+    System.runAs(locationUser) {
+      System.assertEquals(
+        new Set<String>{ 'H1912', 'Princeton', 'Hamilton Home' },
+        Helpers.getLocations(SalesOrderType.repair)
+      );
+    }
+  }
+
+  @isTest
+  static void testGetLocationsForNjServiceManager() {
+    User locationUser = createLocationUser('njsvc', 'Worth Ave');
+    Group managerGroup = getOrCreateGroup(
+      'Service Managers - NJ',
+      'Service_Managers_NJ'
     );
+
+    insert new GroupMember(
+      GroupId = managerGroup.Id,
+      UserOrGroupId = locationUser.Id
+    );
+
+    System.runAs(locationUser) {
+      System.assertEquals(
+        new Set<String>{ 'H1912', 'Princeton', 'Hamilton Home' },
+        Helpers.getLocations(SalesOrderType.repair)
+      );
+    }
+  }
+
+  @isTest
+  static void testGetLocationsForPbgServiceManager() {
+    User locationUser = createLocationUser('pbgsvc', 'Worth Ave');
+    Group managerGroup = getOrCreateGroup(
+      'Service Manager - PBG',
+      'Service_Manager_PBG'
+    );
+
+    insert new GroupMember(
+      GroupId = managerGroup.Id,
+      UserOrGroupId = locationUser.Id
+    );
+
+    System.runAs(locationUser) {
+      System.assertEquals(
+        new Set<String>{ 'Palm Beach Gardens' },
+        Helpers.getLocations(SalesOrderType.repair)
+      );
+    }
+  }
+
+  @isTest
+  static void testGetLocationsCombinesServiceManagerGroups() {
+    User locationUser = createLocationUser('multisvc', 'Worth Ave');
+    Group njManagerGroup = getOrCreateGroup(
+      'Service Managers - NJ',
+      'Service_Managers_NJ'
+    );
+    Group pbgManagerGroup = getOrCreateGroup(
+      'Service Manager - PBG',
+      'Service_Manager_PBG'
+    );
+
+    insert new List<GroupMember>{
+      new GroupMember(
+        GroupId = njManagerGroup.Id,
+        UserOrGroupId = locationUser.Id
+      ),
+      new GroupMember(
+        GroupId = pbgManagerGroup.Id,
+        UserOrGroupId = locationUser.Id
+      )
+    };
+
+    System.runAs(locationUser) {
+      System.assertEquals(
+        new Set<String>{
+          'H1912',
+          'Princeton',
+          'Hamilton Home',
+          'Palm Beach Gardens'
+        },
+        Helpers.getLocations(SalesOrderType.repair)
+      );
+    }
+  }
+
+  @isTest
+  static void testGetLocationsForNestedNjServiceManager() {
+    User locationUser = createLocationUser('nestednj', 'Worth Ave');
+    Group serviceManagerGroup = getOrCreateGroup(
+      'Service Managers - NJ',
+      'Service_Managers_NJ'
+    );
+    Group allManagerGroup = getOrCreateGroup('Managers - All', 'Managers_All');
+
+    ensureGroupMembership(serviceManagerGroup.Id, allManagerGroup.Id);
+    insert new GroupMember(
+      GroupId = allManagerGroup.Id,
+      UserOrGroupId = locationUser.Id
+    );
+
+    System.runAs(locationUser) {
+      System.assertEquals(
+        new Set<String>{ 'H1912', 'Princeton', 'Hamilton Home' },
+        Helpers.getLocations(SalesOrderType.repair)
+      );
+    }
+  }
+
+  @isTest
+  static void testGetLocationsForNestedPbgServiceManager() {
+    User locationUser = createLocationUser('nestedpb', 'Worth Ave');
+    Group serviceManagerGroup = getOrCreateGroup(
+      'Service Manager - PBG',
+      'Service_Manager_PBG'
+    );
+    Group pbgManagerGroup = getOrCreateGroup(
+      'Managers - Palm Beach Gardens',
+      'Managers_Palm_Beach_Gardens'
+    );
+
+    ensureGroupMembership(serviceManagerGroup.Id, pbgManagerGroup.Id);
+    insert new GroupMember(
+      GroupId = pbgManagerGroup.Id,
+      UserOrGroupId = locationUser.Id
+    );
+
+    System.runAs(locationUser) {
+      System.assertEquals(
+        new Set<String>{ 'Palm Beach Gardens' },
+        Helpers.getLocations(SalesOrderType.repair)
+      );
+    }
   }
 
   @isTest
   static void testGetLocationsForAllManager() {
-    Group managerGroup = [
-      SELECT Id
-      FROM Group
-      WHERE DeveloperName = 'Managers_All' AND Type = 'Regular'
-    ];
+    User locationUser = createLocationUser('allonly', 'Worth Ave');
+    Group managerGroup = getOrCreateGroup('Managers - All', 'Managers_All');
 
     insert new GroupMember(
       GroupId = managerGroup.Id,
-      UserOrGroupId = UserInfo.getUserId()
+      UserOrGroupId = locationUser.Id
     );
 
-    System.assertEquals(null, Helpers.getLocations(SalesOrderType.repair));
+    System.runAs(locationUser) {
+      System.assertEquals(null, Helpers.getLocations(SalesOrderType.special));
+    }
   }
 
   @isTest
   static void testGetLocationsForRolexLiason() {
-    Group managerGroup = [
-      SELECT Id
-      FROM Group
-      WHERE DeveloperName = 'Rolex_Liason' AND Type = 'Regular'
-    ];
+    User locationUser = createLocationUser('rolex', 'Worth Ave');
+    Group managerGroup = getOrCreateGroup('Rolex Liason', 'Rolex_Liason');
 
     insert new GroupMember(
       GroupId = managerGroup.Id,
-      UserOrGroupId = UserInfo.getUserId()
+      UserOrGroupId = locationUser.Id
     );
 
-    System.assertEquals(null, Helpers.getLocations(SalesOrderType.special));
+    System.runAs(locationUser) {
+      System.assertEquals(null, Helpers.getLocations(SalesOrderType.special));
+    }
+  }
+
+  private static User createLocationUser(String alias, String location) {
+    User locationUser = new User(
+      Alias = alias,
+      Email = alias + '@example.com',
+      EmailEncodingKey = 'UTF-8',
+      LastName = 'Helpers Location',
+      LanguageLocaleKey = 'en_US',
+      LocaleSidKey = 'en_US',
+      Location__c = location,
+      ProfileId = UserInfo.getProfileId(),
+      TimeZoneSidKey = 'America/New_York',
+      UserName = alias + '-' + DateTime.now().getTime() + '@example.com'
+    );
+    insert locationUser;
+
+    return locationUser;
+  }
+
+  private static Group getOrCreateGroup(String name, String developerName) {
+    List<Group> groups = [
+      SELECT Id
+      FROM Group
+      WHERE DeveloperName = :developerName AND Type = 'Regular'
+      LIMIT 1
+    ];
+
+    if (!groups.isEmpty()) {
+      return groups[0];
+    }
+
+    Group newGroup = new Group(
+      Name = name,
+      DeveloperName = developerName,
+      Type = 'Regular'
+    );
+    insert newGroup;
+
+    return newGroup;
+  }
+
+  private static void ensureGroupMembership(Id parentGroupId, Id childGroupId) {
+    if (
+      [
+        SELECT COUNT()
+        FROM GroupMember
+        WHERE GroupId = :parentGroupId AND UserOrGroupId = :childGroupId
+      ] == 0
+    ) {
+      insert new GroupMember(
+        GroupId = parentGroupId,
+        UserOrGroupId = childGroupId
+      );
+    }
   }
 }
