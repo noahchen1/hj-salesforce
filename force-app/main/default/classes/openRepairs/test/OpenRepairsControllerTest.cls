@@ -6,10 +6,17 @@ private class OpenRepairsControllerTest {
     );
     insert newCustomer;
 
+    Set<String> allowedLocations = Helpers.getLocations(SalesOrderType.repair);
+    String orderLocation = allowedLocations != null &&
+      !allowedLocations.isEmpty()
+      ? allowedLocations.iterator().next()
+      : null;
+
     breadwinner_ns__BW_Sales_Order__c order1 = new breadwinner_ns__BW_Sales_Order__c(
       Name = 'Order1',
       breadwinner_ns__Entity__c = newCustomer.Id,
       breadwinner_ns__Total__c = 100,
+      breadwinner_ns__LocationName__c = orderLocation,
       ncf_body_repair_station__c = 'StationA',
       ncf_body1__c = 'TypeA',
       breadwinner_ns__Status__c = 'Open',
@@ -20,6 +27,7 @@ private class OpenRepairsControllerTest {
       Name = 'Order2',
       breadwinner_ns__Entity__c = newCustomer.Id,
       breadwinner_ns__Total__c = 200,
+      breadwinner_ns__LocationName__c = orderLocation,
       ncf_body_repair_station__c = 'StationB',
       ncf_body1__c = 'TypeB',
       breadwinner_ns__Status__c = 'Open',

@@ -294,7 +294,7 @@ private class HelpersTest {
   }
 
   @isTest
-  static void testGetLocationsForNestedNjServiceManager() {
+  static void testManagersAllTakesPrecedenceOverNestedServiceManager() {
     User locationUser = createLocationUser('nestednj', 'Worth Ave');
     Group serviceManagerGroup = getOrCreateGroup(
       'Service Managers - NJ',
@@ -309,10 +309,7 @@ private class HelpersTest {
     );
 
     System.runAs(locationUser) {
-      System.assertEquals(
-        new Set<String>{ 'H1912', 'Princeton', 'Hamilton Home' },
-        Helpers.getLocations(SalesOrderType.repair)
-      );
+      System.assertEquals(null, Helpers.getLocations(SalesOrderType.repair));
     }
   }
 
@@ -353,6 +350,7 @@ private class HelpersTest {
     );
 
     System.runAs(locationUser) {
+      System.assertEquals(null, Helpers.getLocations(SalesOrderType.repair));
       System.assertEquals(null, Helpers.getLocations(SalesOrderType.special));
     }
   }
