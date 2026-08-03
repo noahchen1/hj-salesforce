@@ -6,15 +6,31 @@ public with sharing class FilterDataController {
     public String NsId;
     @AuraEnabled
     public String Name;
+    @AuraEnabled
+    public String DisplayName;
 
     public LookupResult(String id, String name) {
       this.Id = id;
       this.Name = name;
+      this.DisplayName = name;
     }
 
     public LookupResult(String id, String name, String nsId) {
       this.Id = id;
       this.Name = name;
+      this.DisplayName = name;
+      this.NsId = nsId;
+    }
+
+    public LookupResult(
+      String id,
+      String name,
+      String displayName,
+      String nsId
+    ) {
+      this.Id = id;
+      this.Name = name;
+      this.DisplayName = displayName;
       this.NsId = nsId;
     }
   }
@@ -211,14 +227,28 @@ public with sharing class FilterDataController {
 
     try {
       for (breadwinner_ns__BW_Item__c item : [
-        SELECT Id, Name, breadwinner_ns__InternalId__c
+        SELECT
+          Id,
+          Name,
+          breadwinner_ns__DisplayName__c,
+          breadwinner_ns__InternalId__c
         FROM breadwinner_ns__BW_Item__c
-        WHERE Name LIKE :input + '%' AND breadwinner_ns__IsInactive__c = FALSE
+        WHERE
+          (Name LIKE :input + '%'
+          OR breadwinner_ns__DisplayName__c LIKE :input + '%')
+          AND breadwinner_ns__IsInactive__c = FALSE
       ]) {
+        String formattedName = String.isBlank(
+            item.breadwinner_ns__DisplayName__c
+          )
+          ? item.Name
+          : item.Name + ' ' + item.breadwinner_ns__DisplayName__c;
+
         items.add(
           new LookupResult(
             item.Id,
             item.Name,
+            formattedName,
             item.breadwinner_ns__InternalId__c
           )
         );
@@ -236,19 +266,31 @@ public with sharing class FilterDataController {
 
     try {
       for (breadwinner_ns__BW_Item__c item : [
-        SELECT Id, Name, breadwinner_ns__InternalId__c
+        SELECT
+          Id,
+          Name,
+          breadwinner_ns__DisplayName__c,
+          breadwinner_ns__InternalId__c
         FROM breadwinner_ns__BW_Item__c
         WHERE
-          Name LIKE :input + '%'
+          (Name LIKE :input + '%'
+          OR breadwinner_ns__DisplayName__c LIKE :input + '%')
           AND (ncf_item_serialized_item_type__c = FALSE
           OR (ncf_item_serialized_item_type__c = TRUE
           AND breadwinner_ns__Parent__c = NULL))
           AND breadwinner_ns__IsInactive__c = FALSE
       ]) {
+        String formattedName = String.isBlank(
+            item.breadwinner_ns__DisplayName__c
+          )
+          ? item.Name
+          : item.Name + ' ' + item.breadwinner_ns__DisplayName__c;
+
         items.add(
           new LookupResult(
             item.Id,
             item.Name,
+            formattedName,
             item.breadwinner_ns__InternalId__c
           )
         );
@@ -266,19 +308,31 @@ public with sharing class FilterDataController {
 
     try {
       for (breadwinner_ns__BW_Item__c item : [
-        SELECT Id, Name, breadwinner_ns__InternalId__c
+        SELECT
+          Id,
+          Name,
+          breadwinner_ns__DisplayName__c,
+          breadwinner_ns__InternalId__c
         FROM breadwinner_ns__BW_Item__c
         WHERE
-          Name LIKE :input + '%'
+          (Name LIKE :input + '%'
+          OR breadwinner_ns__DisplayName__c LIKE :input + '%')
           AND (ncf_item_serialized_item_type__c = FALSE
           OR (ncf_item_serialized_item_type__c = TRUE
           AND breadwinner_ns__Parent__c != NULL))
           AND breadwinner_ns__IsInactive__c = FALSE
       ]) {
+        String formattedName = String.isBlank(
+            item.breadwinner_ns__DisplayName__c
+          )
+          ? item.Name
+          : item.Name + ' ' + item.breadwinner_ns__DisplayName__c;
+
         items.add(
           new LookupResult(
             item.Id,
             item.Name,
+            formattedName,
             item.breadwinner_ns__InternalId__c
           )
         );

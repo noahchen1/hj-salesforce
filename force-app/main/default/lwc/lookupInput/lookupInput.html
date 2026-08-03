@@ -28,10 +28,11 @@
               key={item.Id}
               data-id={item.Id}
               data-name={item.Name}
+              data-display-name={item.DisplayName}
               data-nsid={item.NsId}
               onclick={handleSelect}
             >
-              {item.Name}
+              {item.DisplayName}
             </li>
           </template>
         </template>
